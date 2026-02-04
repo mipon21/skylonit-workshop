@@ -15,14 +15,22 @@ class Document extends Model
         'title',
         'file_path',
         'uploaded_at',
+        'uploaded_by_user_id',
+        'is_public',
     ];
 
     protected $casts = [
         'uploaded_at' => 'datetime',
+        'is_public' => 'boolean',
     ];
 
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function uploadedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'uploaded_by_user_id');
     }
 }

@@ -16,7 +16,9 @@ class ProjectLinkController extends Controller
             'url' => ['required', 'string', 'max:2048', 'url'],
             'login_username' => ['nullable', 'string', 'max:255'],
             'login_password' => ['nullable', 'string', 'max:255'],
+            'is_public' => ['nullable', 'boolean'],
         ]);
+        $validated['is_public'] = $request->boolean('is_public');
         $project->projectLinks()->create($validated);
         return redirect()->route('projects.show', $project)->withFragment('links')->with('success', 'Link added.');
     }
@@ -31,7 +33,9 @@ class ProjectLinkController extends Controller
             'url' => ['required', 'string', 'max:2048', 'url'],
             'login_username' => ['nullable', 'string', 'max:255'],
             'login_password' => ['nullable', 'string', 'max:255'],
+            'is_public' => ['nullable', 'boolean'],
         ]);
+        $validated['is_public'] = $request->boolean('is_public');
         $project_link->update($validated);
         return redirect()->route('projects.show', $project)->withFragment('links')->with('success', 'Link updated.');
     }

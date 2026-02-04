@@ -16,6 +16,11 @@ class ProjectLink extends Model
         'url',
         'login_username',
         'login_password',
+        'is_public',
+    ];
+
+    protected $casts = [
+        'is_public' => 'boolean',
     ];
 
     public function project(): BelongsTo

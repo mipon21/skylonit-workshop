@@ -14,10 +14,12 @@ class Expense extends Model
         'project_id',
         'amount',
         'note',
+        'is_public',
     ];
 
     protected $casts = [
         'amount' => 'float',
+        'is_public' => 'boolean',
     ];
 
     public function project(): BelongsTo

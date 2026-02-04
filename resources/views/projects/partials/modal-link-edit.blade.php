@@ -28,6 +28,16 @@
                         <input type="text" name="login_password" value="{{ old('login_password', $link->login_password) }}" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500" placeholder="Password for this link">
                         @error('login_password')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
                     </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium text-slate-400">Visibility</span>
+                        <label class="relative inline-flex items-center cursor-pointer gap-2 flex-shrink-0">
+                            <input type="hidden" name="is_public" value="0">
+                            <input type="checkbox" name="is_public" value="1" {{ old('is_public', $link->is_public ?? true) ? 'checked' : '' }} class="sr-only peer">
+                            <span class="relative inline-block h-6 w-11 shrink-0 rounded-full border border-slate-500 bg-slate-600 transition-colors peer-focus:ring-2 peer-focus:ring-sky-500/50 peer-checked:bg-sky-500" aria-hidden="true"></span>
+                            <span class="pointer-events-none absolute left-1 top-1 h-4 w-4 rounded-full border border-slate-400 bg-white shadow transition-transform duration-200 peer-checked:translate-x-5" aria-hidden="true"></span>
+                            <span class="text-sm text-slate-300">{{ ($link->is_public ?? true) ? 'Public (anyone can see)' : 'Private (admin only)' }}</span>
+                        </label>
+                    </div>
                 </div>
                 <div class="mt-6 flex justify-end gap-3">
                     <button type="button" @click="linkEditModal = null" class="px-4 py-2.5 rounded-xl border border-slate-600 text-slate-300 hover:bg-slate-700">Cancel</button>

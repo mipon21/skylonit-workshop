@@ -17,11 +17,11 @@
                         <label class="block text-sm font-medium text-slate-400 mb-1">Body</label>
                         <textarea name="body" rows="5" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">{{ old('body', $note->body) }}</textarea>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-1">Visibility</label>
-                        <select name="visibility" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500">
-                            <option value="internal" {{ $note->visibility === 'internal' ? 'selected' : '' }}>Internal (admin only)</option>
-                            <option value="client" {{ $note->visibility === 'client' ? 'selected' : '' }}>Client (future use)</option>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium text-slate-400">Visibility</span>
+                        <select name="visibility" class="rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500">
+                            <option value="client" {{ ($note->visibility ?? 'client') === 'client' ? 'selected' : '' }}>Public (anyone can see)</option>
+                            <option value="internal" {{ ($note->visibility ?? '') === 'internal' ? 'selected' : '' }}>Private (admin only)</option>
                         </select>
                     </div>
                 </div>

@@ -54,9 +54,11 @@
     <div class="space-y-6" x-data="{ open: false }">
         <div class="flex flex-wrap items-center justify-between gap-4">
             <h1 class="text-2xl font-semibold text-white">Projects</h1>
+            @if(!($isClient ?? false))
             <button @click="open = true" class="px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-medium text-sm transition">
                 Add Project
             </button>
+            @endif
         </div>
 
         <div class="space-y-6" x-data="projectsPage()">
@@ -138,12 +140,14 @@
                     </a>
                     <div class="mt-4 pt-4 border-t border-slate-700/50 flex flex-wrap items-center gap-2">
                         <a href="{{ route('projects.show', $project) }}" class="px-3 py-1.5 rounded-lg bg-slate-700/80 hover:bg-slate-600 text-slate-300 hover:text-white text-xs font-medium">View</a>
+                        @if(!($isClient ?? false))
                         <a href="{{ route('projects.edit', $project) }}" class="px-3 py-1.5 rounded-lg bg-slate-700/80 hover:bg-slate-600 text-slate-300 hover:text-white text-xs font-medium">Edit</a>
                         <form action="{{ route('projects.destroy', $project) }}" method="POST" class="inline" onsubmit="return confirm('Delete this project? All related payments, expenses, documents, tasks, bugs and notes will be removed.');">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300 text-xs font-medium">Delete</button>
                         </form>
+                        @endif
                     </div>
                 </div>
             @empty
@@ -155,6 +159,7 @@
             <p x-show="projectsData.length && filteredIds.length === 0" x-transition class="py-6 text-center text-slate-500">No projects match your search or filter.</p>
         </div>
 
+        @if(!($isClient ?? false))
         {{-- Add Project Modal --}}
         <div x-show="open" x-cloak class="fixed inset-0 z-50 overflow-y-auto" aria-modal="true">
             <div class="flex min-h-full items-center justify-center p-4">
@@ -228,5 +233,6 @@
                 </div>
             </div>
         </div>
+        @endif
     </div>
 </x-app-layout>

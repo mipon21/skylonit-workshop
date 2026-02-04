@@ -6,17 +6,23 @@ use App\Models\Client;
 use App\Models\Project;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class ProjectController extends Controller
 {
     public function index(): View
     {
-        $projects = Project::with('client')
+        $query = Project::with('client')
             ->withCount(['tasks', 'tasks as tasks_done_count' => fn ($q) => $q->where('status', 'done')])
             ->orderByRaw('CASE WHEN project_code IS NULL OR project_code = "" THEN 1 ELSE 0 END')
-            ->orderByDesc('project_code')
-            ->get();
+            ->orderByDesc('project_code');
+
+        if (Auth::user()->isClient() && Auth::user()->client) {
+            $query->where('client_id', Auth::user()->client->id);
+        }
+
+        $projects = $query->get();
         $projectsData = $projects->map(fn (Project $p) => [
             'id' => $p->id,
             'project_name' => $p->project_name,
@@ -25,7 +31,8 @@ class ProjectController extends Controller
             'status' => $p->status ?? '',
             'payment_status' => $p->due <= 0 ? 'paid' : ($p->total_paid > 0 ? 'partial' : 'unpaid'),
         ])->values()->toArray();
-        return view('projects.index', compact('projects', 'projectsData'));
+        $isClient = Auth::user()->isClient();
+        return view('projects.index', compact('projects', 'projectsData', 'isClient'));
     }
 
     public function create(): View
@@ -54,9 +61,24 @@ class ProjectController extends Controller
 
     public function show(Project $project): View
     {
-        $project->load(['client', 'payments', 'expenses', 'documents', 'tasks', 'bugs', 'projectNotes', 'projectLinks', 'projectPayouts'])
+        $user = Auth::user();
+        if ($user->isClient()) {
+            if (! $user->client || $project->client_id !== $user->client->id) {
+                abort(403, 'You do not have access to this project.');
+            }
+        }
+
+        $project->load(['client', 'payments', 'expenses', 'documents' => fn ($q) => $q->with('uploadedBy'), 'tasks', 'bugs', 'projectNotes', 'projectLinks', 'projectPayouts'])
             ->loadCount(['tasks', 'tasks as tasks_done_count' => fn ($q) => $q->where('status', 'done')]);
-        return view('projects.show', compact('project'));
+
+        $isClient = $user->isClient();
+        if ($isClient) {
+            $project->setRelation('projectNotes', $project->projectNotes->where('visibility', 'client'));
+            $project->setRelation('expenses', $project->expenses->where('is_public', true));
+            $project->setRelation('documents', $project->documents->where('is_public', true));
+            $project->setRelation('projectLinks', $project->projectLinks->where('is_public', true));
+        }
+        return view('projects.show', compact('project', 'isClient'));
     }
 
     public function edit(Project $project): View

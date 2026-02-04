@@ -6,13 +6,22 @@ use App\Models\Bug;
 use App\Models\Project;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class BugController extends Controller
 {
+    private function authorizeProjectForClient(Project $project): void
+    {
+        if (Auth::user()->isClient() && (! Auth::user()->client || $project->client_id !== Auth::user()->client->id)) {
+            abort(403, 'You do not have access to this project.');
+        }
+    }
+
     public function store(Request $request, Project $project): RedirectResponse
     {
+        $this->authorizeProjectForClient($project);
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
@@ -34,6 +43,7 @@ class BugController extends Controller
 
     public function downloadAttachment(Project $project, Bug $bug): StreamedResponse
     {
+        $this->authorizeProjectForClient($project);
         if ($bug->project_id !== $project->id || ! $bug->attachment_path) {
             abort(404);
         }

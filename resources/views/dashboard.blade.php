@@ -10,10 +10,10 @@
                     <div class="w-10 h-10 rounded-xl bg-sky-500/20 flex items-center justify-center">
                         <svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
-                    <span class="text-slate-400 text-sm font-medium">Total Revenue</span>
+                    <span class="text-slate-400 text-sm font-medium">{{ $isClient ?? false ? 'Total Contract Amount' : 'Total Revenue' }}</span>
                 </div>
-                <p class="text-2xl font-bold text-white">৳ {{ number_format($totalRevenue, 0) }}</p>
-                <p class="text-slate-500 text-xs mt-1">Gross contract amount</p>
+                <p class="text-2xl font-bold text-white">৳ {{ number_format($isClient ?? false ? $totalContractAmount : $totalRevenue, 0) }}</p>
+                <p class="text-slate-500 text-xs mt-1">{{ $isClient ?? false ? 'Your projects' : 'Gross contract amount' }}</p>
             </div>
 
             <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg hover:shadow-xl transition-shadow">
@@ -21,10 +21,10 @@
                     <div class="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
                         <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
-                    <span class="text-slate-400 text-sm font-medium">Total Profit</span>
+                    <span class="text-slate-400 text-sm font-medium">{{ $isClient ?? false ? 'Total Paid' : 'Total Profit' }}</span>
                 </div>
-                <p class="text-2xl font-bold text-emerald-400">৳ {{ number_format($totalProfit, 0) }}</p>
-                <p class="text-slate-500 text-xs mt-1">Realized from completed payments</p>
+                <p class="text-2xl font-bold text-emerald-400">৳ {{ number_format($isClient ?? false ? ($totalPaid ?? 0) : $totalProfit, 0) }}</p>
+                <p class="text-slate-500 text-xs mt-1">{{ $isClient ?? false ? 'Received' : 'Realized from completed payments' }}</p>
             </div>
 
             <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg hover:shadow-xl transition-shadow">
@@ -35,7 +35,7 @@
                     <span class="text-slate-400 text-sm font-medium">Total Due</span>
                 </div>
                 <p class="text-2xl font-bold text-amber-400">৳ {{ number_format($totalDue, 0) }}</p>
-                <p class="text-slate-500 text-xs mt-1">Unpaid from clients</p>
+                <p class="text-slate-500 text-xs mt-1">{{ $isClient ?? false ? 'Outstanding' : 'Unpaid from clients' }}</p>
             </div>
 
             <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg hover:shadow-xl transition-shadow">

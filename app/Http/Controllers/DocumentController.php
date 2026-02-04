@@ -6,34 +6,64 @@ use App\Models\Document;
 use App\Models\Project;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 class DocumentController extends Controller
 {
+    private function authorizeProjectForClient(Project $project): void
+    {
+        if (Auth::user()->isClient() && (! Auth::user()->client || $project->client_id !== Auth::user()->client->id)) {
+            abort(403, 'You do not have access to this project.');
+        }
+    }
+
     public function store(Request $request, Project $project): RedirectResponse
     {
+        $this->authorizeProjectForClient($project);
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'file' => ['required', 'file', 'mimes:pdf,doc,docx,png,jpg,jpeg,zip', 'max:512000'], // 500 MB (max in KB)
+            'is_public' => ['nullable', 'boolean'],
         ]);
 
         $file = $request->file('file');
         $path = $file->store('project-documents/' . $project->id, 'local');
 
+        $isPublic = Auth::user()->isClient()
+            ? true
+            : $request->boolean('is_public');
+
         $project->documents()->create([
             'title' => $validated['title'],
             'file_path' => $path,
             'uploaded_at' => now(),
+            'uploaded_by_user_id' => Auth::id(),
+            'is_public' => $isPublic,
         ]);
 
         return redirect()->route('projects.show', $project)->withFragment('documents')->with('success', 'Document uploaded.');
     }
 
+    public function update(Request $request, Project $project, Document $document): RedirectResponse
+    {
+        if ($document->project_id !== $project->id) {
+            abort(404);
+        }
+        $this->authorizeProjectForClient($project);
+        $validated = $request->validate([
+            'is_public' => ['required', 'boolean'],
+        ]);
+        $document->update($validated);
+        return redirect()->route('projects.show', $project)->withFragment('documents')->with('success', 'Document visibility updated.');
+    }
+
     /** Open document in the browser (inline display for PDF/images, etc.). */
     public function view(Project $project, Document $document): Response
     {
+        $this->authorizeProjectForClient($project);
         if ($document->project_id !== $project->id) {
             abort(404);
         }
@@ -57,6 +87,7 @@ class DocumentController extends Controller
 
     public function destroy(Project $project, Document $document): RedirectResponse
     {
+        $this->authorizeProjectForClient($project);
         if ($document->project_id !== $project->id) {
             abort(404);
         }

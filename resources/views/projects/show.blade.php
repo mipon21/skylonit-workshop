@@ -5,7 +5,9 @@
         activeTab: (() => { const h = window.location.hash.slice(1); return ['payments','expenses','client','documents','tasks','bugs','notes','links'].includes(h) ? h : 'payments'; })(),
         setTab(tab) { this.activeTab = tab; window.location.hash = tab; },
         paymentModal: false,
+        paymentEditModal: null,
         expenseModal: false,
+        expenseEditModal: null,
         documentModal: false,
         taskModal: false,
         bugModal: false,
@@ -29,13 +31,14 @@
                     @if($project->project_type)
                         <span class="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-600/80 text-slate-300 border border-slate-500/50">{{ $project->project_type }}</span>
                     @endif
-                    @if($project->exclude_from_overhead_profit)
+                    @if(!($isClient ?? false) && $project->exclude_from_overhead_profit)
                         <span class="px-2.5 py-1 rounded-lg text-xs font-medium bg-amber-500/20 text-amber-400 border border-amber-500/40" title="Developer 75% &amp; Sales 25% only; no Overhead/Profit">Dev &amp; Sales only</span>
                     @endif
                 </div>
                 <p class="text-slate-400 text-sm mt-0.5">{{ $project->client->name }} @if($project->project_code)· {{ $project->project_code }}@endif</p>
             </div>
             <div class="flex gap-2 items-center">
+                @if(!($isClient ?? false))
                 <a href="{{ route('projects.edit', $project) }}" class="px-4 py-2.5 rounded-xl border border-slate-600 text-slate-300 hover:bg-slate-700 text-sm font-medium transition">Edit</a>
                 <div class="relative" x-data="{ statusOpen: false, statusValue: '{{ $project->status }}' }" @click.outside="statusOpen = false">
                     <form x-ref="statusForm" action="{{ route('projects.status.update', $project) }}" method="post" class="inline">
@@ -54,6 +57,9 @@
                         <button type="button" @click="statusValue = 'On Hold'; statusOpen = false; $nextTick(() => $refs.statusForm.submit())" class="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition">On Hold</button>
                     </div>
                 </div>
+                @else
+                <span class="px-4 py-2.5 rounded-xl border border-slate-600 text-slate-400 text-sm">{{ $project->status }}</span>
+                @endif
             </div>
         </div>
 
@@ -81,7 +87,8 @@
             <p class="text-slate-500 text-xs mt-1.5">{{ $tasksDone }} / {{ $tasksTotal }} tasks done</p>
         </div>
 
-        {{-- Revenue pipeline: Contract → Expenses → Overhead → Sales → Developer → Profit --}}
+        {{-- Revenue pipeline: admin sees full; client sees Contract, Expenses, Total Paid, Due only --}}
+        @if(!($isClient ?? false))
         @if($project->exclude_from_overhead_profit)
             <div class="mb-4 px-4 py-3 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400/90 text-sm flex items-center gap-2">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -94,15 +101,17 @@
                 Net base is negative (expenses exceed contract). Profit shown as ৳0.
             </div>
         @endif
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 items-start">
+        @endif
+        <div class="grid grid-cols-2 sm:grid-cols-3 {{ ($isClient ?? false) ? 'lg:grid-cols-4' : 'lg:grid-cols-6' }} gap-4 items-start">
             <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-4">
-                <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">Contract</p>
+                <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">Contract {{ ($isClient ?? false) ? 'Amount' : '' }}</p>
                 <p class="text-lg font-bold text-white mt-0.5">৳ {{ number_format($project->contract_amount, 0) }}</p>
             </div>
             <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-4">
-                <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">Expenses</p>
-                <p class="text-lg font-bold text-white mt-0.5">− ৳ {{ number_format($project->expense_total, 0) }}</p>
+                <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">Total Expenses</p>
+                <p class="text-lg font-bold text-white mt-0.5">৳ {{ number_format(($isClient ?? false) ? $project->expenses->sum('amount') : $project->expense_total, 0) }}</p>
             </div>
+            @if(!($isClient ?? false))
             <div class="bg-slate-800/80 backdrop-blur border border-sky-500/30 rounded-2xl p-4">
                 <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">Net base</p>
                 <p class="text-lg font-bold {{ $project->is_net_base_negative ? 'text-amber-400' : 'text-white' }} mt-0.5">৳ {{ number_format($project->net_base, 0) }}</p>
@@ -142,6 +151,16 @@
                     <span class="inline-block px-3 py-1.5 rounded-md text-base font-medium border whitespace-nowrap {{ $payoutBadgeClass($payoutStatus('developer')) }}">{{ \App\Models\ProjectPayout::statusLabel($payoutStatus('developer')) }}</span>
                 </p>
             </div>
+            @else
+            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-4">
+                <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">Total Paid</p>
+                <p class="text-lg font-bold text-emerald-400 mt-0.5">৳ {{ number_format($project->total_paid, 0) }}</p>
+            </div>
+            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-4">
+                <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">Due</p>
+                <p class="text-lg font-bold {{ $project->due > 0 ? 'text-amber-400' : 'text-emerald-400' }} mt-0.5">৳ {{ number_format($project->due, 0) }}</p>
+            </div>
+            @endif
         </div>
         @php
             $taskTodo = $project->tasks->where('status', 'todo')->count();
@@ -150,7 +169,7 @@
             $taskTotal = $project->tasks->count();
             $openBugs = $project->bugs->whereIn('status', ['open', 'in_progress'])->count();
         @endphp
-        {{-- Side-by-side: Work Overview (left, fills space) | Profit card (right, fixed) --}}
+        {{-- Side-by-side: Work Overview (left) | Profit card (right, admin only) --}}
         <div class="flex flex-row gap-4 mt-2 items-start">
             <div class="flex-1 min-w-0 h-[70px] rounded-2xl bg-slate-800/80 backdrop-blur border border-slate-700/50 p-2.5 overflow-hidden flex flex-col">
                 <p class="text-slate-300 text-sm font-semibold uppercase tracking-wide mb-1 shrink-0 text-center">Work overview</p>
@@ -191,6 +210,7 @@
                     </div>
                 </div>
             </div>
+            @if(!($isClient ?? false))
             <div class="flex shrink-0">
                 <div role="button" tabindex="0" title="Click to edit payout" @click="payoutType = 'profit'; payoutModal = true" @keydown.enter="payoutType = 'profit'; payoutModal = true" class="bg-slate-800/80 backdrop-blur border border-emerald-500/30 rounded-2xl p-4 shadow-[0_0_20px_-5px_rgba(16,185,129,0.2)] min-w-[180px] text-right cursor-pointer hover:border-emerald-500/50 transition group">
                     <p class="text-emerald-400/90 text-lg font-semibold uppercase tracking-wide">Profit</p>
@@ -201,8 +221,11 @@
                     </p>
                 </div>
             </div>
+            @endif
         </div>
+        @if(!($isClient ?? false))
         <p class="text-slate-500 text-xs mt-1">Amounts above fill as completed payments are received ({{ number_format($project->realized_ratio * 100, 0) }}% realized).</p>
+        @endif
 
         {{-- Payments progress (below payment data) – animates on load --}}
         <div class="rounded-2xl bg-slate-800/60 border border-slate-700/50 p-4 shadow-inner">
@@ -221,7 +244,9 @@
             <div class="flex border-b border-slate-700/50 overflow-x-auto">
                 <button @click="setTab('payments')" :class="activeTab === 'payments' ? 'bg-sky-500/20 text-sky-400 border-b-2 border-sky-500' : 'text-slate-400 hover:text-white'" class="px-5 py-4 font-medium text-sm whitespace-nowrap border-b-2 border-transparent">Payments</button>
                 <button @click="setTab('expenses')" :class="activeTab === 'expenses' ? 'bg-sky-500/20 text-sky-400 border-b-2 border-sky-500' : 'text-slate-400 hover:text-white'" class="px-5 py-4 font-medium text-sm whitespace-nowrap border-b-2 border-transparent">Expenses</button>
+                @if(!($isClient ?? false))
                 <button @click="setTab('client')" :class="activeTab === 'client' ? 'bg-sky-500/20 text-sky-400 border-b-2 border-sky-500' : 'text-slate-400 hover:text-white'" class="px-5 py-4 font-medium text-sm whitespace-nowrap border-b-2 border-transparent">Client</button>
+                @endif
                 <button @click="setTab('documents')" :class="activeTab === 'documents' ? 'bg-sky-500/20 text-sky-400 border-b-2 border-sky-500' : 'text-slate-400 hover:text-white'" class="px-5 py-4 font-medium text-sm whitespace-nowrap border-b-2 border-transparent">Documents</button>
                 <button @click="setTab('tasks')" :class="activeTab === 'tasks' ? 'bg-sky-500/20 text-sky-400 border-b-2 border-sky-500' : 'text-slate-400 hover:text-white'" class="px-5 py-4 font-medium text-sm whitespace-nowrap border-b-2 border-transparent">Tasks</button>
                 <button @click="setTab('bugs')" :class="activeTab === 'bugs' ? 'bg-sky-500/20 text-sky-400 border-b-2 border-sky-500' : 'text-slate-400 hover:text-white'" class="px-5 py-4 font-medium text-sm whitespace-nowrap border-b-2 border-transparent">Bugs</button>
@@ -233,7 +258,9 @@
             <div x-show="activeTab === 'payments'" class="p-5">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="font-semibold text-white">Payments</h2>
+                    @if(!($isClient ?? false))
                     <button @click="paymentModal = true" class="px-3 py-1.5 rounded-lg bg-sky-500/20 text-sky-400 hover:bg-sky-500/30 text-sm font-medium">Add</button>
+                    @endif
                 </div>
                 <ul class="space-y-3">
                     @forelse($project->payments as $payment)
@@ -252,11 +279,16 @@
                                     ])>{{ $payment->status === 'completed' ? 'Paid' : ucfirst($payment->status) }}</span>
                                 </div>
                             </div>
-                            <form action="{{ route('projects.payments.destroy', [$project, $payment]) }}" method="POST" class="inline shrink-0" onsubmit="return confirm('Remove this payment?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="text-red-400 hover:text-red-300 text-sm">Remove</button>
-                            </form>
+                            @if(!($isClient ?? false))
+                            <div class="flex items-center gap-2 shrink-0">
+                                <button type="button" @click="paymentEditModal = {{ $payment->id }}" class="text-sky-400 hover:text-sky-300 text-sm">Edit</button>
+                                <form action="{{ route('projects.payments.destroy', [$project, $payment]) }}" method="POST" class="inline" onsubmit="return confirm('Remove this payment?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-red-400 hover:text-red-300 text-sm">Remove</button>
+                                </form>
+                            </div>
+                            @endif
                         </li>
                     @empty
                         <li class="text-slate-500 text-sm">No payments yet.</li>
@@ -276,20 +308,38 @@
             <div x-show="activeTab === 'expenses'" class="p-5">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="font-semibold text-white">Expenses</h2>
+                    @if(!($isClient ?? false))
                     <button @click="expenseModal = true" class="px-3 py-1.5 rounded-lg bg-sky-500/20 text-sky-400 hover:bg-sky-500/30 text-sm font-medium">Add</button>
+                    @endif
                 </div>
                 <ul class="space-y-3">
                     @forelse($project->expenses as $expense)
-                        <li class="flex items-center justify-between py-2 border-b border-slate-700/30 last:border-0">
-                            <div>
+                        <li class="flex items-center justify-between gap-3 py-2 border-b border-slate-700/30 last:border-0">
+                            <div class="min-w-0 flex-1">
                                 <span class="text-white font-medium">৳ {{ number_format($expense->amount, 0) }}</span>
                                 @if($expense->note)<span class="text-slate-500 text-sm ml-2">— {{ Str::limit($expense->note, 30) }}</span>@endif
                             </div>
-                            <form action="{{ route('projects.expenses.destroy', [$project, $expense]) }}" method="POST" class="inline" onsubmit="return confirm('Remove this expense?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="text-red-400 hover:text-red-300 text-sm">Remove</button>
-                            </form>
+                            @if(!($isClient ?? false))
+                            <div class="flex items-center gap-2 shrink-0">
+                                <button type="button" @click="expenseEditModal = {{ $expense->id }}" class="text-sky-400 hover:text-sky-300 text-sm">Edit</button>
+                                <form action="{{ route('projects.expenses.update', [$project, $expense]) }}" method="POST" class="inline-flex items-center gap-2" id="expense-visibility-{{ $expense->id }}">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="is_public" value="{{ $expense->is_public ? '1' : '0' }}" id="expense-is-public-input-{{ $expense->id }}">
+                                    <label class="visibility-toggle-wrap relative inline-flex items-center cursor-pointer gap-2 {{ $expense->is_public ? 'is-checked' : '' }}" title="{{ $expense->is_public ? 'Public – click to make private' : 'Private – click to make public' }}">
+                                        <input type="checkbox" {{ $expense->is_public ? 'checked' : '' }} class="sr-only expense-visibility-toggle" data-input-id="expense-is-public-input-{{ $expense->id }}" data-form-id="expense-visibility-{{ $expense->id }}">
+                                        <span class="visibility-track relative block h-5 w-9 shrink-0 rounded-full border-2 border-slate-500 bg-slate-600 transition-colors duration-200" aria-hidden="true" style="min-width: 2.25rem; min-height: 1.25rem;"></span>
+                                        <span class="visibility-knob absolute z-10 rounded-full border-2 border-slate-400 bg-white shadow-md transition-transform duration-200 ease-out pointer-events-none" aria-hidden="true" style="left: 0.2rem; top: 0.2rem; width: 0.75rem; height: 0.75rem;"></span>
+                                        <span class="visibility-label text-xs font-medium whitespace-nowrap {{ $expense->is_public ? 'text-sky-400' : 'text-slate-400' }}">{{ $expense->is_public ? 'Public' : 'Private' }}</span>
+                                    </label>
+                                </form>
+                                <form action="{{ route('projects.expenses.destroy', [$project, $expense]) }}" method="POST" class="inline" onsubmit="return confirm('Remove this expense?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-red-400 hover:text-red-300 text-sm">Remove</button>
+                                </form>
+                            </div>
+                            @endif
                         </li>
                     @empty
                         <li class="text-slate-500 text-sm">No expenses yet.</li>
@@ -297,11 +347,12 @@
                 </ul>
                 <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between text-sm">
                     <span class="text-slate-400">Total expense</span>
-                    <span class="font-semibold text-white">৳ {{ number_format($project->expense_total, 0) }}</span>
+                    <span class="font-semibold text-white">৳ {{ number_format(($isClient ?? false) ? $project->expenses->sum('amount') : $project->expense_total, 0) }}</span>
                 </div>
             </div>
 
-            {{-- Tab: Client --}}
+            {{-- Tab: Client (admin only) --}}
+            @if(!($isClient ?? false))
             @php $client = $project->client; @endphp
             <div x-show="activeTab === 'client'" class="p-5">
                 <div class="flex items-center justify-between mb-4">
@@ -330,6 +381,7 @@
                     <p class="text-slate-500 text-sm mt-4">No contact or details recorded for this client.</p>
                 @endif
             </div>
+            @endif
 
             {{-- Tab: Documents --}}
             <div x-show="activeTab === 'documents'" class="p-5">
@@ -339,23 +391,44 @@
                 </div>
                 <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     @forelse($project->documents as $doc)
-                        <div class="bg-slate-800/80 border border-slate-700/50 rounded-xl p-4 flex items-center justify-between gap-3">
-                            <div class="min-w-0 flex-1">
-                                <a href="{{ route('projects.documents.view', [$project, $doc]) }}" target="_blank" rel="noopener noreferrer" class="font-medium text-white block hover:text-sky-400 transition break-words">{{ $doc->title }}</a>
-                                <p class="text-slate-500 text-xs mt-0.5">
+                        <div class="bg-slate-800/80 border border-slate-700/50 rounded-xl p-4 grid gap-4" style="grid-template-columns: minmax(0, 1fr) auto;">
+                            <div class="min-w-0 space-y-1 overflow-hidden">
+                                <a href="{{ route('projects.documents.view', [$project, $doc]) }}" target="_blank" rel="noopener noreferrer" class="font-medium text-white hover:text-sky-400 transition block overflow-hidden max-w-full break-all line-clamp-2" title="{{ $doc->title }}">{{ $doc->title }}</a>
+                                <p class="text-slate-500 text-xs flex flex-wrap items-center gap-x-1 gap-y-0.5">
                                     <span class="text-slate-400 font-medium uppercase">{{ pathinfo($doc->file_path, PATHINFO_EXTENSION) }}</span>
-                                    <span class="text-slate-600 mx-1">·</span>
-                                    {{ $doc->uploaded_at?->format('M d, Y') }}
+                                    <span class="text-slate-600">·</span>
+                                    <span class="whitespace-nowrap">{{ $doc->uploaded_at?->format('M j, Y') }}</span>
+                                    <span class="text-slate-600">·</span>
+                                    <span class="text-slate-400 whitespace-nowrap">Uploaded by: {{ $doc->uploadedBy ? ucfirst($doc->uploadedBy->role) : '—' }}</span>
                                 </p>
                             </div>
-                            <div class="flex items-center gap-2 shrink-0">
-                                <a href="{{ route('projects.documents.download', [$project, $doc]) }}" class="text-slate-400 hover:text-slate-300 text-sm">Download</a>
-                                <form action="{{ route('projects.documents.destroy', [$project, $doc]) }}" method="POST" class="inline" onsubmit="return confirm('Delete this document?');">
+                            @if(!($isClient ?? false))
+                            <div class="flex flex-col items-end gap-2 shrink-0 pl-3 border-l border-slate-600/80">
+                                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                                    <a href="{{ route('projects.documents.download', [$project, $doc]) }}" class="px-3 py-1.5 rounded-lg bg-slate-700/80 hover:bg-slate-600 text-slate-200 text-sm font-medium text-center whitespace-nowrap transition">Download</a>
+                                    <form action="{{ route('projects.documents.destroy', [$project, $doc]) }}" method="POST" class="inline" onsubmit="return confirm('Delete this document?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="w-full sm:w-auto px-3 py-1.5 rounded-lg bg-red-900/40 hover:bg-red-800/50 text-red-400 text-sm font-medium whitespace-nowrap transition border border-red-700/50">Delete</button>
+                                    </form>
+                                </div>
+                                <form action="{{ route('projects.documents.update', [$project, $doc]) }}" method="POST" class="inline-flex items-center" id="document-visibility-{{ $doc->id }}">
                                     @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-red-400 hover:text-red-300 text-sm">Delete</button>
+                                    @method('PATCH')
+                                    <input type="hidden" name="is_public" value="{{ $doc->is_public ? '1' : '0' }}" id="document-is-public-input-{{ $doc->id }}">
+                                    <label class="visibility-toggle-wrap relative inline-flex items-center cursor-pointer gap-1.5 {{ $doc->is_public ? 'is-checked' : '' }}" title="{{ $doc->is_public ? 'Public – click to make private' : 'Private – click to make public' }}">
+                                        <input type="checkbox" {{ $doc->is_public ? 'checked' : '' }} class="sr-only document-visibility-toggle" data-input-id="document-is-public-input-{{ $doc->id }}" data-form-id="document-visibility-{{ $doc->id }}">
+                                        <span class="visibility-track relative block h-5 w-9 shrink-0 rounded-full border-2 border-slate-500 bg-slate-600 transition-colors duration-200" aria-hidden="true" style="min-width: 2.25rem; min-height: 1.25rem;"></span>
+                                        <span class="visibility-knob absolute z-10 rounded-full border-2 border-slate-400 bg-white shadow-md transition-transform duration-200 ease-out pointer-events-none" aria-hidden="true" style="left: 0.2rem; top: 0.2rem; width: 0.75rem; height: 0.75rem;"></span>
+                                        <span class="visibility-label text-xs font-medium whitespace-nowrap {{ $doc->is_public ? 'text-sky-400' : 'text-slate-400' }}">{{ $doc->is_public ? 'Public' : 'Private' }}</span>
+                                    </label>
                                 </form>
                             </div>
+                            @else
+                            <div class="shrink-0 pl-3 border-l border-slate-600/80">
+                                <a href="{{ route('projects.documents.download', [$project, $doc]) }}" class="inline-block px-3 py-1.5 rounded-lg bg-slate-700/80 hover:bg-slate-600 text-slate-200 text-sm font-medium whitespace-nowrap transition">Download</a>
+                            </div>
+                            @endif
                         </div>
                     @empty
                         <p class="text-slate-500 text-sm col-span-full">No documents yet.</p>
@@ -375,7 +448,9 @@
                         <h2 class="font-semibold text-white">Tasks</h2>
                         <span class="text-slate-400 text-sm">{{ $taskDone }}/{{ $taskTotal }} done ({{ $taskPct }}%)</span>
                     </div>
+                    @if(!($isClient ?? false))
                     <button @click="taskModal = true" class="px-3 py-1.5 rounded-lg bg-sky-500/20 text-sky-400 hover:bg-sky-500/30 text-sm font-medium">Add Task</button>
+                    @endif
                 </div>
                 <div class="h-2 bg-slate-700 rounded-full overflow-hidden mb-6">
                     <div class="h-full bg-emerald-500 rounded-full transition-all" style="width: {{ $taskPct }}%"></div>
@@ -385,7 +460,7 @@
                         <h3 class="text-amber-400 font-medium text-sm mb-3">To Do</h3>
                         <div class="space-y-3">
                             @foreach($project->tasks->where('status', 'todo') as $task)
-                                @include('projects.partials.task-card', ['task' => $task, 'project' => $project])
+                                @include('projects.partials.task-card', ['task' => $task, 'project' => $project, 'isClient' => $isClient ?? false])
                             @endforeach
                             @if($project->tasks->where('status', 'todo')->isEmpty())
                                 <p class="text-slate-500 text-sm">No tasks</p>
@@ -396,7 +471,7 @@
                         <h3 class="text-amber-400 font-medium text-sm mb-3">Doing</h3>
                         <div class="space-y-3">
                             @foreach($project->tasks->where('status', 'doing') as $task)
-                                @include('projects.partials.task-card', ['task' => $task, 'project' => $project])
+                                @include('projects.partials.task-card', ['task' => $task, 'project' => $project, 'isClient' => $isClient ?? false])
                             @endforeach
                             @if($project->tasks->where('status', 'doing')->isEmpty())
                                 <p class="text-slate-500 text-sm">No tasks</p>
@@ -407,7 +482,7 @@
                         <h3 class="text-emerald-400 font-medium text-sm mb-3">Done</h3>
                         <div class="space-y-3">
                             @foreach($project->tasks->where('status', 'done') as $task)
-                                @include('projects.partials.task-card', ['task' => $task, 'project' => $project])
+                                @include('projects.partials.task-card', ['task' => $task, 'project' => $project, 'isClient' => $isClient ?? false])
                             @endforeach
                             @if($project->tasks->where('status', 'done')->isEmpty())
                                 <p class="text-slate-500 text-sm">No tasks</p>
@@ -459,6 +534,7 @@
                                         </a>
                                     </p>
                                 @endif
+                                @if(!($isClient ?? false))
                                 <div class="mt-4 flex flex-wrap items-center justify-between gap-2">
                                     <form action="{{ route('projects.bugs.update', [$project, $bug]) }}" method="POST" class="inline">
                                         @csrf
@@ -481,6 +557,7 @@
                                         </form>
                                     </div>
                                 </div>
+                                @endif
                             </div>
                         </div>
                     @endforeach
@@ -494,7 +571,9 @@
             <div x-show="activeTab === 'notes'" class="p-5">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="font-semibold text-white">Notes</h2>
+                    @if(!($isClient ?? false))
                     <button @click="noteModal = true" class="px-3 py-1.5 rounded-lg bg-sky-500/20 text-sky-400 hover:bg-sky-500/30 text-sm font-medium">New Note</button>
+                    @endif
                 </div>
                 <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     @forelse($project->projectNotes as $note)
@@ -508,14 +587,31 @@
                             </button>
                             <div x-show="expandedNoteId == {{ $note->id }}" x-transition class="px-4 pb-4">
                                 <div class="pt-2 border-t border-slate-700/50 text-slate-300 text-sm whitespace-pre-wrap">{{ $note->body ?: '—' }}</div>
-                            </div>
-                            <div class="px-4 py-3 border-t border-slate-700/50 flex justify-end gap-2">
-                                <button type="button" @click="noteEditModal = {{ $note->id }}" class="text-sky-400 hover:text-sky-300 text-sm">Edit</button>
-                                <form action="{{ route('projects.notes.destroy', [$project, $note]) }}" method="POST" class="inline" onsubmit="return confirm('Delete this note?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-red-400 hover:text-red-300 text-sm">Delete</button>
-                                </form>
+                                @if(!($isClient ?? false))
+                                <div class="px-4 py-3 border-t border-slate-700/50 flex flex-wrap items-center justify-between gap-2">
+                                    <form action="{{ route('projects.notes.update', [$project, $note]) }}" method="POST" class="inline-flex items-center gap-2" id="note-visibility-form-{{ $note->id }}">
+                                        @csrf
+                                        @method('PATCH')
+                                        <input type="hidden" name="title" value="{{ old('title', $note->title) }}">
+                                        <input type="hidden" name="body" value="{{ old('body', $note->body ?? '') }}">
+                                        <input type="hidden" name="visibility" id="note-visibility-value-{{ $note->id }}" value="{{ $note->visibility }}">
+                                        <label class="visibility-toggle-wrap relative inline-flex items-center cursor-pointer gap-2 {{ $note->visibility === 'client' ? 'is-checked' : '' }}" title="{{ $note->visibility === 'client' ? 'Public – click to make private' : 'Private – click to make public' }}">
+                                            <input type="checkbox" {{ $note->visibility === 'client' ? 'checked' : '' }} class="sr-only note-visibility-toggle" data-value-input-id="note-visibility-value-{{ $note->id }}" data-form-id="note-visibility-form-{{ $note->id }}">
+                                            <span class="visibility-track relative block h-5 w-9 shrink-0 rounded-full border-2 border-slate-500 bg-slate-600 transition-colors duration-200" aria-hidden="true" style="min-width: 2.25rem; min-height: 1.25rem;"></span>
+                                            <span class="visibility-knob absolute z-10 rounded-full border-2 border-slate-400 bg-white shadow-md transition-transform duration-200 ease-out pointer-events-none" aria-hidden="true" style="left: 0.2rem; top: 0.2rem; width: 0.75rem; height: 0.75rem;"></span>
+                                            <span class="visibility-label text-xs font-medium whitespace-nowrap {{ $note->visibility === 'client' ? 'text-sky-400' : 'text-slate-400' }}">{{ $note->visibility === 'client' ? 'Public' : 'Private' }}</span>
+                                        </label>
+                                    </form>
+                                    <div class="flex gap-2">
+                                        <button type="button" @click="noteEditModal = {{ $note->id }}" class="text-sky-400 hover:text-sky-300 text-sm">Edit</button>
+                                        <form action="{{ route('projects.notes.destroy', [$project, $note]) }}" method="POST" class="inline" onsubmit="return confirm('Delete this note?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-red-400 hover:text-red-300 text-sm">Delete</button>
+                                        </form>
+                                    </div>
+                                </div>
+                                @endif
                             </div>
                         </div>
                     @empty
@@ -528,7 +624,9 @@
             <div x-show="activeTab === 'links'" class="p-5">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="font-semibold text-white">Links</h2>
+                    @if(!($isClient ?? false))
                     <button @click="linkModal = true" class="px-3 py-1.5 rounded-lg bg-sky-500/20 text-sky-400 hover:bg-sky-500/30 text-sm font-medium">Add Link</button>
+                    @endif
                 </div>
                 <p class="text-slate-500 text-sm mb-4">Store project URLs with optional login credentials.</p>
                 <ul class="space-y-4">
@@ -548,7 +646,23 @@
                                     </div>
                                 @endif
                             </div>
+                            @if(!($isClient ?? false))
                             <div class="flex items-center gap-2 shrink-0">
+                                <form action="{{ route('projects.links.update', [$project, $link]) }}" method="POST" class="inline-flex items-center gap-2" id="link-visibility-{{ $link->id }}">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="label" value="{{ old('label', $link->label) }}">
+                                    <input type="hidden" name="url" value="{{ old('url', $link->url) }}">
+                                    <input type="hidden" name="login_username" value="{{ old('login_username', $link->login_username ?? '') }}">
+                                    <input type="hidden" name="login_password" value="{{ old('login_password', $link->login_password ?? '') }}">
+                                    <input type="hidden" name="is_public" value="{{ $link->is_public ? '1' : '0' }}" id="link-is-public-input-{{ $link->id }}">
+                                    <label class="visibility-toggle-wrap relative inline-flex items-center cursor-pointer gap-2 {{ $link->is_public ? 'is-checked' : '' }}" title="{{ $link->is_public ? 'Public – click to make private' : 'Private – click to make public' }}">
+                                        <input type="checkbox" {{ $link->is_public ? 'checked' : '' }} class="sr-only link-visibility-toggle" data-input-id="link-is-public-input-{{ $link->id }}" data-form-id="link-visibility-{{ $link->id }}">
+                                        <span class="visibility-track relative block h-5 w-9 shrink-0 rounded-full border-2 border-slate-500 bg-slate-600 transition-colors duration-200" aria-hidden="true" style="min-width: 2.25rem; min-height: 1.25rem;"></span>
+                                        <span class="visibility-knob absolute z-10 rounded-full border-2 border-slate-400 bg-white shadow-md transition-transform duration-200 ease-out pointer-events-none" aria-hidden="true" style="left: 0.2rem; top: 0.2rem; width: 0.75rem; height: 0.75rem;"></span>
+                                        <span class="visibility-label text-xs font-medium whitespace-nowrap {{ $link->is_public ? 'text-sky-400' : 'text-slate-400' }}">{{ $link->is_public ? 'Public' : 'Private' }}</span>
+                                    </label>
+                                </form>
                                 <button type="button" @click="linkEditModal = {{ $link->id }}" class="text-sky-400 hover:text-sky-300 text-sm">Edit</button>
                                 <form action="{{ route('projects.links.destroy', [$project, $link]) }}" method="POST" class="inline" onsubmit="return confirm('Remove this link?');">
                                     @csrf
@@ -556,6 +670,7 @@
                                     <button type="submit" class="text-red-400 hover:text-red-300 text-sm">Remove</button>
                                 </form>
                             </div>
+                            @endif
                         </li>
                     @empty
                         <li class="text-slate-500 text-sm">No links yet. Add one to store URLs and optional login credentials.</li>
@@ -564,9 +679,59 @@
             </div>
         </div>
 
+        <style>
+        .visibility-toggle-wrap.is-checked .visibility-track { background-color: rgb(14 165 233); border-color: rgb(14 165 233); }
+        .visibility-toggle-wrap.is-checked .visibility-knob { transform: translateX(0.875rem); }
+        .visibility-toggle-wrap.is-checked .visibility-label { color: rgb(56 189 248); }
+        </style>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            function syncVisibilityWrap(label, checked) {
+                if (!label) return;
+                if (checked) label.classList.add('is-checked'); else label.classList.remove('is-checked');
+                var lbl = label.querySelector('.visibility-label');
+                if (lbl) lbl.textContent = checked ? 'Public' : 'Private';
+            }
+            document.querySelectorAll('.expense-visibility-toggle, .document-visibility-toggle, .link-visibility-toggle').forEach(function(cb) {
+                cb.addEventListener('change', function() {
+                    var wrap = this.closest('.visibility-toggle-wrap');
+                    var inputId = this.getAttribute('data-input-id');
+                    var formId = this.getAttribute('data-form-id');
+                    if (inputId && formId) {
+                        var input = document.getElementById(inputId);
+                        if (input) input.value = this.checked ? '1' : '0';
+                        syncVisibilityWrap(wrap, this.checked);
+                        setTimeout(function() { document.getElementById(formId).submit(); }, 120);
+                    }
+                });
+            });
+            document.querySelectorAll('.note-visibility-toggle').forEach(function(cb) {
+                cb.addEventListener('change', function() {
+                    var wrap = this.closest('.visibility-toggle-wrap');
+                    var valueInputId = this.getAttribute('data-value-input-id');
+                    var formId = this.getAttribute('data-form-id');
+                    if (valueInputId && formId) {
+                        var input = document.getElementById(valueInputId);
+                        if (input) input.value = this.checked ? 'client' : 'internal';
+                        syncVisibilityWrap(wrap, this.checked);
+                        setTimeout(function() { document.getElementById(formId).submit(); }, 120);
+                    }
+                });
+            });
+        });
+        </script>
+
+        @if(!($isClient ?? false))
         @include('projects.partials.modal-payout')
+        @endif
         @include('projects.partials.modal-payment')
+        @if(!($isClient ?? false))
+        @include('projects.partials.modal-payment-edit')
+        @endif
         @include('projects.partials.modal-expense')
+        @if(!($isClient ?? false))
+        @include('projects.partials.modal-expense-edit')
+        @endif
         @include('projects.partials.modal-document')
         @include('projects.partials.modal-task')
         @include('projects.partials.modal-bug')

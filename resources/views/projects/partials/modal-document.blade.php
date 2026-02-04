@@ -16,6 +16,20 @@
                         <input type="file" name="file" required accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.zip" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 file:mr-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-slate-700 file:text-slate-200 text-sm">
                         @error('file')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
                     </div>
+                    @if(!($isClient ?? false))
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium text-slate-400">Visibility</span>
+                        <label class="relative inline-flex items-center cursor-pointer gap-3 flex-shrink-0">
+                            <input type="hidden" name="is_public" value="0">
+                            <input type="checkbox" name="is_public" value="1" checked class="sr-only peer">
+                            <span class="relative block h-6 w-11 shrink-0 rounded-full border-2 border-slate-500 bg-slate-600 transition-colors peer-focus:ring-2 peer-focus:ring-sky-500/50 peer-checked:bg-sky-500 peer-checked:border-sky-500" aria-hidden="true" style="min-width: 2.75rem; min-height: 1.5rem;"></span>
+                            <span class="absolute z-10 h-4 w-4 rounded-full border-2 border-slate-400 bg-white shadow-md transition-transform duration-200 ease-out pointer-events-none peer-checked:translate-x-5" style="left: 0.25rem; top: 0.25rem; width: 1rem; height: 1rem;" aria-hidden="true"></span>
+                            <span class="text-sm text-slate-300">Public (anyone can see)</span>
+                        </label>
+                    </div>
+                    @else
+                    <input type="hidden" name="is_public" value="1">
+                    @endif
                 </div>
                 <div class="mt-6 flex justify-end gap-3">
                     <button type="button" @click="documentModal = false" class="px-4 py-2.5 rounded-xl border border-slate-600 text-slate-300 hover:bg-slate-700">Cancel</button>

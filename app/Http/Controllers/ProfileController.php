@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\Setting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,13 +17,19 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
+        $user = $request->user();
+        $isClient = $user->isClient();
+        $client = $isClient ? $user->client : null;
+
         $logoPath = Setting::get('app_logo');
         $currentLogoUrl = $logoPath ? asset('storage/' . $logoPath) : null;
         $faviconPath = Setting::get('app_favicon');
         $currentFaviconUrl = $faviconPath ? asset('storage/' . $faviconPath) : null;
 
         return view('profile.edit', [
-            'user' => $request->user(),
+            'user' => $user,
+            'client' => $client,
+            'isClient' => $isClient,
             'currentLogoUrl' => $currentLogoUrl,
             'currentFaviconUrl' => $currentFaviconUrl,
         ]);
@@ -33,15 +38,33 @@ class ProfileController extends Controller
     /**
      * Update the user's profile information.
      */
-    public function update(ProfileUpdateRequest $request): RedirectResponse
+    public function update(Request $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        if ($user->isClient() && $user->client) {
+            // Clients may only update name and address; phone, email, fb_link, kyc are read-only (admin-managed).
+            $validated = $request->validate([
+                'name' => ['required', 'string', 'max:255'],
+                'address' => ['nullable', 'string'],
+            ]);
+            $user->client->update([
+                'name' => $validated['name'],
+                'address' => $validated['address'] ?? null,
+            ]);
+            $user->name = $validated['name'];
+            $user->save();
+        } else {
+            $validated = $request->validate([
+                'name' => ['required', 'string', 'max:255'],
+                'email' => ['required', 'string', 'lowercase', 'email', 'max:255', \Illuminate\Validation\Rule::unique(\App\Models\User::class)->ignore($user->id)],
+            ]);
+            $user->fill($validated);
+            if ($user->isDirty('email')) {
+                $user->email_verified_at = null;
+            }
+            $user->save();
         }
-
-        $request->user()->save();
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
@@ -51,6 +74,9 @@ class ProfileController extends Controller
      */
     public function updateLogo(Request $request): RedirectResponse
     {
+        if ($request->user()->isClient()) {
+            abort(403, 'Admin only.');
+        }
         $request->validate([
             'logo' => ['required', 'image', 'mimes:jpeg,jpg,png,gif,webp,svg', 'max:2048'],
         ]);
@@ -73,6 +99,9 @@ class ProfileController extends Controller
      */
     public function updateFavicon(Request $request): RedirectResponse
     {
+        if ($request->user()->isClient()) {
+            abort(403, 'Admin only.');
+        }
         $request->validate([
             'favicon' => ['required', 'file', 'mimes:ico,png,gif,svg', 'max:1024'],
         ]);
@@ -103,6 +132,10 @@ class ProfileController extends Controller
 
         Auth::logout();
 
+        // Client: unlink so the Client record remains for admin (user_id becomes null via FK)
+        if ($user->isClient() && $user->client) {
+            $user->client->update(['user_id' => null]);
+        }
         $user->delete();
 
         $request->session()->invalidate();

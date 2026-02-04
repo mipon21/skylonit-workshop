@@ -17,6 +17,7 @@
     </button>
     <div x-show="expandedTaskId == {{ $task->id }}" x-transition class="px-3 pb-3 border-t border-slate-700/50">
         <div class="pt-2 text-slate-300 text-sm whitespace-pre-wrap">{{ $task->description ?: '—' }}</div>
+        @if(!($isClient ?? false))
         <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
             <form action="{{ route('projects.tasks.update', [$project, $task]) }}" method="POST" class="inline">
                 @csrf
@@ -40,5 +41,6 @@
                 </form>
             </div>
         </div>
+        @endif
     </div>
 </div>
