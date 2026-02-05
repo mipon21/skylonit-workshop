@@ -46,4 +46,9 @@ class Payment extends Model
     {
         return $this->belongsTo(Project::class);
     }
+
+    public function invoice(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Invoice::class);
+    }
 }

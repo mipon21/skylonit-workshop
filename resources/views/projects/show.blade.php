@@ -279,16 +279,24 @@
                                     ])>{{ $payment->status === 'completed' ? 'Paid' : ucfirst($payment->status) }}</span>
                                 </div>
                             </div>
-                            @if(!($isClient ?? false))
                             <div class="flex items-center gap-2 shrink-0">
-                                <button type="button" @click="paymentEditModal = {{ $payment->id }}" class="text-sky-400 hover:text-sky-300 text-sm">Edit</button>
-                                <form action="{{ route('projects.payments.destroy', [$project, $payment]) }}" method="POST" class="inline" onsubmit="return confirm('Remove this payment?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-red-400 hover:text-red-300 text-sm">Remove</button>
-                                </form>
+                                @if($payment->invoice)
+                                    <a href="{{ route('invoices.download', $payment->invoice) }}" class="px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 text-xs font-medium inline-flex items-center gap-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                        Invoice
+                                    </a>
+                                @endif
+                                @if(!($isClient ?? false))
+                                    <button type="button" @click="paymentEditModal = {{ $payment->id }}" class="text-sky-400 hover:text-sky-300 text-sm">Edit</button>
+                                    <form action="{{ route('projects.payments.destroy', [$project, $payment]) }}" method="POST" class="inline" onsubmit="return confirm('Remove this payment?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="text-red-400 hover:text-red-300 text-sm">Remove</button>
+                                    </form>
+                                @endif
                             </div>
-                            @endif
                         </li>
                     @empty
                         <li class="text-slate-500 text-sm">No payments yet.</li>

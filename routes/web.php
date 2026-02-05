@@ -6,6 +6,7 @@ use App\Http\Controllers\ClientController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
@@ -27,7 +28,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/dashboard/calendar-notes', [CalendarNoteController::class, 'store'])->name('calendar-notes.store');
     Route::delete('/dashboard/calendar-notes/{date}', [CalendarNoteController::class, 'destroy'])->name('calendar-notes.destroy');
 
-    Route::get('/invoices', function () { return view('invoices.index'); })->name('invoices.index');
+    // Invoices: both admin and client can view/download their invoices
+    Route::get('/invoices', [InvoiceController::class, 'index'])->name('invoices.index');
+    Route::get('/invoices/{invoice}/download', [InvoiceController::class, 'download'])->name('invoices.download');
+    Route::get('/invoices/{invoice}/view', [InvoiceController::class, 'view'])->name('invoices.view');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

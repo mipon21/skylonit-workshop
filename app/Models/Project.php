@@ -115,6 +115,11 @@ class Project extends Model
         return $this->hasMany(ProjectLink::class);
     }
 
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
     /** Get payout record for a type (overhead, sales, developer, profit), or default not_paid. */
     public function getPayoutFor(string $type): ?ProjectPayout
     {
