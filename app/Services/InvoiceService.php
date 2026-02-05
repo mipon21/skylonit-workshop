@@ -75,8 +75,12 @@ class InvoiceService
             'due' => $dueAmount,
         ];
 
-        // Generate PDF using SVG template
-        $pdf = Pdf::loadView('invoices.svg-template', $data);
+        // Generate PDF using PNG background template
+        $pdf = Pdf::loadView('invoices.png-template', $data);
+        $pdf->getDomPDF()->setHttpContext(stream_context_create([
+            'ssl' => ['verify_peer' => false, 'verify_peer_name' => false],
+        ]));
+        $pdf->getDomPDF()->set_option('isRemoteEnabled', true);
         $pdf->setPaper('a4', 'portrait');
 
         // Generate filename
