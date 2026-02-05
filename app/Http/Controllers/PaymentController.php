@@ -30,35 +30,16 @@ class PaymentController extends Controller
             'note' => ['nullable', 'string', 'max:255'],
         ]);
 
-        // New flow: create as DUE, gateway uddoktapay; invoice generated only when PAID
+        // Create as DUE only. Link is created on demand when admin clicks "Generate Payment Link".
+        // Admin can also skip the link and use "Mark as Paid (Cash)" instead.
         $validated['payment_status'] = Payment::PAYMENT_STATUS_DUE;
         $validated['gateway'] = Payment::GATEWAY_UDDOKTAPAY;
         $validated['status'] = Payment::STATUS_DUE;
 
-        $payment = $project->payments()->create($validated);
-
-        if ($this->uddoktaPay->isConfigured()) {
-            $redirectUrl = url('/client/payment/success');
-            $cancelUrl = url('/client/payment/cancel');
-            $webhookUrl = url('/api/uddoktapay/webhook');
-
-            $result = $this->uddoktaPay->createCharge($payment, $redirectUrl, $cancelUrl, $webhookUrl);
-
-            if ($result['success']) {
-                $payment->update([
-                    'payment_link' => $result['payment_url'],
-                    'gateway_invoice_id' => $result['invoice_id'] ?? null,
-                ]);
-                return redirect()->route('projects.show', $project)->withFragment('payments')
-                    ->with('success', 'Payment created. Copy the payment link and share with client.');
-            }
-
-            return redirect()->route('projects.show', $project)->withFragment('payments')
-                ->with('warning', 'Payment created as DUE, but UddoktaPay link could not be generated: ' . ($result['message'] ?? 'Unknown error.'));
-        }
+        $project->payments()->create($validated);
 
         return redirect()->route('projects.show', $project)->withFragment('payments')
-            ->with('success', 'Payment created as DUE. Configure UDDOKTAPAY_API_KEY to generate payment links, or use "Mark as Paid (Cash)" after creation.');
+            ->with('success', 'Payment added as DUE. Use "Generate Payment Link" when you need a link to share, or "Mark as Paid (Cash)" for offline payment.');
     }
 
     public function update(Request $request, Project $project, Payment $payment): RedirectResponse

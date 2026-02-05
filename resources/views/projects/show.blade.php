@@ -109,7 +109,7 @@
             </div>
             <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-4">
                 <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">Total Expenses</p>
-                <p class="text-lg font-bold text-white mt-0.5">৳ {{ number_format(($isClient ?? false) ? $project->expenses->sum('amount') : $project->expense_total, 0) }}</p>
+                <p class="text-lg font-bold text-white mt-0.5">৳ {{ number_format(($isClient ?? false) ? $project->public_expense_total : $project->expense_total, 0) }}</p>
             </div>
             @if(!($isClient ?? false))
             <div class="bg-slate-800/80 backdrop-blur border border-sky-500/30 rounded-2xl p-4">
@@ -389,7 +389,7 @@
                 </ul>
                 <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between text-sm">
                     <span class="text-slate-400">Total expense</span>
-                    <span class="font-semibold text-white">৳ {{ number_format(($isClient ?? false) ? $project->expenses->sum('amount') : $project->expense_total, 0) }}</span>
+                    <span class="font-semibold text-white">৳ {{ number_format(($isClient ?? false) ? $project->public_expense_total : $project->expense_total, 0) }}</span>
                 </div>
             </div>
 
@@ -725,6 +725,11 @@
         .visibility-toggle-wrap.is-checked .visibility-track { background-color: rgb(14 165 233); border-color: rgb(14 165 233); }
         .visibility-toggle-wrap.is-checked .visibility-knob { transform: translateX(0.875rem); }
         .visibility-toggle-wrap.is-checked .visibility-label { color: rgb(56 189 248); }
+        /* Add-modal visibility toggle: explicit unchecked so it never sticks on "active" */
+        .js-visibility-toggle-label .visibility-toggle-track { background-color: rgb(51 65 85); border-color: rgb(100 116 139); transition: background-color 0.2s, border-color 0.2s; }
+        .js-visibility-toggle-label .visibility-toggle-knob { transform: translateX(0); transition: transform 0.2s ease-out; }
+        .js-visibility-toggle-label.is-checked .visibility-toggle-track { background-color: rgb(14 165 233); border-color: rgb(14 165 233); }
+        .js-visibility-toggle-label.is-checked .visibility-toggle-knob { transform: translateX(1.25rem); }
         </style>
         <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -734,7 +739,51 @@
                 var lbl = label.querySelector('.visibility-label');
                 if (lbl) lbl.textContent = checked ? 'Public' : 'Private';
             }
-            document.querySelectorAll('.expense-visibility-toggle, .document-visibility-toggle, .link-visibility-toggle').forEach(function(cb) {
+            // Add modals: when label (track/text) is clicked, toggle checkbox and sync visual immediately
+            document.querySelectorAll('.js-visibility-toggle-label').forEach(function(label) {
+                label.addEventListener('click', function(e) {
+                    var cb = label.querySelector('.expense-visibility-toggle[data-hidden-id], .note-visibility-toggle[data-hidden-id]');
+                    if (!cb) return;
+                    if (e.target === cb) return;
+                    e.preventDefault();
+                    cb.checked = !cb.checked;
+                    cb.dispatchEvent(new Event('change', { bubbles: true }));
+                    syncAddModalVisibility(cb);
+                });
+            });
+            // Add modals: sync hidden input, label text, and visual state (is-checked) when toggle changes
+            function syncAddModalVisibility(checkbox) {
+                var labelWrap = checkbox.closest('.js-visibility-toggle-label');
+                if (labelWrap) {
+                    if (checkbox.checked) labelWrap.classList.add('is-checked'); else labelWrap.classList.remove('is-checked');
+                }
+            }
+            document.querySelectorAll('.expense-visibility-toggle[data-hidden-id]').forEach(function(cb) {
+                cb.addEventListener('change', function() {
+                    var hiddenId = this.getAttribute('data-hidden-id');
+                    var labelId = this.getAttribute('data-label-id');
+                    var hidden = hiddenId ? document.getElementById(hiddenId) : null;
+                    var labelEl = labelId ? document.getElementById(labelId) : null;
+                    if (hidden) hidden.value = this.checked ? '1' : '0';
+                    if (labelEl) labelEl.textContent = this.checked ? 'Public (anyone can see)' : 'Private (admin only)';
+                    syncAddModalVisibility(this);
+                });
+            });
+            document.querySelectorAll('.note-visibility-toggle[data-hidden-id]').forEach(function(cb) {
+                cb.addEventListener('change', function() {
+                    var hiddenId = this.getAttribute('data-hidden-id');
+                    var labelId = this.getAttribute('data-label-id');
+                    var pubVal = this.getAttribute('data-value-public') || 'client';
+                    var privVal = this.getAttribute('data-value-private') || 'internal';
+                    var hidden = hiddenId ? document.getElementById(hiddenId) : null;
+                    var labelEl = labelId ? document.getElementById(labelId) : null;
+                    if (hidden) hidden.value = this.checked ? pubVal : privVal;
+                    if (labelEl) labelEl.textContent = this.checked ? 'Public (anyone can see)' : 'Private (admin only)';
+                    syncAddModalVisibility(this);
+                });
+            });
+            // Edit forms (list row): update hidden and submit
+            document.querySelectorAll('.expense-visibility-toggle[data-form-id], .document-visibility-toggle[data-form-id], .link-visibility-toggle[data-form-id]').forEach(function(cb) {
                 cb.addEventListener('change', function() {
                     var wrap = this.closest('.visibility-toggle-wrap');
                     var inputId = this.getAttribute('data-input-id');
@@ -747,7 +796,7 @@
                     }
                 });
             });
-            document.querySelectorAll('.note-visibility-toggle').forEach(function(cb) {
+            document.querySelectorAll('.note-visibility-toggle[data-form-id]').forEach(function(cb) {
                 cb.addEventListener('change', function() {
                     var wrap = this.closest('.visibility-toggle-wrap');
                     var valueInputId = this.getAttribute('data-value-input-id');

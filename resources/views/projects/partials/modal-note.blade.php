@@ -18,12 +18,12 @@
                     </div>
                     <div class="flex items-center justify-between gap-4">
                         <span class="text-sm font-medium text-slate-400">Visibility</span>
-                        <label class="relative inline-flex items-center cursor-pointer gap-3 flex-shrink-0">
-                            <input type="hidden" name="visibility" value="client" id="note-visibility-hidden">
-                            <input type="checkbox" class="sr-only peer" id="note-visibility-check" checked onchange="document.getElementById('note-visibility-hidden').value = this.checked ? 'client' : 'internal'; document.getElementById('note-visibility-label').textContent = this.checked ? 'Public (anyone can see)' : 'Private (admin only)'">
-                            <span class="relative block h-6 w-11 shrink-0 rounded-full border-2 border-slate-500 bg-slate-600 transition-colors peer-focus:ring-2 peer-focus:ring-sky-500/50 peer-checked:bg-sky-500 peer-checked:border-sky-500" aria-hidden="true" style="min-width: 2.75rem; min-height: 1.5rem;"></span>
-                            <span class="absolute z-10 h-4 w-4 rounded-full border-2 border-slate-400 bg-white shadow-md transition-transform duration-200 ease-out pointer-events-none peer-checked:translate-x-5" style="left: 0.25rem; top: 0.25rem; width: 1rem; height: 1rem;" aria-hidden="true"></span>
-                            <span class="text-sm text-slate-300" id="note-visibility-label">Public (anyone can see)</span>
+                        <label class="js-visibility-toggle-label is-checked relative inline-flex items-center cursor-pointer gap-3 flex-shrink-0">
+                            <input type="hidden" name="visibility" value="client" id="note-modal-visibility-hidden">
+                            <input type="checkbox" value="1" checked class="sr-only note-visibility-toggle" id="note-modal-visibility-check" data-hidden-id="note-modal-visibility-hidden" data-label-id="note-modal-visibility-label" data-value-public="client" data-value-private="internal" aria-label="Visibility">
+                            <span class="visibility-toggle-track relative block h-6 w-11 shrink-0 rounded-full border-2 border-slate-500 bg-slate-600" aria-hidden="true" style="min-width: 2.75rem; min-height: 1.5rem;"></span>
+                            <span class="visibility-toggle-knob absolute z-10 h-4 w-4 rounded-full border-2 border-slate-400 bg-white shadow-md pointer-events-none" style="left: 0.25rem; top: 0.25rem; width: 1rem; height: 1rem;" aria-hidden="true"></span>
+                            <span class="text-sm text-slate-300" id="note-modal-visibility-label">Public (anyone can see)</span>
                         </label>
                     </div>
                 </div>

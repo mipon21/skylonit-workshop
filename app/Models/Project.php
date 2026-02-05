@@ -155,13 +155,23 @@ class Project extends Model
         return $this->projectPayouts()->where('type', $type)->first();
     }
 
-    /** Total of all expenses for this project. */
+    /**
+     * Total of ALL expenses. Use for revenue distribution (Developer, Sales, Overhead, Profit).
+     */
     public function getExpenseTotalAttribute(): float
     {
         return round($this->expenses()->sum('amount'), 2);
     }
 
-    /** Net base = Contract − Expenses. Base for revenue split. */
+    /**
+     * Total of PUBLIC expenses only. Use for client-facing totals and payment context.
+     */
+    public function getPublicExpenseTotalAttribute(): float
+    {
+        return round($this->expenses()->where('is_public', true)->sum('amount'), 2);
+    }
+
+    /** Net base = Contract − ALL Expenses. Base for revenue split. */
     public function getNetBaseAttribute(): float
     {
         return round($this->contract_amount - $this->expense_total, 2);

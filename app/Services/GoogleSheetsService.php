@@ -113,7 +113,7 @@ class GoogleSheetsService
             return true;
         } catch (\Throwable $e) {
             report($e);
-            throw $e;
+            return false;
         }
     }
 
@@ -140,7 +140,7 @@ class GoogleSheetsService
             return true;
         } catch (\Throwable $e) {
             report($e);
-            throw $e;
+            return false;
         }
     }
 
