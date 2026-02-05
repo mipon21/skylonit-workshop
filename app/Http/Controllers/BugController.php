@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\BugStatusUpdated;
 use App\Models\Bug;
 use App\Models\Project;
 use Illuminate\Http\RedirectResponse;
@@ -63,7 +64,10 @@ class BugController extends Controller
             'status' => ['sometimes', 'required', 'in:open,in_progress,resolved'],
             'attachment' => ['nullable', 'file', 'mimes:pdf,doc,docx,png,jpg,jpeg,zip,txt', 'max:10240'],
             'remove_attachment' => ['nullable', 'boolean'],
+            'send_email' => ['nullable', 'boolean'],
         ]);
+
+        $oldStatus = $bug->status;
 
         if ($request->boolean('remove_attachment') || $request->hasFile('attachment')) {
             if ($bug->attachment_path) {
@@ -74,9 +78,12 @@ class BugController extends Controller
         if ($request->hasFile('attachment')) {
             $validated['attachment_path'] = $request->file('attachment')->store('bug-attachments/' . $project->id, 'local');
         }
-        unset($validated['attachment'], $validated['remove_attachment']);
+        unset($validated['attachment'], $validated['remove_attachment'], $validated['send_email']);
 
         $bug->update($validated);
+        $newStatus = $bug->fresh()->status;
+        event(new BugStatusUpdated($bug->fresh(), $request->boolean('send_email'), $oldStatus, $newStatus));
+
         return redirect()->route('projects.show', $project)->withFragment('bugs')->with('success', 'Bug updated.');
     }
 

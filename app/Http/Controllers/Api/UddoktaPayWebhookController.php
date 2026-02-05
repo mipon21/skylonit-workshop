@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\PaymentSuccess;
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
 use App\Services\InvoiceService;
@@ -61,11 +62,14 @@ class UddoktaPayWebhookController extends Controller
             'paid_at' => now(),
             'paid_method' => Payment::PAID_METHOD_GATEWAY,
             'status' => Payment::STATUS_COMPLETED,
+            'gateway_invoice_id' => $invoiceId ?? $payment->gateway_invoice_id,
         ]);
 
         if (! $payment->invoice) {
             $this->invoiceService->generateInvoice($payment);
         }
+
+        event(new PaymentSuccess($payment->fresh()));
 
         return response()->json(['message' => 'OK'], 200);
     }

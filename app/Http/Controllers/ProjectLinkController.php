@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\LinkCreated;
 use App\Models\Project;
 use App\Models\ProjectLink;
 use Illuminate\Http\RedirectResponse;
@@ -17,9 +18,11 @@ class ProjectLinkController extends Controller
             'login_username' => ['nullable', 'string', 'max:255'],
             'login_password' => ['nullable', 'string', 'max:255'],
             'is_public' => ['nullable', 'boolean'],
+            'send_email' => ['nullable', 'boolean'],
         ]);
         $validated['is_public'] = $request->boolean('is_public');
-        $project->projectLinks()->create($validated);
+        $link = $project->projectLinks()->create($validated);
+        event(new LinkCreated($link, $request->boolean('send_email')));
         return redirect()->route('projects.show', $project)->withFragment('links')->with('success', 'Link added.');
     }
 

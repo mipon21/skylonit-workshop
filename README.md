@@ -96,6 +96,29 @@ ERP is the source of truth. Revenue fields are never synced from Sheet to ERP.
 5. Create tabs: **Projects**, **Payments**, **Expenses**, **Documents**, **Tasks**, **Bugs**, **Notes**. Use the first row as header; columns are filled by the app (see `config/google_sheets.php` and `App\Services\GoogleSheetsService`).
 6. For cron: `* * * * * cd /path-to-app && php artisan schedule:run >> /dev/null 2>&1`
 
+## SMTP and email notifications
+
+All notification content comes from **admin-editable email templates**. No subject/body is hardcoded.
+
+**Config (.env):**
+
+- `MAIL_MAILER=smtp`
+- `MAIL_HOST` — e.g. `smtp.mailtrap.io`, `smtp.gmail.com`
+- `MAIL_PORT` — e.g. `587` (TLS) or `465` (SSL)
+- `MAIL_USERNAME`, `MAIL_PASSWORD`
+- `MAIL_ENCRYPTION` — `tls`, `ssl`, or `null`
+- `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME`
+
+For queued mail, set `QUEUE_CONNECTION=database` (or `redis`), run `php artisan queue:work`, and ensure the `jobs` table exists (`php artisan queue:table` then migrate).
+
+**Admin → Email Templates** (sidebar): list templates, edit subject/body (HTML), enable/disable per template. Placeholders (e.g. `{{client_name}}`, `{{payment_link}}`) are replaced when sending.
+
+**Per-action toggle:** On Create Client, Create Project, Create Payment, Upload Document, Create Expense, Create Note, Create Link, Bug status update, and Task status update, a checkbox **"Send Email Notification?"** (default unchecked) controls whether a template-based email is queued. Email is sent only when the toggle is ON and the corresponding template is enabled. **Payment success** (gateway or cash) sends automatically (no toggle), with invoice PDF attached when available.
+
+**Logo:** The app logo (Profile → logo upload, or `APP_LOGO`) is shown at the top of every template-based email.
+
+**Verify config without sending to your inbox:** Set `MAIL_MAILER=log` in `.env`, then run `php artisan mail:test`. The test message is written to `storage/logs/laravel.log` only; no email is sent. Use `php artisan mail:test --no-send` to only check SMTP connection (host/port) without sending.
+
 ## Pages
 
 | URL | Description |
@@ -104,6 +127,7 @@ ERP is the source of truth. Revenue fields are never synced from Sheet to ERP.
 | `/clients` | CRUD clients |
 | `/projects` | Project cards (name, client, status, contract, due); add/edit/delete |
 | `/projects/{id}` | Revenue pipeline cards; tabs: Payments, Expenses, Documents, Tasks (Kanban), Bugs, Notes |
+| `/settings/email-templates` | (Admin) Edit email templates for client notifications |
 
 ## Seed data
 

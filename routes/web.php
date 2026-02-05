@@ -6,6 +6,7 @@ use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ClientPaymentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\EmailTemplateController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PaymentController;
@@ -22,6 +23,10 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
+// Payment gateway return URLs – must be reachable by guests (client may pay without being logged in)
+Route::match(['get', 'post'], '/client/payment/success', [ClientPaymentController::class, 'success'])->name('client.payment.success');
+Route::get('/client/payment/cancel', [ClientPaymentController::class, 'cancel'])->name('client.payment.cancel');
+
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
@@ -34,10 +39,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/invoices/{invoice}/download', [InvoiceController::class, 'download'])->name('invoices.download');
     Route::get('/invoices/{invoice}/view', [InvoiceController::class, 'view'])->name('invoices.view');
 
-    // Client payments (list + gateway success/cancel)
+    // Client payments list (requires auth)
     Route::get('/client/payments', [ClientPaymentController::class, 'index'])->name('client.payments.index');
-    Route::get('/client/payment/success', [ClientPaymentController::class, 'success'])->name('client.payment.success');
-    Route::get('/client/payment/cancel', [ClientPaymentController::class, 'cancel'])->name('client.payment.cancel');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -61,6 +64,7 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('projects/{project}/payments/{payment}', [PaymentController::class, 'update'])->name('projects.payments.update');
         Route::post('projects/{project}/payments/{payment}/mark-paid-cash', [PaymentController::class, 'markAsPaidCash'])->name('projects.payments.mark-paid-cash');
         Route::post('projects/{project}/payments/{payment}/generate-link', [PaymentController::class, 'generateLink'])->name('projects.payments.generate-link');
+        Route::post('projects/{project}/payments/{payment}/send-payment-link-email', [PaymentController::class, 'sendPaymentLinkEmail'])->name('projects.payments.send-payment-link-email');
         Route::delete('projects/{project}/payments/{payment}', [PaymentController::class, 'destroy'])->name('projects.payments.destroy');
         Route::patch('projects/{project}/payouts', [ProjectPayoutController::class, 'update'])->name('projects.payouts.update');
 
@@ -84,6 +88,12 @@ Route::middleware(['auth'])->group(function () {
         Route::post('projects/{project}/links', [ProjectLinkController::class, 'store'])->name('projects.links.store');
         Route::patch('projects/{project}/links/{project_link}', [ProjectLinkController::class, 'update'])->name('projects.links.update');
         Route::delete('projects/{project}/links/{project_link}', [ProjectLinkController::class, 'destroy'])->name('projects.links.destroy');
+
+        // Settings → Email Templates
+        Route::get('settings/email-templates', [EmailTemplateController::class, 'index'])->name('email-templates.index');
+        Route::get('settings/email-templates/{email_template}/edit', [EmailTemplateController::class, 'edit'])->name('email-templates.edit');
+        Route::get('settings/email-templates/{email_template}/preview', [EmailTemplateController::class, 'preview'])->name('email-templates.preview');
+        Route::put('settings/email-templates/{email_template}', [EmailTemplateController::class, 'update'])->name('email-templates.update');
     });
 
     // Shared: projects index & show (controller scopes for client)

@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ClientCreated;
 use App\Models\Client;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 
@@ -40,8 +42,10 @@ class ClientController extends Controller
             'address' => ['nullable', 'string'],
             'fb_link' => ['nullable', 'string', 'max:255'],
             'kyc' => ['nullable', 'string', 'max:255'],
+            'send_email' => ['nullable', 'boolean'],
         ];
         $validated = $request->validate($rules);
+        $sendEmail = $request->boolean('send_email');
 
         $user = User::create([
             'name' => $validated['name'],
@@ -60,7 +64,9 @@ class ClientController extends Controller
             'kyc' => $validated['kyc'] ?? null,
         ]);
 
-        return redirect()->route('clients.index')->with('success', 'Client created. Send email + password to client manually.');
+        event(new ClientCreated($client, $sendEmail, $validated['password']));
+
+        return redirect()->route('clients.index')->with('success', 'Client created.' . ($sendEmail ? ' Email notification queued if template is enabled.' : ''));
     }
 
     public function show(Client $client): View
@@ -94,6 +100,7 @@ class ClientController extends Controller
             'address' => ['nullable', 'string'],
             'fb_link' => ['nullable', 'string', 'max:255'],
             'kyc' => ['nullable', 'string', 'max:255'],
+            'send_email' => ['nullable', 'boolean'],
         ];
         if ($client->user_id) {
             $rules['email'][] = 'unique:users,email,' . $client->user_id;
@@ -101,6 +108,7 @@ class ClientController extends Controller
             $rules['email'][] = 'unique:users,email';
         }
         $validated = $request->validate($rules);
+        $sendEmail = $request->boolean('send_email');
 
         $client->update([
             'name' => $validated['name'],
@@ -111,14 +119,21 @@ class ClientController extends Controller
             'kyc' => $validated['kyc'] ?? null,
         ]);
 
+        $passwordToSend = null;
         if ($client->user_id) {
             $user = $client->user;
             $user->name = $validated['name'];
             $user->email = $validated['email'];
             if (! empty($validated['password'])) {
-                $user->password = Hash::make($validated['password']);
+                $passwordToSend = $validated['password'];
+                $user->password = Hash::make($passwordToSend);
             }
             $user->save();
+            if ($sendEmail && $passwordToSend === null) {
+                $passwordToSend = Str::random(12);
+                $user->password = Hash::make($passwordToSend);
+                $user->save();
+            }
         } else {
             $user = User::create([
                 'name' => $validated['name'],
@@ -127,9 +142,18 @@ class ClientController extends Controller
                 'role' => 'client',
             ]);
             $client->update(['user_id' => $user->id]);
+            $passwordToSend = $validated['password'];
         }
 
-        return redirect()->route('clients.index')->with('success', 'Client updated.');
+        if ($sendEmail && $passwordToSend !== null) {
+            event(new ClientCreated($client->fresh(), true, $passwordToSend));
+        }
+
+        $message = 'Client updated.';
+        if ($sendEmail && $passwordToSend !== null) {
+            $message .= ' Email notification queued if template is enabled.';
+        }
+        return redirect()->route('clients.index')->with('success', $message);
     }
 
     public function destroy(Client $client): RedirectResponse

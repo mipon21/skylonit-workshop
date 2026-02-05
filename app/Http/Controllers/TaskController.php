@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\TaskStatusUpdated;
 use App\Models\Project;
 use App\Models\Task;
 use Illuminate\Http\RedirectResponse;
@@ -33,8 +34,14 @@ class TaskController extends Controller
             'status' => ['sometimes', 'required', 'in:todo,doing,done'],
             'priority' => ['sometimes', 'required', 'in:low,medium,high'],
             'due_date' => ['nullable', 'date'],
+            'send_email' => ['nullable', 'boolean'],
         ]);
+        $oldStatus = $task->status;
+        unset($validated['send_email']);
         $task->update($validated);
+        $newStatus = $task->fresh()->status;
+        event(new TaskStatusUpdated($task->fresh(), $request->boolean('send_email'), $oldStatus, $newStatus));
+
         return redirect()->route('projects.show', $project)->withFragment('tasks')->with('success', 'Task updated.');
     }
 

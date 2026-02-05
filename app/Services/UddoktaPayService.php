@@ -52,7 +52,7 @@ class UddoktaPayService
             'RT-UDDOKTAPAY-API-KEY' => $this->apiKey,
             'Content-Type' => 'application/json',
             'Accept' => 'application/json',
-        ])->post($this->baseUrl . '/checkout-v2', $payload);
+        ])->post($this->baseUrl . config('services.uddoktapay.checkout_path', '/api/checkout-v2'), $payload);
 
         $data = $response->json();
 
@@ -82,7 +82,12 @@ class UddoktaPayService
     }
 
     /**
-     * Verify payment by invoice_id. Returns verification data or null on failure.
+     * Verify payment by invoice_id (POST to {base_url}/api/verify-payment).
+     * Docs: https://uddoktapay.readme.io/reference/verify-payment-api-guideline
+     *
+     * Base URL controls which gateway is used:
+     * - Sandbox: https://sandbox.uddoktapay.com/api/verify-payment
+     * - Paymently: https://skylon-it.paymently.io/api/verify-payment
      *
      * @return array{status: string, amount?: float, metadata?: array}|null
      */
@@ -92,11 +97,12 @@ class UddoktaPayService
             return null;
         }
 
+        $verifyUrl = $this->baseUrl . config('services.uddoktapay.verify_path', '/api/verify-payment');
         $response = Http::withHeaders([
             'RT-UDDOKTAPAY-API-KEY' => $this->apiKey,
             'Content-Type' => 'application/json',
             'Accept' => 'application/json',
-        ])->post($this->baseUrl . '/verify-payment', [
+        ])->post($verifyUrl, [
             'invoice_id' => $invoiceId,
         ]);
 

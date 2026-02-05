@@ -26,6 +26,12 @@
                         <input type="text" name="login_password" value="{{ old('login_password') }}" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500" placeholder="Password for this link">
                         @error('login_password')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
                     </div>
+                    <div class="pt-2 border-t border-slate-700/50">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" name="send_email" value="1" {{ old('send_email') ? 'checked' : '' }} class="rounded border-slate-600 bg-slate-900 text-sky-500 focus:ring-sky-500">
+                            <span class="text-sm font-medium text-slate-400">Send Email Notification?</span>
+                        </label>
+                    </div>
                     <div class="flex items-center justify-between">
                         <span class="text-sm font-medium text-slate-400">Visibility</span>
                         <label class="js-visibility-toggle-label is-checked relative inline-flex items-center cursor-pointer gap-3 flex-shrink-0">

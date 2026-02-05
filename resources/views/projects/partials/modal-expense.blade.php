@@ -15,6 +15,12 @@
                         <label class="block text-sm font-medium text-slate-400 mb-1">Note</label>
                         <textarea name="note" rows="2" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500"></textarea>
                     </div>
+                    <div class="pt-2 border-t border-slate-700/50">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" name="send_email" value="1" {{ old('send_email') ? 'checked' : '' }} class="rounded border-slate-600 bg-slate-900 text-sky-500 focus:ring-sky-500">
+                            <span class="text-sm font-medium text-slate-400">Send Email Notification?</span>
+                        </label>
+                    </div>
                     <div class="flex items-center justify-between gap-3">
                         <span class="text-sm font-medium text-slate-400">Visibility</span>
                         <label class="js-visibility-toggle-label is-checked relative inline-flex items-center cursor-pointer gap-3 flex-shrink-0">

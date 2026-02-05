@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ProjectCreated;
 use App\Models\Client;
 use App\Models\Project;
 use Illuminate\Http\RedirectResponse;
@@ -53,9 +54,11 @@ class ProjectController extends Controller
             'delivery_date' => ['nullable', 'date'],
             'status' => ['required', 'in:Pending,Running,Complete,On Hold'],
             'exclude_from_overhead_profit' => ['nullable', 'boolean'],
+            'send_email' => ['nullable', 'boolean'],
         ]);
         $validated['exclude_from_overhead_profit'] = $request->boolean('exclude_from_overhead_profit');
-        Project::create($validated);
+        $project = Project::create($validated);
+        event(new ProjectCreated($project, $request->boolean('send_email')));
         return redirect()->route('projects.index')->with('success', 'Project created.');
     }
 

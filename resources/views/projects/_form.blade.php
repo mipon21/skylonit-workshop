@@ -64,4 +64,13 @@
         </label>
         <p class="text-slate-500 text-xs mt-1">When enabled, expense is deducted from the contract amount first, then 75% Developer and 25% Sales; Overhead and Profit are ৳0 and not counted in totals.</p>
     </div>
+    @if(!$project)
+    <div class="pt-2 border-t border-slate-700/50">
+        <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" name="send_email" value="1" {{ old('send_email') ? 'checked' : '' }} class="rounded border-slate-600 bg-slate-900 text-sky-500 focus:ring-sky-500">
+            <span class="text-sm font-medium text-slate-400">Send Email Notification?</span>
+        </label>
+        <p class="text-slate-500 text-xs mt-1">Default: unchecked. Notify client about the new project (if template is enabled).</p>
+    </div>
+    @endif
 </div>

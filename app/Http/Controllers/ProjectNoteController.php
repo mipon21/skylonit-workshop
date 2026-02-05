@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\NoteCreated;
 use App\Models\Project;
 use App\Models\ProjectNote;
 use Illuminate\Http\RedirectResponse;
@@ -15,9 +16,11 @@ class ProjectNoteController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'body' => ['nullable', 'string'],
             'visibility' => ['required', 'in:internal,client'],
+            'send_email' => ['nullable', 'boolean'],
         ]);
         $validated['created_by'] = auth()->id();
-        $project->projectNotes()->create($validated);
+        $note = $project->projectNotes()->create($validated);
+        event(new NoteCreated($note, $request->boolean('send_email')));
         return redirect()->route('projects.show', $project)->withFragment('notes')->with('success', 'Note added.');
     }
 

@@ -2,16 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\PaymentSuccess;
+use App\Jobs\SendTemplateMailJob;
 use App\Models\Payment;
 use App\Models\Project;
+use App\Services\InvoiceService;
 use App\Services\UddoktaPayService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class PaymentController extends Controller
 {
-    public function __construct(protected UddoktaPayService $uddoktaPay)
-    {
+    public function __construct(
+        protected UddoktaPayService $uddoktaPay,
+        protected InvoiceService $invoiceService
+    ) {
     }
 
     public function store(Request $request, Project $project): RedirectResponse
@@ -31,7 +36,7 @@ class PaymentController extends Controller
         ]);
 
         // Create as DUE only. Link is created on demand when admin clicks "Generate Payment Link".
-        // Admin can also skip the link and use "Mark as Paid (Cash)" instead.
+        // After link is generated, use "Send Email" on that payment to email the link to the client.
         $validated['payment_status'] = Payment::PAYMENT_STATUS_DUE;
         $validated['gateway'] = Payment::GATEWAY_UDDOKTAPAY;
         $validated['status'] = Payment::STATUS_DUE;
@@ -39,7 +44,7 @@ class PaymentController extends Controller
         $project->payments()->create($validated);
 
         return redirect()->route('projects.show', $project)->withFragment('payments')
-            ->with('success', 'Payment added as DUE. Use "Generate Payment Link" when you need a link to share, or "Mark as Paid (Cash)" for offline payment.');
+            ->with('success', 'Payment added as DUE. Generate Payment Link, then use "Send Email" to email the link to the client, or "Mark as Paid (Cash)" for offline payment.');
     }
 
     public function update(Request $request, Project $project, Payment $payment): RedirectResponse
@@ -92,6 +97,11 @@ class PaymentController extends Controller
             'status' => Payment::STATUS_COMPLETED,
         ]);
 
+        if (! $payment->invoice) {
+            $this->invoiceService->generateInvoice($payment);
+        }
+        event(new PaymentSuccess($payment->fresh()));
+
         return redirect()->route('projects.show', $project)->withFragment('payments')
             ->with('success', 'Payment marked as paid (cash). Invoice generated.');
     }
@@ -117,8 +127,9 @@ class PaymentController extends Controller
                 ->with('error', 'UddoktaPay is not configured. Set UDDOKTAPAY_API_KEY in .env and try again.');
         }
 
-        $redirectUrl = url('/client/payment/success');
-        $cancelUrl = url('/client/payment/cancel');
+        // Gateway must redirect here after payment (guest-friendly). UddoktaPay appends ?invoice_id=...
+        $redirectUrl = route('client.payment.success');
+        $cancelUrl = route('client.payment.cancel');
         $webhookUrl = url('/api/uddoktapay/webhook');
 
         $result = $this->uddoktaPay->createCharge($payment, $redirectUrl, $cancelUrl, $webhookUrl);
@@ -134,5 +145,49 @@ class PaymentController extends Controller
 
         return redirect()->route('projects.show', $project)->withFragment('payments')
             ->with('error', 'Could not generate link: ' . ($result['message'] ?? 'Unknown error.'));
+    }
+
+    /**
+     * Send payment link email to client. Only for DUE payments that have a payment link.
+     * Can be used multiple times. Hidden once payment is paid.
+     */
+    public function sendPaymentLinkEmail(Project $project, Payment $payment): RedirectResponse
+    {
+        if ($payment->project_id !== $project->id) {
+            abort(404);
+        }
+        if ($payment->payment_status !== Payment::PAYMENT_STATUS_DUE || ! $payment->payment_link) {
+            return redirect()->route('projects.show', $project)->withFragment('payments')
+                ->with('error', 'Payment link email can only be sent for DUE payments that have a payment link.');
+        }
+
+        $payment->load(['project.client']);
+        $client = $payment->project->client;
+        if (! $client) {
+            return redirect()->route('projects.show', $project)->withFragment('payments')
+                ->with('error', 'Project has no client.');
+        }
+        $email = $client->user?->email ?? $client->email;
+        if (! $email) {
+            return redirect()->route('projects.show', $project)->withFragment('payments')
+                ->with('error', 'Client has no email address.');
+        }
+
+        SendTemplateMailJob::dispatch(
+            'client_payment_created',
+            $email,
+            [
+                'client_name' => $client->name,
+                'client_email' => $email,
+                'project_name' => $payment->project->project_name,
+                'project_code' => $payment->project->project_code ?? '',
+                'payment_amount' => number_format($payment->amount, 2),
+                'payment_link' => $payment->payment_link,
+                'login_url' => route('login'),
+            ]
+        );
+
+        return redirect()->route('projects.show', $project)->withFragment('payments')
+            ->with('success', 'Payment link email queued. It will be sent if the template is enabled.');
     }
 }

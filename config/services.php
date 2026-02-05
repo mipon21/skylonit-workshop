@@ -34,6 +34,9 @@ return [
     'uddoktapay' => [
         'base_url' => env('UDDOKTAPAY_BASE_URL', 'https://sandbox.uddoktapay.com'),
         'api_key' => env('UDDOKTAPAY_API_KEY'),
+        // Optional: override if your gateway uses different paths (e.g. Paymently: /api/checkout)
+        'checkout_path' => env('UDDOKTAPAY_CHECKOUT_PATH', '/api/checkout-v2'),
+        'verify_path' => env('UDDOKTAPAY_VERIFY_PATH', '/api/verify-payment'),
     ],
 
 ];

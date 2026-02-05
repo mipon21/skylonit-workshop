@@ -35,6 +35,13 @@
                             </select>
                         </div>
                     </div>
+                    <div class="pt-2 border-t border-slate-700/50">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" name="send_email" value="1" {{ old('send_email') ? 'checked' : '' }} class="rounded border-slate-600 bg-slate-900 text-sky-500 focus:ring-sky-500">
+                            <span class="text-sm font-medium text-slate-400">Send Email Notification?</span>
+                        </label>
+                        <p class="text-slate-500 text-xs mt-1">If checked and status is set to Resolved, client is notified.</p>
+                    </div>
                     <div>
                         <label class="block text-sm font-medium text-slate-400 mb-1">Attachment</label>
                         @if($bug->attachment_path)

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ExpenseCreated;
 use App\Models\Expense;
 use App\Models\Project;
 use Illuminate\Http\RedirectResponse;
@@ -15,9 +16,11 @@ class ExpenseController extends Controller
             'amount' => ['required', 'numeric', 'min:0'],
             'note' => ['nullable', 'string'],
             'is_public' => ['nullable', 'boolean'],
+            'send_email' => ['nullable', 'boolean'],
         ]);
         $validated['is_public'] = $request->boolean('is_public');
-        $project->expenses()->create($validated);
+        $expense = $project->expenses()->create($validated);
+        event(new ExpenseCreated($expense, $request->boolean('send_email')));
         return redirect()->route('projects.show', $project)->withFragment('expenses')->with('success', 'Expense added.');
     }
 

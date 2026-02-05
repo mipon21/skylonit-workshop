@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\DocumentUploaded;
 use App\Models\Document;
 use App\Models\Project;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DocumentController extends Controller
 {
@@ -27,6 +28,7 @@ class DocumentController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'file' => ['required', 'file', 'mimes:pdf,doc,docx,png,jpg,jpeg,zip', 'max:512000'], // 500 MB (max in KB)
             'is_public' => ['nullable', 'boolean'],
+            'send_email' => ['nullable', 'boolean'],
         ]);
 
         $file = $request->file('file');
@@ -36,13 +38,14 @@ class DocumentController extends Controller
             ? true
             : $request->boolean('is_public');
 
-        $project->documents()->create([
+        $document = $project->documents()->create([
             'title' => $validated['title'],
             'file_path' => $path,
             'uploaded_at' => now(),
             'uploaded_by_user_id' => Auth::id(),
             'is_public' => $isPublic,
         ]);
+        event(new DocumentUploaded($document, $request->boolean('send_email')));
 
         return redirect()->route('projects.show', $project)->withFragment('documents')->with('success', 'Document uploaded.');
     }
