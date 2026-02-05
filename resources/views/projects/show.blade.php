@@ -262,6 +262,11 @@
                     <button @click="paymentModal = true" class="px-3 py-1.5 rounded-lg bg-sky-500/20 text-sky-400 hover:bg-sky-500/30 text-sm font-medium">Add</button>
                     @endif
                 </div>
+                @if(session('warning'))
+                    <div class="mb-4 px-4 py-3 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-400 text-sm">
+                        {{ session('warning') }}
+                    </div>
+                @endif
                 <ul class="space-y-3">
                     @forelse($project->payments as $payment)
                         <li class="flex items-center justify-between py-2 border-b border-slate-700/30 last:border-0">
@@ -276,25 +281,44 @@
                                     @if($payment->payment_date)<span class="text-slate-500 text-xs">{{ $payment->payment_date->format('M d, Y') }}</span>@endif
                                     <span @class([
                                         'px-2 py-0.5 rounded text-xs font-medium',
-                                        'bg-sky-500/20 text-sky-400' => $payment->status === 'upcoming',
-                                        'bg-amber-500/20 text-amber-400' => $payment->status === 'due',
-                                        'bg-emerald-500/20 text-emerald-400' => $payment->status === 'completed',
-                                    ])>{{ $payment->status === 'completed' ? 'Paid' : ucfirst($payment->status) }}</span>
+                                        'bg-amber-500/20 text-amber-400' => $payment->payment_status === 'DUE',
+                                        'bg-emerald-500/20 text-emerald-400' => $payment->payment_status === 'PAID',
+                                        'bg-sky-500/20 text-sky-400' => $payment->status === 'upcoming' && $payment->payment_status !== 'PAID' && $payment->payment_status !== 'DUE',
+                                        'bg-slate-500/20 text-slate-400' => !in_array($payment->payment_status ?? null, ['DUE', 'PAID']),
+                                    ])>{{ $payment->payment_status === 'PAID' ? 'Paid' : ($payment->payment_status === 'DUE' ? 'DUE' : ucfirst($payment->status ?? '—')) }}</span>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-2 shrink-0">
+                            <div class="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+                                @if(!($isClient ?? false))
+                                    @if($payment->payment_status === 'DUE' && $payment->payment_link)
+                                        <button type="button" data-payment-link="{{ $payment->payment_link }}" class="copy-payment-link px-3 py-1.5 rounded-lg bg-sky-500/20 text-sky-400 hover:bg-sky-500/30 text-xs font-medium inline-flex items-center gap-1" title="Copy link">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                                            Copy Payment Link
+                                        </button>
+                                    @endif
+                                    @if($payment->payment_status === 'DUE' && !$payment->payment_link)
+                                        <form action="{{ route('projects.payments.generate-link', [$project, $payment]) }}" method="POST" class="inline">
+                                            @csrf
+                                            <button type="submit" class="px-3 py-1.5 rounded-lg bg-sky-500/20 text-sky-400 hover:bg-sky-500/30 text-xs font-medium inline-flex items-center gap-1" title="Create UddoktaPay link for this payment">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                                                Generate Payment Link
+                                            </button>
+                                        </form>
+                                    @endif
+                                    @if($payment->payment_status === 'DUE')
+                                        <form action="{{ route('projects.payments.mark-paid-cash', [$project, $payment]) }}" method="POST" class="inline" onsubmit="return confirm('Mark this payment as paid (cash/offline)? Invoice will be generated.');">
+                                            @csrf
+                                            <button type="submit" class="px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 text-xs font-medium inline-flex items-center gap-1">Mark as Paid (Cash)</button>
+                                        </form>
+                                    @endif
+                                @endif
                                 @if($payment->invoice)
                                     <a href="{{ route('invoices.view', $payment->invoice) }}" target="_blank" rel="noopener" class="px-3 py-1.5 rounded-lg bg-sky-500/20 text-sky-400 hover:bg-sky-500/30 text-xs font-medium inline-flex items-center gap-1" title="Preview in browser">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                        </svg>
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                         View
                                     </a>
                                     <a href="{{ route('invoices.download', $payment->invoice) }}" class="px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 text-xs font-medium inline-flex items-center gap-1" title="Download PDF">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                        </svg>
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                         Download
                                     </a>
                                 @endif
@@ -733,6 +757,16 @@
                         if (input) input.value = this.checked ? 'client' : 'internal';
                         syncVisibilityWrap(wrap, this.checked);
                         setTimeout(function() { document.getElementById(formId).submit(); }, 120);
+                    }
+                });
+            });
+            document.querySelectorAll('.copy-payment-link').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var link = this.getAttribute('data-payment-link');
+                    if (link && navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(link).then(function() {
+                            var t = btn.textContent; btn.textContent = 'Copied!'; setTimeout(function() { btn.textContent = t; }, 1500);
+                        });
                     }
                 });
             });

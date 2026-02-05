@@ -12,26 +12,23 @@ use Illuminate\View\View;
 class InvoiceController extends Controller
 {
     /**
-     * Display list of invoices (Client Portal)
+     * Display list of invoices. Admin: all; Client: own project invoices only.
      */
     public function index(Request $request): View
     {
         $user = $request->user();
 
-        // Get client's projects
-        $client = $user->client;
+        $query = Invoice::with(['project', 'payment'])->orderBy('invoice_date', 'desc');
 
-        if (!$client) {
-            abort(403, 'You must be associated with a client account.');
+        if ($user->isClient()) {
+            $client = $user->client;
+            if (! $client) {
+                abort(403, 'You must be associated with a client account.');
+            }
+            $query->whereHas('project', fn ($q) => $q->where('client_id', $client->id));
         }
 
-        // Get all invoices for client's projects
-        $invoices = Invoice::whereHas('project', function ($query) use ($client) {
-            $query->where('client_id', $client->id);
-        })
-            ->with(['project', 'payment'])
-            ->orderBy('invoice_date', 'desc')
-            ->paginate(20);
+        $invoices = $query->paginate(20);
 
         return view('invoices.index', compact('invoices'));
     }

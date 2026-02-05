@@ -215,10 +215,13 @@ class Project extends Model
         );
     }
 
-    /** Only Completed/Paid payments count toward total paid. */
+    /** Only PAID (payment_status) or legacy completed (status) payments count toward total paid. */
     public function getTotalPaidAttribute(): float
     {
-        return round($this->payments()->where('status', 'completed')->sum('amount'), 2);
+        return round($this->payments()->where(function ($q) {
+            $q->where('payment_status', Payment::PAYMENT_STATUS_PAID)
+                ->orWhere('status', Payment::STATUS_COMPLETED);
+        })->sum('amount'), 2);
     }
 
     public function getDueAttribute(): float

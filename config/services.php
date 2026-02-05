@@ -31,4 +31,9 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'uddoktapay' => [
+        'base_url' => env('UDDOKTAPAY_BASE_URL', 'https://sandbox.uddoktapay.com'),
+        'api_key' => env('UDDOKTAPAY_API_KEY'),
+    ],
+
 ];

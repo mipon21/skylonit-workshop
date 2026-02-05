@@ -36,16 +36,7 @@
                         <input type="date" name="payment_date" value="{{ old('payment_date', date('Y-m-d')) }}" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
                         @error('payment_date')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-1">Status *</label>
-                        <select name="status" required class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
-                            <option value="upcoming" {{ old('status') === 'upcoming' ? 'selected' : '' }}>Upcoming</option>
-                            <option value="due" {{ old('status') === 'due' ? 'selected' : '' }}>Due</option>
-                            <option value="completed" {{ old('status', 'completed') === 'completed' ? 'selected' : '' }}>Completed / Paid</option>
-                        </select>
-                        <p class="text-slate-500 text-xs mt-1">Only &quot;Completed / Paid&quot; counts toward Total paid and reduces Due.</p>
-                        @error('status')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
-                    </div>
+                    <p class="text-slate-500 text-xs">New payments are created as <strong>DUE</strong>. A UddoktaPay link is generated for the client. Use &quot;Mark as Paid (Cash)&quot; for offline payment, or the client pays via the link.</p>
                     <div>
                         <label class="block text-sm font-medium text-slate-400 mb-1">Note (e.g. advance, first, second, final)</label>
                         <input type="text" name="note" value="{{ old('note') }}" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500" placeholder="advance / first / second / final">

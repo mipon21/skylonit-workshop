@@ -3,6 +3,7 @@
 use App\Http\Controllers\BugController;
 use App\Http\Controllers\CalendarNoteController;
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\ClientPaymentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\ExpenseController;
@@ -33,6 +34,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/invoices/{invoice}/download', [InvoiceController::class, 'download'])->name('invoices.download');
     Route::get('/invoices/{invoice}/view', [InvoiceController::class, 'view'])->name('invoices.view');
 
+    // Client payments (list + gateway success/cancel)
+    Route::get('/client/payments', [ClientPaymentController::class, 'index'])->name('client.payments.index');
+    Route::get('/client/payment/success', [ClientPaymentController::class, 'success'])->name('client.payment.success');
+    Route::get('/client/payment/cancel', [ClientPaymentController::class, 'cancel'])->name('client.payment.cancel');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/logo', [ProfileController::class, 'updateLogo'])->name('profile.logo.update');
@@ -53,6 +59,8 @@ Route::middleware(['auth'])->group(function () {
 
         Route::post('projects/{project}/payments', [PaymentController::class, 'store'])->name('projects.payments.store');
         Route::patch('projects/{project}/payments/{payment}', [PaymentController::class, 'update'])->name('projects.payments.update');
+        Route::post('projects/{project}/payments/{payment}/mark-paid-cash', [PaymentController::class, 'markAsPaidCash'])->name('projects.payments.mark-paid-cash');
+        Route::post('projects/{project}/payments/{payment}/generate-link', [PaymentController::class, 'generateLink'])->name('projects.payments.generate-link');
         Route::delete('projects/{project}/payments/{payment}', [PaymentController::class, 'destroy'])->name('projects.payments.destroy');
         Route::patch('projects/{project}/payouts', [ProjectPayoutController::class, 'update'])->name('projects.payouts.update');
 

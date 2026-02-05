@@ -14,8 +14,8 @@ class PaymentObserver
 
     public function created(Payment $payment): void
     {
-        // Generate invoice when payment is created
-        $this->invoiceService->generateInvoice($payment);
+        // Invoice is generated ONLY when payment_status becomes PAID (webhook or manual mark-paid)
+        // Do not generate invoice on create; payment starts as DUE.
     }
 
     public function saved(Payment $payment): void
@@ -23,7 +23,13 @@ class PaymentObserver
         // Sync to Google Sheets
         SyncPaymentToSheetJob::dispatch($payment);
 
-        // Regenerate invoice if it exists (for updates)
+        // Generate invoice only when payment is PAID and no invoice yet
+        if ($payment->payment_status === Payment::PAYMENT_STATUS_PAID && ! $payment->invoice) {
+            $this->invoiceService->generateInvoice($payment);
+            return;
+        }
+
+        // Regenerate invoice if it exists (for updates, e.g. amount/date change)
         if ($payment->invoice) {
             $this->invoiceService->regenerateInvoice($payment->invoice);
         }

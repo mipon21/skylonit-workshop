@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\UddoktaPayWebhookController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -17,3 +18,6 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+// UddoktaPay webhook (no auth; validated via RT-UDDOKTAPAY-API-KEY header)
+Route::post('uddoktapay/webhook', UddoktaPayWebhookController::class)->name('api.uddoktapay.webhook');

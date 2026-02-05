@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             ClientSeeder::class,
             ProjectSeeder::class,
             PaymentExpenseSeeder::class,
+            UddoktaPayDemoPaymentsSeeder::class,
             TaskSeeder::class,
             BugSeeder::class,
             DocumentSeeder::class,

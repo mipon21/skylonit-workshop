@@ -18,7 +18,7 @@ class InvoiceService
         $client = $project->client;
 
         // Calculate due amount
-        $totalPaid = $project->payments()->where('status', Payment::STATUS_COMPLETED)->sum('amount');
+        $totalPaid = $project->total_paid;
         $dueAmount = $project->contract_amount - $totalPaid;
 
         // Determine payment status
@@ -114,7 +114,7 @@ class InvoiceService
         $client = $project->client;
 
         // Calculate due amount
-        $totalPaid = $project->payments()->where('status', Payment::STATUS_COMPLETED)->sum('amount');
+        $totalPaid = $project->total_paid;
         $dueAmount = $project->contract_amount - $totalPaid;
 
         // Update payment status
