@@ -258,7 +258,7 @@
             <div x-show="activeTab === 'payments'" class="p-5">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="font-semibold text-white">Payments</h2>
-                    @if(!($isClient ?? false))
+                    @if(!($isClient ?? false) && (!config('payment.lock_after_final') || !$project->hasFinalPayment()))
                     <button @click="paymentModal = true" class="px-3 py-1.5 rounded-lg bg-sky-500/20 text-sky-400 hover:bg-sky-500/30 text-sm font-medium">Add</button>
                     @endif
                 </div>
@@ -267,6 +267,9 @@
                         <li class="flex items-center justify-between py-2 border-b border-slate-700/30 last:border-0">
                             <div class="min-w-0">
                                 <span class="text-white font-medium">৳ {{ number_format($payment->amount, 0) }}</span>
+                                @if($payment->payment_type)
+                                <span class="px-2 py-0.5 rounded text-xs font-medium bg-indigo-500/20 text-indigo-400 ml-2">{{ ucfirst($payment->payment_type) }}</span>
+                                @endif
                                 @if($payment->payment_method)<span class="text-slate-400 text-sm ml-2">· {{ $payment->payment_method }}</span>@endif
                                 @if($payment->note)<span class="text-slate-500 text-sm ml-2">({{ $payment->note }})</span>@endif
                                 <div class="flex items-center gap-2 mt-1 flex-wrap">
@@ -295,7 +298,7 @@
                                         Download
                                     </a>
                                 @endif
-                                @if(!($isClient ?? false))
+                                @if(!($isClient ?? false) && (!config('payment.lock_after_final') || !$project->hasFinalPayment()))
                                     <button type="button" @click="paymentEditModal = {{ $payment->id }}" class="text-sky-400 hover:text-sky-300 text-sm">Edit</button>
                                     <form action="{{ route('projects.payments.destroy', [$project, $payment]) }}" method="POST" class="inline" onsubmit="return confirm('Remove this payment?');">
                                         @csrf

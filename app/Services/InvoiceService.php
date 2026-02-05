@@ -75,8 +75,14 @@ class InvoiceService
             'due' => $dueAmount,
         ];
 
-        // Generate PDF using PNG background template
-        $pdf = Pdf::loadView('invoices.png-template', $data);
+        // Template per payment type: first = invoice.png, middle = invoice-middle.png, final = invoice-final.png
+        $type = $payment->payment_type ?? Payment::TYPE_FIRST;
+        $template = match ($type) {
+            Payment::TYPE_MIDDLE => 'invoices.png-template-middle',
+            Payment::TYPE_FINAL => 'invoices.png-template-final',
+            default => 'invoices.png-template',
+        };
+        $pdf = Pdf::loadView($template, $data);
         $pdf->getDomPDF()->setHttpContext(stream_context_create([
             'ssl' => ['verify_peer' => false, 'verify_peer_name' => false],
         ]));

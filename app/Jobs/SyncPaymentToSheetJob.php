@@ -24,6 +24,11 @@ class SyncPaymentToSheetJob implements ShouldQueue
             return;
         }
 
-        $sheets->syncPaymentToSheet($this->payment);
+        try {
+            $sheets->syncPaymentToSheet($this->payment);
+        } catch (\Throwable $e) {
+            report($e);
+            // Don't rethrow – payment creation should succeed even when Google Sheets sync fails
+        }
     }
 }

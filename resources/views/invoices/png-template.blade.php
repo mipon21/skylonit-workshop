@@ -1,7 +1,7 @@
 @php
     $bgPath = public_path('images/invoice.png');
     $bgBase64 = (file_exists($bgPath)) ? base64_encode(file_get_contents($bgPath)) : '';
-    $wmColor = $invoice->payment_status === 'PAID' ? '#0D7E36' : ($invoice->payment_status === 'PARTIAL' ? '#f59e0b' : '#ef4444');
+    $wmColor = '#0D7E36';
 @endphp
 <!DOCTYPE html>
 <html>
@@ -57,7 +57,7 @@
             margin-top: -40pt;
             font-size: 100pt;
             font-weight: bold;
-            opacity: 0.12;
+            opacity: 0.22;
             z-index: 1;
             color: {{ $wmColor }};
             white-space: nowrap;
@@ -71,7 +71,7 @@
         @if($bgBase64)
         <img src="data:image/png;base64,{{ $bgBase64 }}" alt="" class="bg-img" />
         @endif
-        <div class="watermark">{{ $invoice->payment_status }}</div>
+        <div class="watermark">PAID</div>
         <div class="field" style="top: 20.4%; left: 78%; font-weight: bold;">{{ $invoice->invoice_number }}</div>
         <div class="field" style="top: 20.4%; left: 25%; font-weight: bold;">{{ $project->project_code ?? '' }}</div>
         <div class="field" style="top: 23.5%; left: 80%; font-weight: bold;">{{ $invoice->invoice_date->format('d/m/Y') }}</div>

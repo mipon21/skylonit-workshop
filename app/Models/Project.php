@@ -120,6 +120,35 @@ class Project extends Model
         return $this->hasMany(Invoice::class);
     }
 
+    /** Whether this project has a Final Payment (no more payments can be added). */
+    public function hasFinalPayment(): bool
+    {
+        return $this->payments()->where('payment_type', Payment::TYPE_FINAL)->exists();
+    }
+
+    /** Available payment types for the next payment (first/middle/final). */
+    public function availablePaymentTypes(): array
+    {
+        if ($this->hasFinalPayment()) {
+            return [];
+        }
+        // Treat null/legacy payments as "first" taken
+        $hasFirst = $this->payments()->whereIn('payment_type', [Payment::TYPE_FIRST, null])->exists();
+
+        if (!$hasFirst) {
+            return [
+                Payment::TYPE_FIRST => 'First Payment',
+                Payment::TYPE_MIDDLE => 'Middle Payment',
+                Payment::TYPE_FINAL => 'Final Payment',
+            ];
+        }
+        // Multiple middle payments allowed – Middle stays available until Final is chosen
+        return [
+            Payment::TYPE_MIDDLE => 'Middle Payment',
+            Payment::TYPE_FINAL => 'Final Payment',
+        ];
+    }
+
     /** Get payout record for a type (overhead, sales, developer, profit), or default not_paid. */
     public function getPayoutFor(string $type): ?ProjectPayout
     {

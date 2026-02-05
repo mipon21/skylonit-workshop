@@ -76,6 +76,11 @@
                         {{ session('success') }}
                     </div>
                 @endif
+                @if (session('error'))
+                    <div class="mb-4 px-4 py-3 rounded-xl bg-red-500/20 border border-red-500/30 text-red-400 text-sm">
+                        {{ session('error') }}
+                    </div>
+                @endif
                 {{ $slot ?? '' }}
             </main>
         </div>

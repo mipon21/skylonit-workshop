@@ -7,6 +7,16 @@
                 @csrf
                 <div class="space-y-4">
                     <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-1">Payment type *</label>
+                        <select name="payment_type" required class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+                            @foreach($project->availablePaymentTypes() as $value => $label)
+                                <option value="{{ $value }}" {{ old('payment_type') === $value ? 'selected' : '' }}>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                        <p class="text-slate-500 text-xs mt-1">Determines which invoice template is used.</p>
+                        @error('payment_type')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
+                    </div>
+                    <div>
                         <label class="block text-sm font-medium text-slate-400 mb-1">Amount (৳) *</label>
                         <input type="number" name="amount" step="0.01" min="0" required value="{{ old('amount') }}" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
                         @error('amount')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror

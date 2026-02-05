@@ -14,6 +14,10 @@ class Payment extends Model
     public const STATUS_DUE = 'due';
     public const STATUS_COMPLETED = 'completed';
 
+    public const TYPE_FIRST = 'first';
+    public const TYPE_MIDDLE = 'middle';
+    public const TYPE_FINAL = 'final';
+
     public const PAYMENT_METHODS = [
         'DBBL',
         'BKASH',
@@ -25,6 +29,7 @@ class Payment extends Model
 
     protected $fillable = [
         'project_id',
+        'payment_type',
         'amount',
         'payment_method',
         'note',
