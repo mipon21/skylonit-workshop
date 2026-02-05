@@ -1,6 +1,7 @@
 @php
     $project = $project ?? null;
     $clients = $clients ?? \App\Models\Client::orderBy('name')->get();
+    $nextProjectCode = $nextProjectCode ?? \App\Models\Project::generateNextProjectCode();
 @endphp
 <div class="space-y-4">
     <div>
@@ -20,7 +21,7 @@
     </div>
     <div>
         <label class="block text-sm font-medium text-slate-400 mb-1">Project code</label>
-        <input type="text" name="project_code" value="{{ old('project_code', $project?->project_code) }}" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+        <input type="text" name="project_code" value="{{ old('project_code', $project?->project_code ?? $nextProjectCode) }}" readonly class="w-full rounded-xl bg-slate-800/80 border border-slate-600 text-slate-400 px-4 py-2.5 cursor-not-allowed" title="Not editable">
     </div>
     <div>
         <label class="block text-sm font-medium text-slate-400 mb-1">Project type</label>

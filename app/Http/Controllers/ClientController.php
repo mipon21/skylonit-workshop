@@ -41,6 +41,7 @@ class ClientController extends Controller
             'password' => ['required', 'string', 'confirmed', Password::defaults()],
             'address' => ['nullable', 'string'],
             'fb_link' => ['nullable', 'string', 'max:255'],
+            'whatsapp_number' => ['nullable', 'string', 'max:50'],
             'kyc' => ['nullable', 'string', 'max:255'],
             'send_email' => ['nullable', 'boolean'],
         ];
@@ -61,6 +62,7 @@ class ClientController extends Controller
             'email' => $validated['email'],
             'address' => $validated['address'] ?? null,
             'fb_link' => $validated['fb_link'] ?? null,
+            'whatsapp_number' => $validated['whatsapp_number'] ?? null,
             'kyc' => $validated['kyc'] ?? null,
         ]);
 
@@ -99,6 +101,7 @@ class ClientController extends Controller
             'password' => [$client->user_id ? 'nullable' : 'required', 'string', 'confirmed', Password::defaults()],
             'address' => ['nullable', 'string'],
             'fb_link' => ['nullable', 'string', 'max:255'],
+            'whatsapp_number' => ['nullable', 'string', 'max:50'],
             'kyc' => ['nullable', 'string', 'max:255'],
             'send_email' => ['nullable', 'boolean'],
         ];
@@ -116,6 +119,7 @@ class ClientController extends Controller
             'email' => $validated['email'],
             'address' => $validated['address'] ?? null,
             'fb_link' => $validated['fb_link'] ?? null,
+            'whatsapp_number' => $validated['whatsapp_number'] ?? null,
             'kyc' => $validated['kyc'] ?? null,
         ]);
 

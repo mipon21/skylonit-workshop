@@ -103,19 +103,28 @@
         @endif
         @endif
         <div class="max-md:overflow-x-auto max-md:flex max-md:gap-4 max-md:pb-2 max-md:snap-x max-md:snap-mandatory">
-        <div class="grid grid-cols-2 sm:grid-cols-3 {{ ($isClient ?? false) ? 'lg:grid-cols-4' : 'lg:grid-cols-6' }} gap-4 items-start max-md:flex max-md:flex-nowrap max-md:min-w-0 max-md:gap-4">
-            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-4 max-md:shrink-0 max-md:min-w-[200px] max-md:snap-start">
-                <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">Contract {{ ($isClient ?? false) ? 'Amount' : '' }}</p>
-                <p class="text-lg font-bold text-white mt-0.5">৳ {{ number_format($project->contract_amount, 0) }}</p>
+        <div class="grid grid-cols-2 sm:grid-cols-3 {{ ($isClient ?? false) ? 'lg:grid-cols-4' : 'lg:grid-cols-6' }} gap-4 items-stretch max-md:flex max-md:flex-nowrap max-md:min-w-0 max-md:gap-4 max-md:items-start">
+            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-4 flex flex-col justify-between max-md:shrink-0 max-md:min-w-[200px] max-md:snap-start">
+                <div>
+                    <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">Contract {{ ($isClient ?? false) ? 'Amount' : '' }}</p>
+                    <p class="text-lg font-bold text-white mt-0.5">৳ {{ number_format($project->contract_amount, 0) }}</p>
+                </div>
+                <div class="mt-2 pt-2 border-t border-slate-700/50 min-h-[2.5rem] md:block hidden" aria-hidden="true"></div>
             </div>
-            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-4 max-md:shrink-0 max-md:min-w-[200px] max-md:snap-start">
-                <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">Total Expenses</p>
-                <p class="text-lg font-bold text-white mt-0.5">৳ {{ number_format(($isClient ?? false) ? $project->public_expense_total : $project->expense_total, 0) }}</p>
+            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-4 flex flex-col justify-between max-md:shrink-0 max-md:min-w-[200px] max-md:snap-start">
+                <div>
+                    <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">Total Expenses</p>
+                    <p class="text-lg font-bold text-white mt-0.5">৳ {{ number_format(($isClient ?? false) ? $project->public_expense_total : $project->expense_total, 0) }}</p>
+                </div>
+                <div class="mt-2 pt-2 border-t border-slate-700/50 min-h-[2.5rem] md:block hidden" aria-hidden="true"></div>
             </div>
             @if(!($isClient ?? false))
-            <div class="bg-slate-800/80 backdrop-blur border border-sky-500/30 rounded-2xl p-4 max-md:shrink-0 max-md:min-w-[200px] max-md:snap-start">
-                <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">Net base</p>
-                <p class="text-lg font-bold {{ $project->is_net_base_negative ? 'text-amber-400' : 'text-white' }} mt-0.5">৳ {{ number_format($project->net_base, 0) }}</p>
+            <div class="bg-slate-800/80 backdrop-blur border border-sky-500/30 rounded-2xl p-4 flex flex-col justify-between max-md:shrink-0 max-md:min-w-[200px] max-md:snap-start">
+                <div>
+                    <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">Net base</p>
+                    <p class="text-lg font-bold {{ $project->is_net_base_negative ? 'text-amber-400' : 'text-white' }} mt-0.5">৳ {{ number_format($project->net_base, 0) }}</p>
+                </div>
+                <div class="mt-2 pt-2 border-t border-slate-700/50 min-h-[2.5rem] md:block hidden" aria-hidden="true"></div>
             </div>
             @php
                 $payoutStatus = fn($type) => $project->getPayoutFor($type)?->status ?? 'not_paid';
@@ -172,49 +181,51 @@
             $openBugs = $project->bugs->whereIn('status', ['open', 'in_progress'])->count();
         @endphp
         {{-- Side-by-side: Work Overview (left) | Profit card (right, admin only) --}}
-        <div class="flex flex-row gap-4 mt-2 items-start max-md:flex-col max-md:gap-3 max-md:w-full">
-            <div class="flex-1 min-w-0 min-h-[70px] rounded-2xl bg-slate-800/80 backdrop-blur border border-slate-700/50 p-2.5 overflow-visible md:min-w-[280px] md:h-auto flex flex-col max-md:h-auto max-md:min-h-0 max-md:w-full max-md:min-w-full">
-                <p class="text-slate-300 text-sm font-semibold uppercase tracking-wide mb-1 shrink-0 text-center">Work overview</p>
-                <div class="flex-1 min-h-0 min-w-0 grid grid-cols-2 sm:grid-cols-4 gap-1.5 justify-items-start md:justify-items-stretch max-md:grid-cols-4 max-md:justify-items-stretch max-md:w-full">
-                    <div class="w-max max-w-[56px] md:w-full md:max-w-none md:min-w-0 rounded-xl bg-slate-800/80 backdrop-blur border border-slate-700/50 px-2 py-1 flex items-center justify-between gap-1.5 shadow-inner max-md:w-full max-md:min-w-0 max-md:max-w-none">
-                        <span class="text-slate-400 text-[10px] font-medium">To do</span>
-                        <span class="text-white text-xs font-bold tabular-nums">{{ $taskTodo }}</span>
+        <div class="flex flex-row gap-4 mt-2 items-stretch max-md:flex-col max-md:gap-3 max-md:w-full max-md:items-start">
+            <div class="flex-1 min-w-0 min-h-[70px] rounded-2xl bg-slate-800/80 backdrop-blur border border-slate-700/50 p-2.5 overflow-visible md:min-w-[280px] flex flex-col max-md:h-auto max-md:min-h-0 max-md:w-full max-md:min-w-full">
+                <p class="text-slate-300 text-sm font-semibold uppercase tracking-wide mb-1.5 shrink-0 text-center">Work overview</p>
+                <div class="flex-1 min-h-0 flex flex-col gap-1.5">
+                    <div class="flex-1 min-h-0 min-w-0 grid grid-cols-2 sm:grid-cols-4 gap-1.5 justify-items-stretch content-stretch max-md:grid-cols-4 max-md:w-full">
+                        <div class="rounded-xl bg-slate-800/80 backdrop-blur border border-slate-700/50 px-2 py-1.5 flex items-center justify-between gap-1.5 shadow-inner min-h-0">
+                            <span class="text-slate-400 text-[10px] font-medium">To do</span>
+                            <span class="text-white text-xs font-bold tabular-nums">{{ $taskTodo }}</span>
+                        </div>
+                        <div class="rounded-xl bg-slate-800/80 backdrop-blur border border-slate-700/50 px-2 py-1.5 flex items-center justify-between gap-1.5 shadow-inner min-h-0">
+                            <span class="text-slate-400 text-[10px] font-medium">Doing</span>
+                            <span class="text-amber-400 text-xs font-bold tabular-nums">{{ $taskDoing }}</span>
+                        </div>
+                        <div class="rounded-xl bg-slate-800/80 backdrop-blur border border-slate-700/50 px-2 py-1.5 flex items-center justify-between gap-1.5 shadow-inner min-h-0">
+                            <span class="text-slate-400 text-[10px] font-medium">Done</span>
+                            <span class="text-emerald-400 text-xs font-bold tabular-nums">{{ $taskDone }}</span>
+                        </div>
+                        <div class="rounded-xl bg-slate-800/80 backdrop-blur border border-slate-700/50 px-2 py-1.5 flex items-center justify-between gap-1.5 shadow-inner min-h-0">
+                            <span class="text-slate-400 text-[10px] font-medium">Total</span>
+                            <span class="text-sky-400 text-xs font-bold tabular-nums">{{ $taskTotal }}</span>
+                        </div>
                     </div>
-                    <div class="w-max max-w-[56px] md:w-full md:max-w-none md:min-w-0 rounded-xl bg-slate-800/80 backdrop-blur border border-slate-700/50 px-2 py-1 flex items-center justify-between gap-1.5 shadow-inner max-md:w-full max-md:min-w-0 max-md:max-w-none">
-                        <span class="text-slate-400 text-[10px] font-medium">Doing</span>
-                        <span class="text-amber-400 text-xs font-bold tabular-nums">{{ $taskDoing }}</span>
-                    </div>
-                    <div class="w-max max-w-[56px] md:w-full md:max-w-none md:min-w-0 rounded-xl bg-slate-800/80 backdrop-blur border border-slate-700/50 px-2 py-1 flex items-center justify-between gap-1.5 shadow-inner max-md:w-full max-md:min-w-0 max-md:max-w-none">
-                        <span class="text-slate-400 text-[10px] font-medium">Done</span>
-                        <span class="text-emerald-400 text-xs font-bold tabular-nums">{{ $taskDone }}</span>
-                    </div>
-                    <div class="w-max max-w-[56px] md:w-full md:max-w-none md:min-w-0 rounded-xl bg-slate-800/80 backdrop-blur border border-slate-700/50 px-2 py-1 flex items-center justify-between gap-1.5 shadow-inner max-md:w-full max-md:min-w-0 max-md:max-w-none">
-                        <span class="text-slate-400 text-[10px] font-medium">Total</span>
-                        <span class="text-sky-400 text-xs font-bold tabular-nums">{{ $taskTotal }}</span>
-                    </div>
-                </div>
-                <div class="min-w-0 grid grid-cols-2 sm:grid-cols-4 gap-1.5 mt-1 shrink-0 justify-items-start md:justify-items-stretch max-md:grid-cols-4 max-md:justify-items-stretch max-md:w-full">
-                    <div class="w-max max-w-[56px] md:w-full md:max-w-none md:min-w-0 rounded-xl bg-slate-800/80 backdrop-blur border border-slate-700/50 px-2 py-1 flex items-center justify-between gap-1.5 shadow-inner max-md:w-full max-md:min-w-0 max-md:max-w-none">
-                        <span class="text-slate-400 text-[10px] font-medium">docs</span>
-                        <span class="text-white text-xs font-bold tabular-nums">{{ $project->documents->count() }}</span>
-                    </div>
-                    <div class="w-max max-w-[56px] md:w-full md:max-w-none md:min-w-0 rounded-xl bg-slate-800/80 backdrop-blur border border-slate-700/50 px-2 py-1 flex items-center justify-between gap-1.5 shadow-inner max-md:w-full max-md:min-w-0 max-md:max-w-none">
-                        <span class="text-slate-400 text-[10px] font-medium">notes</span>
-                        <span class="text-white text-xs font-bold tabular-nums">{{ $project->projectNotes->count() }}</span>
-                    </div>
-                    <div class="w-max max-w-[56px] md:w-full md:max-w-none md:min-w-0 rounded-xl bg-slate-800/80 backdrop-blur border border-slate-700/50 px-2 py-1 flex items-center justify-between gap-1.5 shadow-inner max-md:w-full max-md:min-w-0 max-md:max-w-none">
-                        <span class="text-slate-400 text-[10px] font-medium">bugs</span>
-                        <span class="text-white text-xs font-bold tabular-nums">{{ $openBugs }}</span>
-                    </div>
-                    <div class="w-max max-w-[56px] md:w-full md:max-w-none md:min-w-0 rounded-xl bg-slate-800/80 backdrop-blur border border-slate-700/50 px-2 py-1 flex items-center justify-between gap-1.5 shadow-inner max-md:w-full max-md:min-w-0 max-md:max-w-none">
-                        <span class="text-slate-400 text-[10px] font-medium">links</span>
-                        <span class="text-white text-xs font-bold tabular-nums">{{ $project->projectLinks->count() }}</span>
+                    <div class="flex-1 min-h-0 min-w-0 grid grid-cols-2 sm:grid-cols-4 gap-1.5 justify-items-stretch content-stretch max-md:grid-cols-4 max-md:w-full">
+                        <div class="rounded-xl bg-slate-800/80 backdrop-blur border border-slate-700/50 px-2 py-1.5 flex items-center justify-between gap-1.5 shadow-inner min-h-0">
+                            <span class="text-slate-400 text-[10px] font-medium">docs</span>
+                            <span class="text-white text-xs font-bold tabular-nums">{{ $project->documents->count() }}</span>
+                        </div>
+                        <div class="rounded-xl bg-slate-800/80 backdrop-blur border border-slate-700/50 px-2 py-1.5 flex items-center justify-between gap-1.5 shadow-inner min-h-0">
+                            <span class="text-slate-400 text-[10px] font-medium">notes</span>
+                            <span class="text-white text-xs font-bold tabular-nums">{{ $project->projectNotes->count() }}</span>
+                        </div>
+                        <div class="rounded-xl bg-slate-800/80 backdrop-blur border border-slate-700/50 px-2 py-1.5 flex items-center justify-between gap-1.5 shadow-inner min-h-0">
+                            <span class="text-slate-400 text-[10px] font-medium">bugs</span>
+                            <span class="text-white text-xs font-bold tabular-nums">{{ $openBugs }}</span>
+                        </div>
+                        <div class="rounded-xl bg-slate-800/80 backdrop-blur border border-slate-700/50 px-2 py-1.5 flex items-center justify-between gap-1.5 shadow-inner min-h-0">
+                            <span class="text-slate-400 text-[10px] font-medium">links</span>
+                            <span class="text-white text-xs font-bold tabular-nums">{{ $project->projectLinks->count() }}</span>
+                        </div>
                     </div>
                 </div>
             </div>
             @if(!($isClient ?? false))
-            <div class="flex shrink-0">
-                <div role="button" tabindex="0" title="Click to edit payout" @click="payoutType = 'profit'; payoutModal = true" @keydown.enter="payoutType = 'profit'; payoutModal = true" class="bg-slate-800/80 backdrop-blur border border-emerald-500/30 rounded-2xl p-4 shadow-[0_0_20px_-5px_rgba(16,185,129,0.2)] min-w-[180px] text-right cursor-pointer hover:border-emerald-500/50 transition group">
+            <div class="flex shrink-0 md:self-stretch">
+                <div role="button" tabindex="0" title="Click to edit payout" @click="payoutType = 'profit'; payoutModal = true" @keydown.enter="payoutType = 'profit'; payoutModal = true" class="h-full bg-slate-800/80 backdrop-blur border border-emerald-500/30 rounded-2xl p-4 shadow-[0_0_20px_-5px_rgba(16,185,129,0.2)] min-w-[180px] text-right cursor-pointer hover:border-emerald-500/50 transition group flex flex-col justify-between">
                     <p class="text-emerald-400/90 text-lg font-semibold uppercase tracking-wide">Profit</p>
                     <p class="text-4xl font-bold text-emerald-400 mt-0.5">৳ {{ number_format($project->realized_profit, 0) }}</p>
                     <p class="text-slate-500 text-lg mt-0.5">of ৳ {{ number_format($project->profit, 0) }}</p>
@@ -419,6 +430,7 @@
                         <p class="text-slate-300">Phone: {{ $client->phone ?? '—' }}</p>
                         <p class="text-slate-300">Email: {{ $client->email ?? '—' }}</p>
                         @if($client->fb_link)<p class="text-sky-400 mt-1"><a href="{{ $client->fb_link }}" target="_blank" rel="noopener">Facebook</a></p>@endif
+                        @if($client->whatsapp_link)<p class="text-sky-400 mt-1"><a href="{{ $client->whatsapp_link }}" target="_blank" rel="noopener">WhatsApp</a></p>@endif
                     </div>
                     @if($client->address || $client->kyc)
                     <div class="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-5">
@@ -428,7 +440,7 @@
                     </div>
                     @endif
                 </div>
-                @if(!$client->phone && !$client->email && !$client->fb_link && !$client->address && !$client->kyc)
+                @if(!$client->phone && !$client->email && !$client->fb_link && !$client->whatsapp_number && !$client->address && !$client->kyc)
                     <p class="text-slate-500 text-sm mt-4">No contact or details recorded for this client.</p>
                 @endif
             </div>

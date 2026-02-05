@@ -30,6 +30,9 @@ class TemplateMail extends Mailable
     /** @var string|null */
     public $attachmentName;
 
+    /** @var array{email:string|null,phone:string|null,website:string|null,facebook:string|null,whatsapp_link:string|null,tagline:string} */
+    public array $footer = [];
+
     public function __construct(
         string $subject,
         string $body,
@@ -56,6 +59,19 @@ class TemplateMail extends Mailable
             $path = ltrim(config('app.logo'), '/');
             $this->logoUrl = $path ? $baseUrl . '/' . $path : null;
         }
+
+        // Footer: use Setting if available, else config
+        $footerConfig = config('mail.footer', []);
+        $this->footer = [
+            'email' => Schema::hasTable('settings') ? (Setting::get('footer_email') ?? $footerConfig['email'] ?? null) : ($footerConfig['email'] ?? null),
+            'phone' => Schema::hasTable('settings') ? (Setting::get('footer_phone') ?? $footerConfig['phone'] ?? null) : ($footerConfig['phone'] ?? null),
+            'website' => Schema::hasTable('settings') ? (Setting::get('footer_website') ?? $footerConfig['website'] ?? null) : ($footerConfig['website'] ?? null),
+            'facebook' => Schema::hasTable('settings') ? (Setting::get('footer_facebook') ?? $footerConfig['facebook'] ?? null) : ($footerConfig['facebook'] ?? null),
+            'whatsapp' => Schema::hasTable('settings') ? (Setting::get('footer_whatsapp') ?? $footerConfig['whatsapp'] ?? null) : ($footerConfig['whatsapp'] ?? null),
+            'tagline' => Schema::hasTable('settings') ? (Setting::get('footer_tagline') ?? $footerConfig['tagline'] ?? 'Thank you for staying with us.') : ($footerConfig['tagline'] ?? 'Thank you for staying with us.'),
+        ];
+        $wa = $this->footer['whatsapp'] ?? '';
+        $this->footer['whatsapp_link'] = $wa !== '' ? 'https://api.whatsapp.com/send/?phone=' . preg_replace('/\D/', '', $wa) : null;
     }
 
     public function envelope(): Envelope

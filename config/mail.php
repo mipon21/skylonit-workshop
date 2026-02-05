@@ -114,6 +114,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Email Footer (shown on all notification emails)
+    |--------------------------------------------------------------------------
+    | Override via .env (MAIL_FOOTER_*) or via Settings in database.
+    */
+    'footer' => [
+        'email' => env('MAIL_FOOTER_EMAIL', 'info@skylon-it.com'),
+        'phone' => env('MAIL_FOOTER_PHONE', '+8801783197788'),
+        'website' => env('MAIL_FOOTER_WEBSITE', 'https://www.skylon-it.com'),
+        'facebook' => env('MAIL_FOOTER_FACEBOOK', 'https://facebook.com/skylonit'),
+        'whatsapp' => env('MAIL_FOOTER_WHATSAPP', '8801743233833'),
+        'tagline' => env('MAIL_FOOTER_TAGLINE', 'Thank you for staying with us.'),
+        'icon_base' => env('MAIL_FOOTER_ICON_BASE', 'https://img.icons8.com/fluency/24'),
+        'icon_globe' => env('MAIL_FOOTER_ICON_GLOBE'), // Optional: override globe icon URL (e.g. your domain + /images/email-icons/globe.png)
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Markdown Mail Settings
     |--------------------------------------------------------------------------
     |

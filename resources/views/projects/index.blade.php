@@ -187,7 +187,7 @@
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-slate-400 mb-1">Project code</label>
-                                    <input type="text" name="project_code" value="{{ old('project_code') }}" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+                                    <input type="text" name="project_code" value="{{ old('project_code', $nextProjectCode ?? \App\Models\Project::generateNextProjectCode()) }}" readonly class="w-full rounded-xl bg-slate-800/80 border border-slate-600 text-slate-400 px-4 py-2.5 cursor-not-allowed" title="Auto-generated, not editable">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-slate-400 mb-1">Project type</label>
@@ -222,6 +222,13 @@
                                         <option value="Complete" {{ old('status') === 'Complete' ? 'selected' : '' }}>Complete</option>
                                         <option value="On Hold" {{ old('status') === 'On Hold' ? 'selected' : '' }}>On Hold</option>
                                     </select>
+                                </div>
+                                <div class="pt-2 border-t border-slate-700/50">
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" name="send_email" value="1" {{ old('send_email') ? 'checked' : '' }} class="rounded border-slate-600 bg-slate-900 text-sky-500 focus:ring-sky-500">
+                                        <span class="text-sm font-medium text-slate-400">Send Email Notification?</span>
+                                    </label>
+                                    <p class="text-slate-500 text-xs mt-1">Notify client about the new project (if template is enabled).</p>
                                 </div>
                             </div>
                             <div class="mt-6 flex justify-end gap-3 max-md:flex-col max-md:[&_button]:w-full">

@@ -14,9 +14,14 @@
                 <p class="text-white font-mono text-sm bg-slate-900 rounded-lg px-4 py-2">{{ $subject }}</p>
             </div>
             <div>
-                <p class="text-sm font-medium text-slate-400 mb-1">Body (HTML)</p>
-                <div class="bg-white text-slate-800 rounded-xl p-6 prose prose-slate max-w-none">
-                    {!! $body !!}
+                <p class="text-sm font-medium text-slate-400 mb-1">Preview (as recipients see it)</p>
+                <div class="rounded-xl overflow-hidden border border-slate-600/50 bg-white">
+                    <iframe
+                        srcdoc="{!! e($fullEmailHtml ?? $body) !!}"
+                        class="w-full min-h-[400px] border-0"
+                        style="height: 500px;"
+                        title="Email preview"
+                    ></iframe>
                 </div>
             </div>
         </div>

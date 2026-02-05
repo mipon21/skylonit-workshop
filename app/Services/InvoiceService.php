@@ -10,10 +10,15 @@ use Illuminate\Support\Facades\Storage;
 class InvoiceService
 {
     /**
-     * Generate invoice for a payment
+     * Generate invoice for a payment. Idempotent: if the payment already has an invoice, returns it (no duplicate).
      */
     public function generateInvoice(Payment $payment): Invoice
     {
+        $existing = Invoice::where('payment_id', $payment->id)->first();
+        if ($existing) {
+            return $existing;
+        }
+
         $project = $payment->project;
         $client = $project->client;
 

@@ -9,7 +9,7 @@
         <div class="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-6">
             <form action="{{ route('projects.update', $project) }}" method="POST">
                 @csrf
-                @method('PATCH')
+                @method('PUT')
                 @include('projects._form', ['project' => $project, 'clients' => $clients])
                 <div class="mt-6 flex gap-3">
                     <button type="submit" class="px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-medium">Update</button>

@@ -18,8 +18,21 @@ class Client extends Model
         'email',
         'address',
         'fb_link',
+        'whatsapp_number',
         'kyc',
     ];
+
+    /**
+     * WhatsApp chat link (https://api.whatsapp.com/send/?phone=...). Phone is digits only.
+     */
+    public function getWhatsappLinkAttribute(): ?string
+    {
+        if (empty($this->attributes['whatsapp_number'] ?? null)) {
+            return null;
+        }
+        $digits = preg_replace('/\D/', '', $this->attributes['whatsapp_number']);
+        return $digits !== '' ? 'https://api.whatsapp.com/send/?phone=' . $digits : null;
+    }
 
     public function user(): BelongsTo
     {

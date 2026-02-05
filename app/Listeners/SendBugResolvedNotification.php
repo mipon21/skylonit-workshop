@@ -10,13 +10,10 @@ class SendBugResolvedNotification implements ShouldQueue
 {
     public function handle(BugStatusUpdated $event): void
     {
-        if (! $event->sendEmail) {
-            return;
-        }
         if ($event->newStatus !== 'resolved') {
             return;
         }
-
+        // Always send when bug is marked Resolved
         $bug = $event->bug->load(['project.client']);
         $project = $bug->project;
         $client = $project->client;

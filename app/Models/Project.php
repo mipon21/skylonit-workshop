@@ -70,6 +70,26 @@ class Project extends Model
         return 'SLN-' . str_pad((string) $this->id, 6, '0', STR_PAD_LEFT);
     }
 
+    /**
+     * Generate next project code (SLN-XXXXXX) by analyzing previous project codes.
+     * Parses SLN-000033 style codes, finds the greatest number, returns SLN-000034.
+     * Used when adding a new project; field is auto-filled and readonly.
+     */
+    public static function generateNextProjectCode(): string
+    {
+        $maxNumber = (int) static::max('id');
+
+        foreach (static::whereNotNull('project_code')->pluck('project_code') as $code) {
+            if (preg_match('/^SLN-(\d+)$/i', trim($code), $m)) {
+                $maxNumber = max($maxNumber, (int) $m[1]);
+            }
+        }
+
+        $nextNumber = $maxNumber + 1;
+
+        return 'SLN-' . str_pad((string) $nextNumber, 6, '0', STR_PAD_LEFT);
+    }
+
     public function client(): BelongsTo
     {
         return $this->belongsTo(Client::class);

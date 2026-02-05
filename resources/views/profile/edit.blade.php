@@ -25,11 +25,6 @@
                         @include('profile.partials.update-password-form')
                     </div>
                 </div>
-                <div class="p-4 sm:p-8 bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl shadow-inner">
-                    <div class="max-w-xl">
-                        @include('profile.partials.delete-user-form')
-                    </div>
-                </div>
             @else
                 {{-- Admin: full profile (info, logo, favicon, password) --}}
                 <div class="p-4 sm:p-8 bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl shadow-inner">
@@ -50,11 +45,6 @@
                 <div class="p-4 sm:p-8 bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl shadow-inner">
                     <div class="max-w-xl">
                         @include('profile.partials.update-password-form')
-                    </div>
-                </div>
-                <div class="p-4 sm:p-8 bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl shadow-inner">
-                    <div class="max-w-xl">
-                        @include('profile.partials.delete-user-form')
                     </div>
                 </div>
             @endif

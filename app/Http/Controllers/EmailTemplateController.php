@@ -29,6 +29,7 @@ class EmailTemplateController extends Controller
 
     /**
      * Preview the template with sample data. No email is sent.
+     * Renders the full email layout (logo, body, footer) so it matches what recipients see.
      */
     public function preview(EmailTemplate $email_template): View
     {
@@ -51,10 +52,15 @@ class EmailTemplateController extends Controller
         ];
         $service = app(\App\Services\TemplateMailService::class);
         $rendered = $service->replacePlaceholders($email_template->subject, $email_template->body, $sampleData);
+
+        $mailable = new \App\Mail\TemplateMail($rendered['subject'], $rendered['body']);
+        $html = $mailable->render();
+
         return view('email-templates.preview', [
             'template' => $email_template,
             'subject' => $rendered['subject'],
             'body' => $rendered['body'],
+            'fullEmailHtml' => $html,
         ]);
     }
 

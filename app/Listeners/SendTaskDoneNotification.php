@@ -10,13 +10,10 @@ class SendTaskDoneNotification implements ShouldQueue
 {
     public function handle(TaskStatusUpdated $event): void
     {
-        if (! $event->sendEmail) {
-            return;
-        }
         if ($event->newStatus !== 'done') {
             return;
         }
-
+        // Always send when task is marked Done
         $task = $event->task->load(['project.client']);
         $project = $task->project;
         $client = $project->client;

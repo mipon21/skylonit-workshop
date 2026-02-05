@@ -6,7 +6,7 @@
         <div class="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-6">
             <form action="{{ route('projects.store') }}" method="POST">
                 @csrf
-                @include('projects._form', ['clients' => $clients])
+                @include('projects._form', ['clients' => $clients, 'nextProjectCode' => $nextProjectCode])
                 <div class="mt-6 flex gap-3">
                     <button type="submit" class="px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-medium">Save</button>
                     <a href="{{ route('projects.index') }}" class="px-4 py-2.5 rounded-xl border border-slate-600 text-slate-300 hover:bg-slate-700">Cancel</a>

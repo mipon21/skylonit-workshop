@@ -33,6 +33,11 @@
         <input type="text" name="fb_link" value="{{ old('fb_link', $client ? $client->fb_link : '') }}" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
     </div>
     <div>
+        <label class="block text-sm font-medium text-slate-400 mb-1">WhatsApp number (optional)</label>
+        <input type="text" name="whatsapp_number" value="{{ old('whatsapp_number', $client ? $client->whatsapp_number : '') }}" placeholder="e.g. 8801712000001" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+        <p class="text-slate-500 text-xs mt-1">Stored as number only; link opens as https://api.whatsapp.com/send/?phone=...</p>
+    </div>
+    <div>
         <label class="block text-sm font-medium text-slate-400 mb-1">KYC</label>
         <input type="text" name="kyc" value="{{ old('kyc', $client ? $client->kyc : '') }}" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
     </div>

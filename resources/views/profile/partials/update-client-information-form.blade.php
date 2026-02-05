@@ -45,6 +45,16 @@
                 </p>
             </div>
             <div>
+                <span class="text-xs text-slate-500">{{ __('WhatsApp') }}</span>
+                <p class="text-white mt-0.5">
+                    @if($client->whatsapp_link ?? null)
+                        <a href="{{ $client->whatsapp_link }}" target="_blank" rel="noopener" class="text-sky-400 hover:text-sky-300">WhatsApp</a>
+                    @else
+                        —
+                    @endif
+                </p>
+            </div>
+            <div>
                 <span class="text-xs text-slate-500">{{ __('KYC') }}</span>
                 <p class="text-white mt-0.5">{{ $client->kyc ?? '—' }}</p>
             </div>

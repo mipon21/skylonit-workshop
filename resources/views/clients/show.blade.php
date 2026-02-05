@@ -69,6 +69,7 @@
                 <p class="text-slate-300">Phone: {{ $client->phone ?? '—' }}</p>
                 <p class="text-slate-300">Email: {{ $client->email ?? '—' }}</p>
                 @if($client->fb_link)<p class="text-sky-400 mt-1"><a href="{{ $client->fb_link }}" target="_blank" rel="noopener">Facebook</a></p>@endif
+                @if($client->whatsapp_link)<p class="text-sky-400 mt-1"><a href="{{ $client->whatsapp_link }}" target="_blank" rel="noopener">WhatsApp</a></p>@endif
             </div>
             @if($client->address || $client->kyc)
             <div class="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-5">

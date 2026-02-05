@@ -6,6 +6,7 @@ use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ClientPaymentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\EmailFooterController;
 use App\Http\Controllers\EmailTemplateController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\InvoiceController;
@@ -94,6 +95,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('settings/email-templates/{email_template}/edit', [EmailTemplateController::class, 'edit'])->name('email-templates.edit');
         Route::get('settings/email-templates/{email_template}/preview', [EmailTemplateController::class, 'preview'])->name('email-templates.preview');
         Route::put('settings/email-templates/{email_template}', [EmailTemplateController::class, 'update'])->name('email-templates.update');
+        Route::get('settings/email-footer', [EmailFooterController::class, 'index'])->name('email-footer.index');
+        Route::put('settings/email-footer', [EmailFooterController::class, 'update'])->name('email-footer.update');
     });
 
     // Shared: projects index & show (controller scopes for client)

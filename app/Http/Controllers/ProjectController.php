@@ -24,6 +24,7 @@ class ProjectController extends Controller
         }
 
         $projects = $query->get();
+        $nextProjectCode = Project::generateNextProjectCode();
         $projectsData = $projects->map(fn (Project $p) => [
             'id' => $p->id,
             'project_name' => $p->project_name,
@@ -33,13 +34,15 @@ class ProjectController extends Controller
             'payment_status' => $p->due <= 0 ? 'paid' : ($p->total_paid > 0 ? 'partial' : 'unpaid'),
         ])->values()->toArray();
         $isClient = Auth::user()->isClient();
-        return view('projects.index', compact('projects', 'projectsData', 'isClient'));
+        return view('projects.index', compact('projects', 'projectsData', 'isClient', 'nextProjectCode'));
     }
 
     public function create(): View
     {
         $clients = Client::orderBy('name')->get();
-        return view('projects.create', compact('clients'));
+        $nextProjectCode = Project::generateNextProjectCode();
+
+        return view('projects.create', compact('clients', 'nextProjectCode'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -57,6 +60,7 @@ class ProjectController extends Controller
             'send_email' => ['nullable', 'boolean'],
         ]);
         $validated['exclude_from_overhead_profit'] = $request->boolean('exclude_from_overhead_profit');
+        $validated['project_code'] = Project::generateNextProjectCode();
         $project = Project::create($validated);
         event(new ProjectCreated($project, $request->boolean('send_email')));
         return redirect()->route('projects.index')->with('success', 'Project created.');
@@ -104,6 +108,7 @@ class ProjectController extends Controller
             'exclude_from_overhead_profit' => ['nullable', 'boolean'],
         ]);
         $validated['exclude_from_overhead_profit'] = $request->boolean('exclude_from_overhead_profit');
+        unset($validated['project_code']); // Project code is not editable; keep existing value
         $project->update($validated);
         return redirect()->route('projects.show', $project)->with('success', 'Project updated.');
     }
