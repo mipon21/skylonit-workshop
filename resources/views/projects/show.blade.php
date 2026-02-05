@@ -37,7 +37,7 @@
                 </div>
                 <p class="text-slate-400 text-sm mt-0.5">{{ $project->client->name }} @if($project->project_code)· {{ $project->project_code }}@endif</p>
             </div>
-            <div class="flex gap-2 items-center">
+            <div class="flex gap-2 items-center max-md:flex-wrap max-md:gap-2">
                 @if(!($isClient ?? false))
                 <a href="{{ route('projects.edit', $project) }}" class="px-4 py-2.5 rounded-xl border border-slate-600 text-slate-300 hover:bg-slate-700 text-sm font-medium transition">Edit</a>
                 <div class="relative" x-data="{ statusOpen: false, statusValue: '{{ $project->status }}' }" @click.outside="statusOpen = false">
@@ -102,17 +102,18 @@
             </div>
         @endif
         @endif
-        <div class="grid grid-cols-2 sm:grid-cols-3 {{ ($isClient ?? false) ? 'lg:grid-cols-4' : 'lg:grid-cols-6' }} gap-4 items-start">
-            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-4">
+        <div class="max-md:overflow-x-auto max-md:flex max-md:gap-4 max-md:pb-2 max-md:snap-x max-md:snap-mandatory">
+        <div class="grid grid-cols-2 sm:grid-cols-3 {{ ($isClient ?? false) ? 'lg:grid-cols-4' : 'lg:grid-cols-6' }} gap-4 items-start max-md:flex max-md:flex-nowrap max-md:min-w-0 max-md:gap-4">
+            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-4 max-md:shrink-0 max-md:min-w-[200px] max-md:snap-start">
                 <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">Contract {{ ($isClient ?? false) ? 'Amount' : '' }}</p>
                 <p class="text-lg font-bold text-white mt-0.5">৳ {{ number_format($project->contract_amount, 0) }}</p>
             </div>
-            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-4">
+            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-4 max-md:shrink-0 max-md:min-w-[200px] max-md:snap-start">
                 <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">Total Expenses</p>
                 <p class="text-lg font-bold text-white mt-0.5">৳ {{ number_format(($isClient ?? false) ? $project->public_expense_total : $project->expense_total, 0) }}</p>
             </div>
             @if(!($isClient ?? false))
-            <div class="bg-slate-800/80 backdrop-blur border border-sky-500/30 rounded-2xl p-4">
+            <div class="bg-slate-800/80 backdrop-blur border border-sky-500/30 rounded-2xl p-4 max-md:shrink-0 max-md:min-w-[200px] max-md:snap-start">
                 <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">Net base</p>
                 <p class="text-lg font-bold {{ $project->is_net_base_negative ? 'text-amber-400' : 'text-white' }} mt-0.5">৳ {{ number_format($project->net_base, 0) }}</p>
             </div>
@@ -127,7 +128,7 @@
                     default => 'bg-slate-500/25 text-slate-400 border-slate-500/40',
                 };
             @endphp
-            <div role="button" tabindex="0" title="Click to edit payout" @click="payoutType = 'overhead'; payoutModal = true" @keydown.enter="payoutType = 'overhead'; payoutModal = true" class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-4 cursor-pointer hover:border-slate-600 transition group">
+            <div role="button" tabindex="0" title="Click to edit payout" @click="payoutType = 'overhead'; payoutModal = true" @keydown.enter="payoutType = 'overhead'; payoutModal = true" class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-4 cursor-pointer hover:border-slate-600 transition group max-md:shrink-0 max-md:min-w-[200px] max-md:snap-start">
                 <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">Overhead</p>
                 <p class="text-lg font-bold text-white mt-0.5">৳ {{ number_format($project->realized_overhead, 0) }}</p>
                 <p class="text-slate-500 text-xs mt-0.5">of ৳ {{ number_format($project->overhead, 0) }}</p>
@@ -135,7 +136,7 @@
                     <span class="inline-block px-3 py-1.5 rounded-md text-base font-medium border whitespace-nowrap {{ $payoutBadgeClass($payoutStatus('overhead')) }}">{{ \App\Models\ProjectPayout::statusLabel($payoutStatus('overhead')) }}</span>
                 </p>
             </div>
-            <div role="button" tabindex="0" title="Click to edit payout" @click="payoutType = 'sales'; payoutModal = true" @keydown.enter="payoutType = 'sales'; payoutModal = true" class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-4 cursor-pointer hover:border-slate-600 transition group">
+            <div role="button" tabindex="0" title="Click to edit payout" @click="payoutType = 'sales'; payoutModal = true" @keydown.enter="payoutType = 'sales'; payoutModal = true" class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-4 cursor-pointer hover:border-slate-600 transition group max-md:shrink-0 max-md:min-w-[200px] max-md:snap-start">
                 <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">Sales</p>
                 <p class="text-lg font-bold text-white mt-0.5">৳ {{ number_format($project->realized_sales, 0) }}</p>
                 <p class="text-slate-500 text-xs mt-0.5">of ৳ {{ number_format($project->sales, 0) }}</p>
@@ -143,7 +144,7 @@
                     <span class="inline-block px-3 py-1.5 rounded-md text-base font-medium border whitespace-nowrap {{ $payoutBadgeClass($payoutStatus('sales')) }}">{{ \App\Models\ProjectPayout::statusLabel($payoutStatus('sales')) }}</span>
                 </p>
             </div>
-            <div role="button" tabindex="0" title="Click to edit payout" @click="payoutType = 'developer'; payoutModal = true" @keydown.enter="payoutType = 'developer'; payoutModal = true" class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-4 cursor-pointer hover:border-slate-600 transition group">
+            <div role="button" tabindex="0" title="Click to edit payout" @click="payoutType = 'developer'; payoutModal = true" @keydown.enter="payoutType = 'developer'; payoutModal = true" class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-4 cursor-pointer hover:border-slate-600 transition group max-md:shrink-0 max-md:min-w-[200px] max-md:snap-start">
                 <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">Developer</p>
                 <p class="text-lg font-bold text-white mt-0.5">৳ {{ number_format($project->realized_developer, 0) }}</p>
                 <p class="text-slate-500 text-xs mt-0.5">of ৳ {{ number_format($project->developer, 0) }}</p>
@@ -152,15 +153,16 @@
                 </p>
             </div>
             @else
-            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-4">
+            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-4 max-md:shrink-0 max-md:min-w-[200px] max-md:snap-start">
                 <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">Total Paid</p>
                 <p class="text-lg font-bold text-emerald-400 mt-0.5">৳ {{ number_format($project->total_paid, 0) }}</p>
             </div>
-            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-4">
+            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-4 max-md:shrink-0 max-md:min-w-[200px] max-md:snap-start">
                 <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">Due</p>
                 <p class="text-lg font-bold {{ $project->due > 0 ? 'text-amber-400' : 'text-emerald-400' }} mt-0.5">৳ {{ number_format($project->due, 0) }}</p>
             </div>
             @endif
+        </div>
         </div>
         @php
             $taskTodo = $project->tasks->where('status', 'todo')->count();
@@ -170,41 +172,41 @@
             $openBugs = $project->bugs->whereIn('status', ['open', 'in_progress'])->count();
         @endphp
         {{-- Side-by-side: Work Overview (left) | Profit card (right, admin only) --}}
-        <div class="flex flex-row gap-4 mt-2 items-start">
-            <div class="flex-1 min-w-0 h-[70px] rounded-2xl bg-slate-800/80 backdrop-blur border border-slate-700/50 p-2.5 overflow-hidden flex flex-col">
+        <div class="flex flex-row gap-4 mt-2 items-start max-md:flex-col max-md:gap-3 max-md:w-full">
+            <div class="flex-1 min-w-0 min-h-[70px] rounded-2xl bg-slate-800/80 backdrop-blur border border-slate-700/50 p-2.5 overflow-visible md:min-w-[280px] md:h-auto flex flex-col max-md:h-auto max-md:min-h-0 max-md:w-full max-md:min-w-full">
                 <p class="text-slate-300 text-sm font-semibold uppercase tracking-wide mb-1 shrink-0 text-center">Work overview</p>
-                <div class="flex-1 min-h-0 grid grid-cols-2 sm:grid-cols-4 gap-1.5 justify-items-start">
-                    <div class="w-max max-w-[56px] rounded-xl bg-slate-800/80 backdrop-blur border border-slate-700/50 px-2 py-1 flex items-center justify-between gap-1.5 shadow-inner">
+                <div class="flex-1 min-h-0 min-w-0 grid grid-cols-2 sm:grid-cols-4 gap-1.5 justify-items-start md:justify-items-stretch max-md:grid-cols-4 max-md:justify-items-stretch max-md:w-full">
+                    <div class="w-max max-w-[56px] md:w-full md:max-w-none md:min-w-0 rounded-xl bg-slate-800/80 backdrop-blur border border-slate-700/50 px-2 py-1 flex items-center justify-between gap-1.5 shadow-inner max-md:w-full max-md:min-w-0 max-md:max-w-none">
                         <span class="text-slate-400 text-[10px] font-medium">To do</span>
                         <span class="text-white text-xs font-bold tabular-nums">{{ $taskTodo }}</span>
                     </div>
-                    <div class="w-max max-w-[56px] rounded-xl bg-slate-800/80 backdrop-blur border border-slate-700/50 px-2 py-1 flex items-center justify-between gap-1.5 shadow-inner">
+                    <div class="w-max max-w-[56px] md:w-full md:max-w-none md:min-w-0 rounded-xl bg-slate-800/80 backdrop-blur border border-slate-700/50 px-2 py-1 flex items-center justify-between gap-1.5 shadow-inner max-md:w-full max-md:min-w-0 max-md:max-w-none">
                         <span class="text-slate-400 text-[10px] font-medium">Doing</span>
                         <span class="text-amber-400 text-xs font-bold tabular-nums">{{ $taskDoing }}</span>
                     </div>
-                    <div class="w-max max-w-[56px] rounded-xl bg-slate-800/80 backdrop-blur border border-slate-700/50 px-2 py-1 flex items-center justify-between gap-1.5 shadow-inner">
+                    <div class="w-max max-w-[56px] md:w-full md:max-w-none md:min-w-0 rounded-xl bg-slate-800/80 backdrop-blur border border-slate-700/50 px-2 py-1 flex items-center justify-between gap-1.5 shadow-inner max-md:w-full max-md:min-w-0 max-md:max-w-none">
                         <span class="text-slate-400 text-[10px] font-medium">Done</span>
                         <span class="text-emerald-400 text-xs font-bold tabular-nums">{{ $taskDone }}</span>
                     </div>
-                    <div class="w-max max-w-[56px] rounded-xl bg-slate-800/80 backdrop-blur border border-slate-700/50 px-2 py-1 flex items-center justify-between gap-1.5 shadow-inner">
+                    <div class="w-max max-w-[56px] md:w-full md:max-w-none md:min-w-0 rounded-xl bg-slate-800/80 backdrop-blur border border-slate-700/50 px-2 py-1 flex items-center justify-between gap-1.5 shadow-inner max-md:w-full max-md:min-w-0 max-md:max-w-none">
                         <span class="text-slate-400 text-[10px] font-medium">Total</span>
                         <span class="text-sky-400 text-xs font-bold tabular-nums">{{ $taskTotal }}</span>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 mt-1 shrink-0 justify-items-start">
-                    <div class="w-max max-w-[56px] rounded-xl bg-slate-800/80 backdrop-blur border border-slate-700/50 px-2 py-1 flex items-center justify-between gap-1.5 shadow-inner">
+                <div class="min-w-0 grid grid-cols-2 sm:grid-cols-4 gap-1.5 mt-1 shrink-0 justify-items-start md:justify-items-stretch max-md:grid-cols-4 max-md:justify-items-stretch max-md:w-full">
+                    <div class="w-max max-w-[56px] md:w-full md:max-w-none md:min-w-0 rounded-xl bg-slate-800/80 backdrop-blur border border-slate-700/50 px-2 py-1 flex items-center justify-between gap-1.5 shadow-inner max-md:w-full max-md:min-w-0 max-md:max-w-none">
                         <span class="text-slate-400 text-[10px] font-medium">docs</span>
                         <span class="text-white text-xs font-bold tabular-nums">{{ $project->documents->count() }}</span>
                     </div>
-                    <div class="w-max max-w-[56px] rounded-xl bg-slate-800/80 backdrop-blur border border-slate-700/50 px-2 py-1 flex items-center justify-between gap-1.5 shadow-inner">
+                    <div class="w-max max-w-[56px] md:w-full md:max-w-none md:min-w-0 rounded-xl bg-slate-800/80 backdrop-blur border border-slate-700/50 px-2 py-1 flex items-center justify-between gap-1.5 shadow-inner max-md:w-full max-md:min-w-0 max-md:max-w-none">
                         <span class="text-slate-400 text-[10px] font-medium">notes</span>
                         <span class="text-white text-xs font-bold tabular-nums">{{ $project->projectNotes->count() }}</span>
                     </div>
-                    <div class="w-max max-w-[56px] rounded-xl bg-slate-800/80 backdrop-blur border border-slate-700/50 px-2 py-1 flex items-center justify-between gap-1.5 shadow-inner">
+                    <div class="w-max max-w-[56px] md:w-full md:max-w-none md:min-w-0 rounded-xl bg-slate-800/80 backdrop-blur border border-slate-700/50 px-2 py-1 flex items-center justify-between gap-1.5 shadow-inner max-md:w-full max-md:min-w-0 max-md:max-w-none">
                         <span class="text-slate-400 text-[10px] font-medium">bugs</span>
                         <span class="text-white text-xs font-bold tabular-nums">{{ $openBugs }}</span>
                     </div>
-                    <div class="w-max max-w-[56px] rounded-xl bg-slate-800/80 backdrop-blur border border-slate-700/50 px-2 py-1 flex items-center justify-between gap-1.5 shadow-inner">
+                    <div class="w-max max-w-[56px] md:w-full md:max-w-none md:min-w-0 rounded-xl bg-slate-800/80 backdrop-blur border border-slate-700/50 px-2 py-1 flex items-center justify-between gap-1.5 shadow-inner max-md:w-full max-md:min-w-0 max-md:max-w-none">
                         <span class="text-slate-400 text-[10px] font-medium">links</span>
                         <span class="text-white text-xs font-bold tabular-nums">{{ $project->projectLinks->count() }}</span>
                     </div>
@@ -269,7 +271,7 @@
                 @endif
                 <ul class="space-y-3">
                     @forelse($project->payments as $payment)
-                        <li class="flex items-center justify-between py-2 border-b border-slate-700/30 last:border-0">
+                        <li class="flex items-center justify-between py-2 border-b border-slate-700/30 last:border-0 max-md:flex-col max-md:items-stretch max-md:gap-2 max-md:pb-4">
                             <div class="min-w-0">
                                 <span class="text-white font-medium">৳ {{ number_format($payment->amount, 0) }}</span>
                                 @if($payment->payment_type)
@@ -288,7 +290,7 @@
                                     ])>{{ $payment->payment_status === 'PAID' ? 'Paid' : ($payment->payment_status === 'DUE' ? 'DUE' : ucfirst($payment->status ?? '—')) }}</span>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+                            <div class="flex items-center gap-2 shrink-0 flex-wrap justify-end max-md:w-full max-md:flex-col max-md:items-stretch">
                                 @if(!($isClient ?? false))
                                     @if($payment->payment_status === 'DUE' && $payment->payment_link)
                                         <button type="button" data-payment-link="{{ $payment->payment_link }}" class="copy-payment-link px-3 py-1.5 rounded-lg bg-sky-500/20 text-sky-400 hover:bg-sky-500/30 text-xs font-medium inline-flex items-center gap-1" title="Copy link">
@@ -363,7 +365,7 @@
                 </div>
                 <ul class="space-y-3">
                     @forelse($project->expenses as $expense)
-                        <li class="flex items-center justify-between gap-3 py-2 border-b border-slate-700/30 last:border-0">
+                        <li class="flex items-center justify-between gap-3 py-2 border-b border-slate-700/30 last:border-0 max-md:flex-col max-md:items-stretch max-md:gap-2 max-md:pb-4">
                             <div class="min-w-0 flex-1">
                                 <span class="text-white font-medium">৳ {{ number_format($expense->amount, 0) }}</span>
                                 @if($expense->note)<span class="text-slate-500 text-sm ml-2">— {{ Str::limit($expense->note, 30) }}</span>@endif
@@ -438,7 +440,7 @@
                     <h2 class="font-semibold text-white">Documents</h2>
                     <button @click="documentModal = true" class="px-3 py-1.5 rounded-lg bg-sky-500/20 text-sky-400 hover:bg-sky-500/30 text-sm font-medium">Upload</button>
                 </div>
-                <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 max-md:gap-3">
                     @forelse($project->documents as $doc)
                         <div class="bg-slate-800/80 border border-slate-700/50 rounded-xl p-4 grid gap-4" style="grid-template-columns: minmax(0, 1fr) auto;">
                             <div class="min-w-0 space-y-1 overflow-hidden">
@@ -504,7 +506,7 @@
                 <div class="h-2 bg-slate-700 rounded-full overflow-hidden mb-6">
                     <div class="h-full bg-emerald-500 rounded-full transition-all" style="width: {{ $taskPct }}%"></div>
                 </div>
-                <div class="grid md:grid-cols-3 gap-4">
+                <div class="grid md:grid-cols-3 gap-4 max-md:grid-cols-1 max-md:gap-3">
                     <div class="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4">
                         <h3 class="text-amber-400 font-medium text-sm mb-3">To Do</h3>
                         <div class="space-y-3">
@@ -624,7 +626,7 @@
                     <button @click="noteModal = true" class="px-3 py-1.5 rounded-lg bg-sky-500/20 text-sky-400 hover:bg-sky-500/30 text-sm font-medium">New Note</button>
                     @endif
                 </div>
-                <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 max-md:grid-cols-1 max-md:gap-3">
                     @forelse($project->projectNotes as $note)
                         <div class="bg-slate-800/80 border border-slate-700/50 rounded-2xl overflow-hidden hover:border-slate-600 hover:shadow-lg transition-all duration-200"
                              :class="{ 'ring-1 ring-sky-500/30': expandedNoteId == {{ $note->id }} }">

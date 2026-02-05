@@ -57,14 +57,14 @@
                 <a href="{{ route('clients.index') }}" class="text-slate-400 hover:text-white text-sm mb-2 inline-block">← Clients</a>
                 <h1 class="text-2xl font-semibold text-white">{{ $client->name }}</h1>
             </div>
-            <div class="flex gap-2">
-                <a href="{{ route('clients.edit', $client) }}" class="px-4 py-2.5 rounded-xl border border-slate-600 text-slate-300 hover:bg-slate-700">Edit</a>
-                <a href="{{ route('projects.create') }}?client_id={{ $client->id }}" class="px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-medium">New Project</a>
+            <div class="flex gap-2 max-md:flex-wrap max-md:w-full">
+                <a href="{{ route('clients.edit', $client) }}" class="px-4 py-2.5 rounded-xl border border-slate-600 text-slate-300 hover:bg-slate-700 max-md:flex-1 max-md:text-center">Edit</a>
+                <a href="{{ route('projects.create') }}?client_id={{ $client->id }}" class="px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-medium max-md:flex-1 max-md:text-center">New Project</a>
             </div>
         </div>
 
-        <div class="grid md:grid-cols-2 gap-4">
-            <div class="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-5">
+        <div class="grid md:grid-cols-2 gap-4 max-md:grid-cols-1 max-md:gap-3">
+            <div class="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-5 max-md:p-4">
                 <h2 class="text-sm font-medium text-slate-400 mb-3">Contact</h2>
                 <p class="text-slate-300">Phone: {{ $client->phone ?? '—' }}</p>
                 <p class="text-slate-300">Email: {{ $client->email ?? '—' }}</p>
@@ -104,7 +104,7 @@
                     </div>
                 </div>
 
-                <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 max-md:grid-cols-1 max-md:gap-3">
                     @forelse($client->projects as $project)
                     <div x-show="filteredIds.includes({{ $project->id }})" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="group relative bg-slate-800/60 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg hover:shadow-xl hover:border-slate-600 transition-all hover:-translate-y-0.5 overflow-visible">
                         <a href="{{ route('projects.show', $project) }}" class="block">

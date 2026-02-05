@@ -7,9 +7,9 @@
         </div>
 
         @if($invoices->count() > 0)
-            <div class="bg-slate-800/60 border border-slate-700/50 rounded-2xl overflow-hidden">
+            <div class="bg-slate-800/60 border border-slate-700/50 rounded-2xl overflow-hidden max-md:overflow-x-auto">
                 <div class="overflow-x-auto">
-                    <table class="w-full">
+                    <table class="w-full max-md:min-w-[640px]">
                         <thead>
                             <tr class="border-b border-slate-700/50">
                                 <th class="px-6 py-4 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">

@@ -7,9 +7,9 @@
         </div>
 
         @if($payments->count() > 0)
-            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 max-md:grid-cols-1 max-md:gap-3">
                 @foreach($payments as $payment)
-                    <div class="rounded-2xl bg-slate-800/60 border border-slate-700/50 p-5 flex flex-col">
+                    <div class="rounded-2xl bg-slate-800/60 border border-slate-700/50 p-5 flex flex-col max-md:p-4">
                         <div class="flex items-start justify-between gap-2">
                             <div>
                                 <p class="font-semibold text-white">{{ $payment->project->project_name }}</p>
@@ -33,7 +33,7 @@
                         <div class="mt-4 pt-4 border-t border-slate-700/50 flex flex-col gap-2">
                             @if($payment->isDue() && $payment->payment_link)
                                 <a href="{{ $payment->payment_link }}" target="_blank" rel="noopener noreferrer"
-                                   class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-medium text-sm transition">
+                                   class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-medium text-sm transition max-md:w-full">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
                                     </svg>
@@ -49,7 +49,7 @@
                                 </span>
                                 @if($payment->invoice)
                                     <a href="{{ route('invoices.download', $payment->invoice) }}"
-                                       class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl border border-slate-600 text-slate-300 hover:bg-slate-700 text-sm font-medium transition">
+                                       class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl border border-slate-600 text-slate-300 hover:bg-slate-700 text-sm font-medium transition max-md:w-full">
                                         Download Invoice
                                     </a>
                                 @endif

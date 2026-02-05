@@ -62,9 +62,9 @@
         </div>
 
         <div class="space-y-6" x-data="projectsPage()">
-            <div class="flex flex-wrap items-start gap-4">
+            <div class="flex flex-wrap items-start gap-4 max-md:flex-col max-md:w-full max-md:gap-3">
                 <label for="projects-search" class="sr-only">Search projects</label>
-                <input type="text" id="projects-search" x-model="searchText" placeholder="Search by project name, code, client, ID…" class="flex-1 min-w-[200px] max-w-md rounded-lg bg-slate-800 border border-slate-600 text-white px-3 py-1.5 text-sm placeholder-slate-500 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+                <input type="text" id="projects-search" x-model="searchText" placeholder="Search by project name, code, client, ID…" class="flex-1 min-w-[200px] max-w-md rounded-lg bg-slate-800 border border-slate-600 text-white px-3 py-1.5 text-sm placeholder-slate-500 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 max-md:w-full max-md:max-w-none">
                 <div class="flex flex-col gap-2">
                     <div class="flex flex-wrap items-center gap-2">
                         <span class="text-slate-400 text-sm">Status:</span>
@@ -84,9 +84,9 @@
                 </div>
             </div>
 
-            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 max-md:grid-cols-1 max-md:gap-3">
                 @forelse($projects as $project)
-                <div x-show="filteredIds.includes({{ $project->id }})" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="group relative bg-slate-800/60 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg hover:shadow-xl hover:border-slate-600 transition-all hover:-translate-y-0.5 overflow-visible">
+                <div x-show="filteredIds.includes({{ $project->id }})" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="group relative bg-slate-800/60 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg hover:shadow-xl hover:border-slate-600 transition-all hover:-translate-y-0.5 overflow-visible max-md:p-4">
                     <a href="{{ route('projects.show', $project) }}" class="block">
                         <p class="font-semibold text-white group-hover:text-sky-400 transition">{{ $project->project_name }} <span class="text-slate-500 text-sm font-normal">· {{ $project->project_code ?: $project->formatted_id }}</span></p>
                         <p class="text-slate-400 text-sm mt-1">{{ $project->client->name }}</p>
@@ -162,9 +162,9 @@
         @if(!($isClient ?? false))
         {{-- Add Project Modal --}}
         <div x-show="open" x-cloak class="fixed inset-0 z-50 overflow-y-auto" aria-modal="true">
-            <div class="flex min-h-full items-center justify-center p-4">
+            <div class="flex min-h-full items-center justify-center p-4 max-md:p-0 max-md:items-stretch">
                 <div x-show="open" x-transition class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="open = false"></div>
-                <div x-show="open" x-transition class="relative w-full max-w-lg bg-slate-800 border border-slate-700 rounded-2xl shadow-xl max-h-[90vh] overflow-y-auto">
+                <div x-show="open" x-transition class="relative w-full max-w-lg bg-slate-800 border border-slate-700 rounded-2xl shadow-xl max-h-[90vh] overflow-y-auto max-md:max-w-none max-md:max-h-full max-md:rounded-none max-md:border-0">
                     <div class="p-6">
                         <h2 class="text-lg font-semibold text-white mb-4">New Project</h2>
                         <form action="{{ route('projects.store') }}" method="POST">
@@ -224,7 +224,7 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="mt-6 flex justify-end gap-3">
+                            <div class="mt-6 flex justify-end gap-3 max-md:flex-col max-md:[&_button]:w-full">
                                 <button type="button" @click="open = false" class="px-4 py-2.5 rounded-xl border border-slate-600 text-slate-300 hover:bg-slate-700">Cancel</button>
                                 <button type="submit" class="px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-medium">Save</button>
                             </div>

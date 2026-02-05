@@ -1,7 +1,7 @@
 <div x-show="taskModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" aria-modal="true">
-    <div class="flex min-h-full items-center justify-center p-4">
+    <div class="flex min-h-full items-center justify-center p-4 max-md:p-0 max-md:items-stretch">
         <div x-show="taskModal" x-transition class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="taskModal = false"></div>
-        <div x-show="taskModal" x-transition class="relative w-full max-w-md bg-slate-800 border border-slate-700 rounded-2xl shadow-xl p-6">
+        <div x-show="taskModal" x-transition class="relative w-full max-w-md bg-slate-800 border border-slate-700 rounded-2xl shadow-xl p-6 max-md:max-w-none max-md:max-h-full max-md:rounded-none max-md:border-0">
             <h2 class="text-lg font-semibold text-white mb-4">Add Task</h2>
             <form action="{{ route('projects.tasks.store', $project) }}" method="POST">
                 @csrf
@@ -45,7 +45,7 @@
                         <p class="text-slate-500 text-xs mt-1">If checked and status is set to Done, client is notified.</p>
                     </div>
                 </div>
-                <div class="mt-6 flex justify-end gap-3">
+                <div class="mt-6 flex justify-end gap-3 max-md:flex-col max-md:[&_button]:w-full">
                     <button type="button" @click="taskModal = false" class="px-4 py-2.5 rounded-xl border border-slate-600 text-slate-300 hover:bg-slate-700">Cancel</button>
                     <button type="submit" class="px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-medium">Add Task</button>
                 </div>

@@ -102,9 +102,9 @@
 
     <div class="space-y-6" x-data="revenuePage()">
         {{-- KPI Cards: 4 columns × 3 rows --}}
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 max-md:grid-cols-1 max-md:gap-2">
             {{-- Row 1 --}}
-            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-xl p-4">
+            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-xl p-4 max-md:p-3">
                 <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">Projects</p>
                 <p class="text-lg font-bold text-white mt-0.5" x-text="totals.count"></p>
             </div>
@@ -157,8 +157,8 @@
         </div>
 
         {{-- Search + Date filter --}}
-        <div class="flex flex-wrap items-center gap-4">
-            <div class="flex-1 min-w-[200px]">
+        <div class="flex flex-wrap items-center gap-4 max-md:flex-col max-md:w-full max-md:gap-3">
+            <div class="flex-1 min-w-[200px] max-md:w-full max-md:min-w-0">
                 <label for="revenue-search" class="sr-only">Search projects</label>
                 <input type="text" id="revenue-search" x-model="searchText" placeholder="Search by project name, code, client, ID…" class="w-full rounded-xl bg-slate-800 border border-slate-600 text-white px-4 py-2.5 text-sm placeholder-slate-500 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
             </div>
@@ -181,9 +181,9 @@
 
         <h1 class="text-2xl font-semibold text-white">Loss / Profit Tracking</h1>
 
-        <div class="bg-slate-800/60 backdrop-blur border border-slate-700/50 rounded-2xl overflow-hidden">
+        <div class="bg-slate-800/60 backdrop-blur border border-slate-700/50 rounded-2xl overflow-hidden max-md:overflow-x-auto">
             <div class="overflow-x-auto">
-                <table class="w-full min-w-[900px]">
+                <table class="w-full min-w-[900px] max-md:min-w-[800px]">
                     <thead class="bg-slate-800/80 border-b border-slate-700/50">
                         <tr>
                             <th class="text-left px-4 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Project</th>

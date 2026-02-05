@@ -38,9 +38,9 @@
             <label for="clients-search" class="sr-only">Search clients</label>
             <input type="text" id="clients-search" x-model="searchText" placeholder="Search by name, phone, email…" class="w-full max-w-md rounded-xl bg-slate-800 border border-slate-600 text-white px-4 py-2.5 text-sm placeholder-slate-500 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
 
-        <div class="bg-slate-800/60 backdrop-blur border border-slate-700/50 rounded-2xl overflow-hidden">
+        <div class="bg-slate-800/60 backdrop-blur border border-slate-700/50 rounded-2xl overflow-hidden max-md:overflow-x-auto">
             <div class="overflow-x-auto">
-                <table class="w-full">
+                <table class="w-full max-md:min-w-[600px]">
                     <thead class="bg-slate-800/80 border-b border-slate-700/50">
                         <tr>
                             <th class="text-left px-5 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Name</th>
@@ -82,15 +82,15 @@
 
         {{-- Add Client Modal --}}
         <div x-show="open" x-cloak class="fixed inset-0 z-50 overflow-y-auto" aria-modal="true">
-            <div class="flex min-h-full items-center justify-center p-4">
+            <div class="flex min-h-full items-center justify-center p-4 max-md:p-0 max-md:items-stretch">
                 <div x-show="open" x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="open = false"></div>
-                <div x-show="open" x-transition class="relative w-full max-w-md max-h-[90vh] flex flex-col bg-slate-800 border border-slate-700 rounded-2xl shadow-xl">
+                <div x-show="open" x-transition class="relative w-full max-w-md max-h-[90vh] flex flex-col bg-slate-800 border border-slate-700 rounded-2xl shadow-xl max-md:max-w-none max-md:max-h-full max-md:rounded-none max-md:border-0">
                     <div class="p-6 overflow-y-auto">
                         <h2 class="text-lg font-semibold text-white mb-4">New Client</h2>
                         <form action="{{ route('clients.store') }}" method="POST">
                             @csrf
                             @include('clients._form', ['client' => null])
-                            <div class="mt-6 flex justify-end gap-3">
+                            <div class="mt-6 flex justify-end gap-3 max-md:flex-col max-md:[&_button]:w-full">
                                 <button type="button" @click="open = false" class="px-4 py-2.5 rounded-xl border border-slate-600 text-slate-300 hover:bg-slate-700">Cancel</button>
                                 <button type="submit" class="px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-medium">Save</button>
                             </div>

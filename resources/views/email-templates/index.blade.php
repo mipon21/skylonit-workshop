@@ -8,8 +8,9 @@
             <span class="font-medium text-slate-300">Verify mail without sending to your inbox:</span> Set <code class="bg-slate-900 px-1 rounded">MAIL_MAILER=log</code> in .env, then run <code class="bg-slate-900 px-1 rounded">php artisan mail:test</code>. The test message is written to <code class="bg-slate-900 px-1 rounded">storage/logs/laravel.log</code> and no email is sent.
         </div>
 
-        <div class="bg-slate-800/60 border border-slate-700/50 rounded-2xl overflow-hidden">
-            <table class="w-full text-left">
+        <div class="bg-slate-800/60 border border-slate-700/50 rounded-2xl overflow-hidden max-md:overflow-x-auto">
+            <div class="overflow-x-auto">
+            <table class="w-full text-left max-md:min-w-[500px]">
                 <thead class="bg-slate-900/80 border-b border-slate-700/50">
                     <tr>
                         <th class="px-4 py-3 text-sm font-medium text-slate-400">Name</th>
@@ -37,6 +38,7 @@
                     @endforeach
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 </x-app-layout>

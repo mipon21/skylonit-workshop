@@ -4,8 +4,8 @@
     <div class="space-y-6">
         <h1 class="text-2xl font-semibold text-white">Dashboard</h1>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg hover:shadow-xl transition-shadow">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-md:grid-cols-1 max-md:gap-3">
+            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg hover:shadow-xl transition-shadow max-md:p-4">
                 <div class="flex items-center gap-3 mb-3">
                     <div class="w-10 h-10 rounded-xl bg-sky-500/20 flex items-center justify-center">
                         <svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -16,7 +16,7 @@
                 <p class="text-slate-500 text-xs mt-1">{{ $isClient ?? false ? 'Your projects' : 'Gross contract amount' }}</p>
             </div>
 
-            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg hover:shadow-xl transition-shadow">
+            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg hover:shadow-xl transition-shadow max-md:p-4">
                 <div class="flex items-center gap-3 mb-3">
                     <div class="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
                         <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -27,7 +27,7 @@
                 <p class="text-slate-500 text-xs mt-1">{{ $isClient ?? false ? 'Received' : 'Realized from completed payments' }}</p>
             </div>
 
-            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg hover:shadow-xl transition-shadow">
+            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg hover:shadow-xl transition-shadow max-md:p-4">
                 <div class="flex items-center gap-3 mb-3">
                     <div class="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
                         <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -38,7 +38,7 @@
                 <p class="text-slate-500 text-xs mt-1">{{ $isClient ?? false ? 'Outstanding' : 'Unpaid from clients' }}</p>
             </div>
 
-            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg hover:shadow-xl transition-shadow">
+            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg hover:shadow-xl transition-shadow max-md:p-4">
                 <div class="flex items-center gap-3 mb-3">
                     <div class="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center">
                         <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
@@ -50,8 +50,8 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="bg-slate-800/60 backdrop-blur border border-slate-700/50 rounded-2xl p-4 shadow hover:shadow-lg transition-shadow">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-md:grid-cols-1 max-md:gap-3">
+            <div class="bg-slate-800/60 backdrop-blur border border-slate-700/50 rounded-2xl p-4 shadow hover:shadow-lg transition-shadow max-md:p-3">
                 <div class="flex items-center gap-2 mb-2">
                     <div class="w-9 h-9 rounded-lg bg-red-500/20 flex items-center justify-center">
                         <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
@@ -93,10 +93,10 @@
             </div>
         </div>
 
-        {{-- Calendar & Chart: equal width, matching height --}}
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: stretch;">
+        {{-- Calendar & Chart: equal width on desktop; full-width stack on mobile --}}
+        <div class="grid grid-cols-2 max-md:grid-cols-1 gap-4 items-stretch">
             {{-- Calendar: 7-column grid with date notes --}}
-            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-xl p-3 shadow-lg flex flex-col" style="min-width: 0; height: 268px;" x-data="dashboardCalendar()" x-init="init()">
+            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-xl p-3 shadow-lg flex flex-col min-w-0 max-md:w-full" style="height: 268px;" x-data="dashboardCalendar()" x-init="init()">
                 <div class="flex items-center justify-between mb-2 shrink-0">
                     <h2 class="text-slate-300 font-semibold text-sm flex items-center gap-1.5">
                         <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
@@ -178,7 +178,7 @@
             </div>
 
             {{-- Overview pie chart: same height as calendar --}}
-            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-xl p-3 shadow-lg flex flex-col" style="min-width: 0; height: 268px;">
+            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-xl p-3 shadow-lg flex flex-col min-w-0 max-md:w-full" style="height: 268px;">
                 <h2 class="text-slate-300 font-semibold text-sm mb-2 shrink-0 flex items-center gap-1.5">
                     <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/></svg>
                     Overview

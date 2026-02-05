@@ -1,8 +1,8 @@
 @foreach($project->expenses as $expense)
 <div x-show="expenseEditModal === {{ $expense->id }}" x-cloak class="fixed inset-0 z-50 overflow-y-auto" aria-modal="true">
-    <div class="flex min-h-full items-center justify-center p-4">
+    <div class="flex min-h-full items-center justify-center p-4 max-md:p-0 max-md:items-stretch">
         <div x-show="expenseEditModal === {{ $expense->id }}" x-transition class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="expenseEditModal = null"></div>
-        <div x-show="expenseEditModal === {{ $expense->id }}" x-transition class="relative w-full max-w-sm bg-slate-800 border border-slate-700 rounded-2xl shadow-xl p-6">
+        <div x-show="expenseEditModal === {{ $expense->id }}" x-transition class="relative w-full max-w-sm bg-slate-800 border border-slate-700 rounded-2xl shadow-xl p-6 max-md:max-w-none max-md:max-h-full max-md:rounded-none max-md:border-0">
             <h2 class="text-lg font-semibold text-white mb-4">Edit Expense</h2>
             <form action="{{ route('projects.expenses.update', [$project, $expense]) }}" method="POST">
                 @csrf

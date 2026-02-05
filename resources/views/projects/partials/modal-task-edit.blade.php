@@ -1,8 +1,8 @@
 @foreach($project->tasks as $task)
 <div x-show="taskEditModal === {{ $task->id }}" x-cloak class="fixed inset-0 z-50 overflow-y-auto" aria-modal="true">
-    <div class="flex min-h-full items-center justify-center p-4">
+    <div class="flex min-h-full items-center justify-center p-4 max-md:p-0 max-md:items-stretch">
         <div x-show="taskEditModal === {{ $task->id }}" x-transition class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="taskEditModal = null"></div>
-        <div x-show="taskEditModal === {{ $task->id }}" x-transition class="relative w-full max-w-md bg-slate-800 border border-slate-700 rounded-2xl shadow-xl p-6">
+        <div x-show="taskEditModal === {{ $task->id }}" x-transition class="relative w-full max-w-md bg-slate-800 border border-slate-700 rounded-2xl shadow-xl p-6 max-md:max-w-none max-md:max-h-full max-md:rounded-none max-md:border-0">
             <h2 class="text-lg font-semibold text-white mb-4">Edit Task</h2>
             <form action="{{ route('projects.tasks.update', [$project, $task]) }}" method="POST">
                 @csrf
