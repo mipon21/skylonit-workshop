@@ -10,18 +10,64 @@ class ProjectLink extends Model
 {
     use HasFactory;
 
+    public const TYPE_URL = 'url';
+    public const TYPE_APK = 'apk';
+
+    /** Visibility: who can see this link. Admin always sees all. */
+    public const VISIBILITY_ADMIN_ONLY = 'admin_only';
+    public const VISIBILITY_CLIENT = 'client';       // Admin + Client (no guest)
+    public const VISIBILITY_GUEST = 'guest';        // Admin + Guest (no client)
+    public const VISIBILITY_ALL = 'all';             // Admin + Client + Guest
+
     protected $fillable = [
         'project_id',
+        'link_type',
         'label',
         'url',
+        'file_path',
+        'file_name',
         'login_username',
         'login_password',
         'is_public',
+        'visible_to_client',
     ];
 
     protected $casts = [
         'is_public' => 'boolean',
+        'visible_to_client' => 'boolean',
     ];
+
+    /** Current visibility slug from is_public + visible_to_client. */
+    public function getVisibilityAttribute(): string
+    {
+        $client = (bool) ($this->visible_to_client ?? true);
+        $guest = (bool) ($this->is_public ?? false);
+        if (! $client && ! $guest) {
+            return self::VISIBILITY_ADMIN_ONLY;
+        }
+        if ($client && ! $guest) {
+            return self::VISIBILITY_CLIENT;
+        }
+        if (! $client && $guest) {
+            return self::VISIBILITY_GUEST;
+        }
+        return self::VISIBILITY_ALL;
+    }
+
+    public static function visibilityLabels(): array
+    {
+        return [
+            self::VISIBILITY_ADMIN_ONLY => 'Admin only',
+            self::VISIBILITY_CLIENT => 'Admin & Client (no guest)',
+            self::VISIBILITY_GUEST => 'Admin & Guest (no client)',
+            self::VISIBILITY_ALL => 'Everyone (Admin, Client & Guest)',
+        ];
+    }
+
+    public function isApk(): bool
+    {
+        return ($this->link_type ?? self::TYPE_URL) === self::TYPE_APK;
+    }
 
     public function project(): BelongsTo
     {

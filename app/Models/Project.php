@@ -56,6 +56,7 @@ class Project extends Model
         'delivery_date',
         'status',
         'exclude_from_overhead_profit',
+        'is_public',
     ];
 
     protected $casts = [
@@ -63,6 +64,7 @@ class Project extends Model
         'contract_date' => 'date',
         'delivery_date' => 'date',
         'exclude_from_overhead_profit' => 'boolean',
+        'is_public' => 'boolean',
     ];
 
     /** Display ID e.g. SLN-000033 for use in UI. */

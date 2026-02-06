@@ -26,6 +26,7 @@
                 <input type="hidden" name="description" value="{{ $task->description }}">
                 <input type="hidden" name="priority" value="{{ $task->priority }}">
                 <input type="hidden" name="due_date" value="{{ $task->due_date?->format('Y-m-d') }}">
+                <input type="hidden" name="is_public" value="{{ $task->is_public ? '1' : '0' }}">
                 <select name="status" onchange="this.form.submit()" class="rounded bg-slate-800 border border-slate-600 text-white text-xs px-2 py-1">
                     <option value="todo" {{ $task->status === 'todo' ? 'selected' : '' }}>To Do</option>
                     <option value="doing" {{ $task->status === 'doing' ? 'selected' : '' }}>Doing</option>

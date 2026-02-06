@@ -41,6 +41,13 @@
                     </div>
                     <div class="pt-2 border-t border-slate-700/50">
                         <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="hidden" name="is_public" value="0">
+                            <input type="checkbox" name="is_public" value="1" {{ old('is_public', $task->is_public ?? true) ? 'checked' : '' }} class="rounded border-slate-600 bg-slate-900 text-sky-500 focus:ring-sky-500">
+                            <span class="text-sm font-medium text-slate-400">Show on public (guest) portal</span>
+                        </label>
+                    </div>
+                    <div class="pt-2 border-t border-slate-700/50">
+                        <label class="flex items-center gap-2 cursor-pointer">
                             <input type="checkbox" name="send_email" value="1" {{ old('send_email') ? 'checked' : '' }} class="rounded border-slate-600 bg-slate-900 text-sky-500 focus:ring-sky-500">
                             <span class="text-sm font-medium text-slate-400">Send Email Notification?</span>
                         </label>

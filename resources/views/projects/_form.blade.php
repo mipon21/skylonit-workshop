@@ -65,6 +65,16 @@
         </label>
         <p class="text-slate-500 text-xs mt-1">When enabled, expense is deducted from the contract amount first, then 75% Developer and 25% Sales; Overhead and Profit are ৳0 and not counted in totals.</p>
     </div>
+    @if($project)
+    <div class="pt-2 border-t border-slate-700/50">
+        <label class="flex items-center gap-2 cursor-pointer">
+            <input type="hidden" name="is_public" value="0">
+            <input type="checkbox" name="is_public" value="1" {{ old('is_public', $project->is_public ?? false) ? 'checked' : '' }} class="rounded border-slate-600 bg-slate-900 text-sky-500 focus:ring-sky-500">
+            <span class="text-sm font-medium text-slate-400">Show on public (guest) portal</span>
+        </label>
+        <p class="text-slate-500 text-xs mt-1">When enabled, this project appears on the public showcase and guests can view its public tasks, bugs, and links.</p>
+    </div>
+    @endif
     @if(!$project)
     <div class="pt-2 border-t border-slate-700/50">
         <label class="flex items-center gap-2 cursor-pointer">

@@ -17,6 +17,11 @@ class Bug extends Model
         'severity',
         'status',
         'attachment_path',
+        'is_public',
+    ];
+
+    protected $casts = [
+        'is_public' => 'boolean',
     ];
 
     public function project(): BelongsTo

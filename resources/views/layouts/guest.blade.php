@@ -11,7 +11,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans text-slate-200 antialiased bg-slate-950">
-        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0">
+        <div class="min-h-screen flex flex-col justify-center items-center px-4 sm:px-6">
             @if(!empty($appLogoUrl))
                 <a href="{{ route('login') }}" class="block">
                     <img src="{{ $appLogoUrl }}" alt="{{ config('app.name') }}" class="h-10 w-auto max-w-[200px] object-contain">
@@ -19,7 +19,7 @@
             @else
                 <a href="{{ route('login') }}" class="text-xl font-bold bg-gradient-to-r from-cyan-400 to-sky-500 bg-clip-text text-transparent">{{ config('app.name') }}</a>
             @endif
-            <div class="w-full sm:max-w-md mt-6 px-6 py-8 bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl shadow-xl">
+            <div class="w-full max-w-md mt-6 px-6 py-8 bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl shadow-xl mx-auto">
                 {{ $slot }}
             </div>
         </div>

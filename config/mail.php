@@ -114,6 +114,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Bug report notification address (client-reported bugs)
+    |--------------------------------------------------------------------------
+    | Email address(es) that always receive client bug report notifications.
+    | If set (e.g. MAIL_BUG_NOTIFICATION_TO=support@example.com), this is
+    | used in addition to admin users. If left empty, only admin users and
+    | mail.from.address are used.
+    */
+    'bug_notification_to' => array_filter(array_map('trim', explode(',', env('MAIL_BUG_NOTIFICATION_TO', '')))),
+
+    /*
+    |--------------------------------------------------------------------------
     | Email Footer (shown on all notification emails)
     |--------------------------------------------------------------------------
     | Override via .env (MAIL_FOOTER_*) or via Settings in database.

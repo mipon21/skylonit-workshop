@@ -61,6 +61,7 @@ class ProjectController extends Controller
         ]);
         $validated['exclude_from_overhead_profit'] = $request->boolean('exclude_from_overhead_profit');
         $validated['project_code'] = Project::generateNextProjectCode();
+        $validated['is_public'] = true; // New projects are public (guest viewable) by default
         $project = Project::create($validated);
         event(new ProjectCreated($project, $request->boolean('send_email')));
         return redirect()->route('projects.index')->with('success', 'Project created.');
@@ -88,7 +89,7 @@ class ProjectController extends Controller
             $project->setRelation('projectNotes', $project->projectNotes->where('visibility', 'client'));
             $project->setRelation('expenses', $project->expenses->where('is_public', true));
             $project->setRelation('documents', $project->documents->where('is_public', true));
-            $project->setRelation('projectLinks', $project->projectLinks->where('is_public', true));
+            $project->setRelation('projectLinks', $project->projectLinks->where('visible_to_client', true));
         }
 
         $activitiesQuery = $project->projectActivities()->with('user')->orderByDesc('created_at');
@@ -163,8 +164,10 @@ class ProjectController extends Controller
             'delivery_date' => ['nullable', 'date'],
             'status' => ['required', 'in:Pending,Running,Complete,On Hold'],
             'exclude_from_overhead_profit' => ['nullable', 'boolean'],
+            'is_public' => ['nullable', 'boolean'],
         ]);
         $validated['exclude_from_overhead_profit'] = $request->boolean('exclude_from_overhead_profit');
+        $validated['is_public'] = $request->boolean('is_public');
         unset($validated['project_code']); // Project code is not editable; keep existing value
         $project->update($validated);
         return redirect()->route('projects.show', $project)->with('success', 'Project updated.');

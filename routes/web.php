@@ -10,7 +10,12 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\EmailFooterController;
 use App\Http\Controllers\EmailTemplateController;
 use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\Guest\GuestDashboardController;
+use App\Http\Controllers\Guest\GuestLinkController;
+use App\Http\Controllers\Guest\GuestProjectController;
+use App\Http\Controllers\Guest\LeadController as GuestLeadController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\LeadController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
@@ -21,9 +26,14 @@ use App\Http\Controllers\RevenueController;
 use App\Http\Controllers\TaskController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return redirect()->route('login');
-});
+// ========== Guest (public) portal – no auth ==========
+Route::get('/', GuestDashboardController::class)->name('guest.dashboard');
+Route::get('/projects', [GuestProjectController::class, 'index'])->name('guest.projects.index');
+Route::get('/projects/{project}', [GuestProjectController::class, 'show'])->name('guest.projects.show');
+Route::get('/links', [GuestLinkController::class, 'index'])->name('guest.links.index');
+Route::get('/links/download/{project_link}', [GuestLinkController::class, 'download'])->name('guest.links.download');
+Route::get('/contact', [GuestLeadController::class, 'create'])->name('guest.contact');
+Route::post('/contact', [GuestLeadController::class, 'store'])->name('guest.contact.store');
 
 // Payment gateway return URLs – must be reachable by guests (client may pay without being logged in)
 Route::match(['get', 'post'], '/client/payment/success', [ClientPaymentController::class, 'success'])->name('client.payment.success');
@@ -53,6 +63,7 @@ Route::middleware(['auth'])->group(function () {
     // Admin-only routes
     Route::middleware('admin')->group(function () {
         Route::get('/revenue', [RevenueController::class, 'index'])->name('revenue.index');
+        Route::get('/marketing/leads', [LeadController::class, 'index'])->name('leads.index');
         Route::resource('clients', ClientController::class);
 
         Route::get('projects/create', [ProjectController::class, 'create'])->name('projects.create');
@@ -107,9 +118,9 @@ Route::middleware(['auth'])->group(function () {
         Route::put('settings/email-footer', [EmailFooterController::class, 'update'])->name('email-footer.update');
     });
 
-    // Shared: projects index & show (controller scopes for client)
-    Route::get('projects', [ProjectController::class, 'index'])->name('projects.index');
-    Route::get('projects/{project}', [ProjectController::class, 'show'])->name('projects.show');
+    // Shared: projects index & show (controller scopes for client) – under dashboard to avoid conflict with guest /projects
+    Route::get('dashboard/projects', [ProjectController::class, 'index'])->name('projects.index');
+    Route::get('dashboard/projects/{project}', [ProjectController::class, 'show'])->name('projects.show');
 
     // Documents: client can upload/view/download/delete for own projects
     Route::post('projects/{project}/documents', [DocumentController::class, 'store'])->name('projects.documents.store');

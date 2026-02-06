@@ -718,6 +718,7 @@
                                         <input type="hidden" name="title" value="{{ $bug->title }}">
                                         <input type="hidden" name="description" value="{{ $bug->description }}">
                                         <input type="hidden" name="severity" value="{{ $bug->severity }}">
+                                        <input type="hidden" name="is_public" value="{{ $bug->is_public ? '1' : '0' }}">
                                         <select name="status" onchange="this.form.submit()" class="rounded-lg bg-slate-900 border border-slate-600 text-white text-sm px-3 py-1.5 focus:ring-sky-500">
                                             <option value="open" {{ $bug->status === 'open' ? 'selected' : '' }}>Open</option>
                                             <option value="in_progress" {{ $bug->status === 'in_progress' ? 'selected' : '' }}>In Progress</option>
@@ -798,20 +799,28 @@
 
             {{-- Tab: Links --}}
             <div x-show="activeTab === 'links'" class="p-5">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="font-semibold text-white">Links</h2>
+                <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+                    <div>
+                        <h2 class="font-semibold text-white">Live Links &amp; APK Downloads</h2>
+                        @if(!($isClient ?? false))
+                        <p class="text-slate-500 text-sm mt-0.5">Add multiple live URLs and/or APK files. Each entry can be shown or hidden on the public portal.</p>
+                        @endif
+                    </div>
                     @if(!($isClient ?? false))
-                    <button @click="linkModal = true" class="px-3 py-1.5 rounded-lg bg-sky-500/20 text-sky-400 hover:bg-sky-500/30 text-sm font-medium">Add Link</button>
+                    <button @click="linkModal = true" class="px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium shrink-0">+ Add Live Link or APK</button>
                     @endif
                 </div>
-                <p class="text-slate-500 text-sm mb-4">Store project URLs with optional login credentials.</p>
                 <ul class="space-y-4">
                     @forelse($project->projectLinks as $link)
                         <li class="bg-slate-800/80 border border-slate-700/50 rounded-xl p-4 flex flex-wrap items-start justify-between gap-3">
                             <div class="min-w-0 flex-1">
                                 <p class="font-medium text-white">{{ $link->label }}</p>
-                                <a href="{{ $link->url }}" target="_blank" rel="noopener noreferrer" class="text-sky-400 hover:text-sky-300 text-sm mt-1 break-all">{{ $link->url }}</a>
-                                @if($link->login_username || $link->login_password)
+                                @if($link->isApk() && $link->file_path)
+                                    <a href="{{ route('guest.links.download', $link) }}" class="inline-flex items-center gap-1.5 mt-1 text-sky-400 hover:text-sky-300 text-sm">Download APK</a>
+                                @else
+                                    <a href="{{ $link->url }}" target="_blank" rel="noopener noreferrer" class="text-sky-400 hover:text-sky-300 text-sm mt-1 break-all">{{ $link->url }}</a>
+                                @endif
+                                @if(!$link->isApk() && ($link->login_username || $link->login_password))
                                     <div class="mt-2 pt-2 border-t border-slate-700/50 text-slate-400 text-sm space-y-1">
                                         @if($link->login_username)
                                             <p>Username: <span class="text-slate-300">{{ $link->login_username }}</span></p>
@@ -823,21 +832,21 @@
                                 @endif
                             </div>
                             @if(!($isClient ?? false))
-                            <div class="flex items-center gap-2 shrink-0">
-                                <form action="{{ route('projects.links.update', [$project, $link]) }}" method="POST" class="inline-flex items-center gap-2" id="link-visibility-{{ $link->id }}">
+                            <div class="flex items-center gap-2 shrink-0 flex-wrap">
+                                <form action="{{ route('projects.links.update', [$project, $link]) }}" method="POST" class="inline-flex items-center gap-2" id="link-visibility-{{ $link->id }}" onchange="this.submit()">
                                     @csrf
                                     @method('PATCH')
+                                    <input type="hidden" name="link_type" value="{{ $link->link_type ?? 'url' }}">
                                     <input type="hidden" name="label" value="{{ old('label', $link->label) }}">
-                                    <input type="hidden" name="url" value="{{ old('url', $link->url) }}">
+                                    <input type="hidden" name="url" value="{{ old('url', $link->url ?? '#') }}">
                                     <input type="hidden" name="login_username" value="{{ old('login_username', $link->login_username ?? '') }}">
                                     <input type="hidden" name="login_password" value="{{ old('login_password', $link->login_password ?? '') }}">
-                                    <input type="hidden" name="is_public" value="{{ $link->is_public ? '1' : '0' }}" id="link-is-public-input-{{ $link->id }}">
-                                    <label class="visibility-toggle-wrap relative inline-flex items-center cursor-pointer gap-2 {{ $link->is_public ? 'is-checked' : '' }}" title="{{ $link->is_public ? 'Public – click to make private' : 'Private – click to make public' }}">
-                                        <input type="checkbox" {{ $link->is_public ? 'checked' : '' }} class="sr-only link-visibility-toggle" data-input-id="link-is-public-input-{{ $link->id }}" data-form-id="link-visibility-{{ $link->id }}">
-                                        <span class="visibility-track relative block h-5 w-9 shrink-0 rounded-full border-2 border-slate-500 bg-slate-600 transition-colors duration-200" aria-hidden="true" style="min-width: 2.25rem; min-height: 1.25rem;"></span>
-                                        <span class="visibility-knob absolute z-10 rounded-full border-2 border-slate-400 bg-white shadow-md transition-transform duration-200 ease-out pointer-events-none" aria-hidden="true" style="left: 0.2rem; top: 0.2rem; width: 0.75rem; height: 0.75rem;"></span>
-                                        <span class="visibility-label text-xs font-medium whitespace-nowrap {{ $link->is_public ? 'text-sky-400' : 'text-slate-400' }}">{{ $link->is_public ? 'Public' : 'Private' }}</span>
-                                    </label>
+                                    <label class="text-slate-400 text-xs font-medium">Who can see:</label>
+                                    <select name="visibility" class="rounded-lg bg-slate-800 border border-slate-600 text-white text-xs px-2.5 py-1.5 focus:ring-1 focus:ring-sky-500 min-w-[10rem]">
+                                        @foreach(\App\Models\ProjectLink::visibilityLabels() as $value => $label)
+                                            <option value="{{ $value }}" {{ ($link->visibility ?? 'all') === $value ? 'selected' : '' }}>{{ $label }}</option>
+                                        @endforeach
+                                    </select>
                                 </form>
                                 <button type="button" @click="linkEditModal = {{ $link->id }}" class="text-sky-400 hover:text-sky-300 text-sm">Edit</button>
                                 <form action="{{ route('projects.links.destroy', [$project, $link]) }}" method="POST" class="inline" onsubmit="return confirm('Remove this link?');">
@@ -849,7 +858,12 @@
                             @endif
                         </li>
                     @empty
-                        <li class="text-slate-500 text-sm">No links yet. Add one to store URLs and optional login credentials.</li>
+                        <li class="text-slate-500 text-sm py-4">
+                            No live links or APK downloads yet.
+                            @if(!($isClient ?? false))
+                            Click <strong class="text-sky-400">+ Add Live Link or APK</strong> above to add a URL (e.g. staging site) or upload an APK file. You can add as many as you need.
+                            @endif
+                        </li>
                     @endforelse
                 </ul>
             </div>

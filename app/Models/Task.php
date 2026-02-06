@@ -17,10 +17,12 @@ class Task extends Model
         'status',
         'priority',
         'due_date',
+        'is_public',
     ];
 
     protected $casts = [
         'due_date' => 'date',
+        'is_public' => 'boolean',
     ];
 
     public function project(): BelongsTo

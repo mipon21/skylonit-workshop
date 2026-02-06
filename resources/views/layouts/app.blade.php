@@ -9,6 +9,28 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <style>
+        @media (max-width: 767px) {
+            .app-layout-mobile-header {
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                height: 56px !important;
+                z-index: 25 !important;
+                background: #020617 !important;
+                border-bottom: 1px solid #1e293b !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: space-between !important;
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
+            }
+            .app-layout-mobile-main {
+                padding-top: 56px !important;
+            }
+        }
+    </style>
 </head>
 <body class="font-sans antialiased bg-slate-950 text-slate-200 min-h-screen">
     <div class="flex min-h-screen" x-data="{ sidebarOpen: false }">
@@ -56,6 +78,10 @@
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                     Loss / Profit
                 </a>
+                <a href="{{ route('leads.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800/80 hover:text-white transition {{ request()->routeIs('leads.*') ? 'bg-sky-500/20 text-sky-400' : '' }}" @click="sidebarOpen = false">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    Marketing → Leads
+                </a>
                 <a href="{{ route('email-templates.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800/80 hover:text-white transition {{ request()->routeIs('email-templates.*') ? 'bg-sky-500/20 text-sky-400' : '' }}" @click="sidebarOpen = false">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                     Email Templates
@@ -69,8 +95,8 @@
         </aside>
 
         <div class="flex-1 flex flex-col min-w-0">
-            {{-- Top Bar: hamburger on mobile, compact spacing --}}
-            <header class="h-14 shrink-0 flex items-center justify-end px-6 border-b border-slate-800/80 bg-slate-900/50 max-md:justify-between max-md:px-4">
+            {{-- Top Bar: fixed on mobile so it stays visible when scrolling --}}
+            <header class="app-layout-mobile-header h-14 shrink-0 flex items-center justify-end px-6 border-b border-slate-800/80 bg-slate-900/50 max-md:justify-between max-md:px-4 md:relative">
                 <button type="button" @click="sidebarOpen = true" class="p-2 rounded-lg hover:bg-slate-800/80 text-slate-300 hover:text-white transition md:hidden" aria-label="Open menu">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
@@ -90,7 +116,7 @@
             </header>
 
             {{-- Main Content --}}
-            <main class="flex-1 p-6 overflow-auto max-md:p-4">
+            <main class="app-layout-mobile-main flex-1 p-6 overflow-auto max-md:p-4">
                 @if (session('success'))
                     <div class="mb-4 px-4 py-3 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-sm">
                         {{ session('success') }}
