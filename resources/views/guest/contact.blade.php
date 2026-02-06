@@ -1,8 +1,9 @@
 <x-guest-portal-layout title="Contact">
-    <div class="space-y-6 max-w-2xl">
-        <h1 class="text-2xl font-semibold text-white">Contact</h1>
+    <div class="space-y-6 max-w-2xl max-md:max-w-none">
+        <h1 class="text-2xl font-semibold text-white max-md:text-xl">Contact</h1>
         <p class="text-slate-400 text-sm">Submit an enquiry and we’ll get back to you soon.</p>
 
+        <div class="bg-slate-800/60 backdrop-blur border border-slate-700/50 rounded-2xl p-6 shadow-xl max-md:p-4">
         <form action="{{ route('guest.contact.store') }}" method="POST" class="space-y-4">
             @csrf
             <div>
@@ -36,8 +37,9 @@
                 @error('message')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
             </div>
             <div class="pt-2">
-                <button type="submit" class="px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-medium text-sm transition">Submit</button>
+                <button type="submit" class="px-5 py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-cyan-500 to-sky-500 hover:from-cyan-400 hover:to-sky-400 shadow-lg shadow-cyan-500/20 transition-all duration-300 max-md:w-full max-md:py-3.5">Submit</button>
             </div>
         </form>
+        </div>
     </div>
 </x-guest-portal-layout>

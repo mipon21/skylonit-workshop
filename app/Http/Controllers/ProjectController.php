@@ -165,9 +165,14 @@ class ProjectController extends Controller
             'status' => ['required', 'in:Pending,Running,Complete,On Hold'],
             'exclude_from_overhead_profit' => ['nullable', 'boolean'],
             'is_public' => ['nullable', 'boolean'],
+            'is_featured' => ['nullable', 'boolean'],
+            'short_description' => ['nullable', 'string', 'max:500'],
+            'featured_image_path' => ['nullable', 'string', 'max:500'],
+            'tech_stack' => ['nullable', 'string', 'max:255'],
         ]);
         $validated['exclude_from_overhead_profit'] = $request->boolean('exclude_from_overhead_profit');
         $validated['is_public'] = $request->boolean('is_public');
+        $validated['is_featured'] = $request->boolean('is_featured');
         unset($validated['project_code']); // Project code is not editable; keep existing value
         $project->update($validated);
         return redirect()->route('projects.show', $project)->with('success', 'Project updated.');

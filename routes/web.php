@@ -14,6 +14,7 @@ use App\Http\Controllers\Guest\GuestDashboardController;
 use App\Http\Controllers\Guest\GuestLinkController;
 use App\Http\Controllers\Guest\GuestProjectController;
 use App\Http\Controllers\Guest\LeadController as GuestLeadController;
+use App\Http\Controllers\HotOfferController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\PaymentController;
@@ -24,6 +25,7 @@ use App\Http\Controllers\ProjectLinkController;
 use App\Http\Controllers\ProjectNoteController;
 use App\Http\Controllers\RevenueController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\TestimonialController;
 use Illuminate\Support\Facades\Route;
 
 // ========== Guest (public) portal – no auth ==========
@@ -64,6 +66,22 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('admin')->group(function () {
         Route::get('/revenue', [RevenueController::class, 'index'])->name('revenue.index');
         Route::get('/marketing/leads', [LeadController::class, 'index'])->name('leads.index');
+        Route::resource('marketing/hot-offers', HotOfferController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])->names([
+            'index' => 'hot-offers.index',
+            'create' => 'hot-offers.create',
+            'store' => 'hot-offers.store',
+            'edit' => 'hot-offers.edit',
+            'update' => 'hot-offers.update',
+            'destroy' => 'hot-offers.destroy',
+        ]);
+        Route::resource('marketing/testimonials', TestimonialController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])->names([
+            'index' => 'testimonials.index',
+            'create' => 'testimonials.create',
+            'store' => 'testimonials.store',
+            'edit' => 'testimonials.edit',
+            'update' => 'testimonials.update',
+            'destroy' => 'testimonials.destroy',
+        ]);
         Route::resource('clients', ClientController::class);
 
         Route::get('projects/create', [ProjectController::class, 'create'])->name('projects.create');

@@ -74,6 +74,29 @@
         </label>
         <p class="text-slate-500 text-xs mt-1">When enabled, this project appears on the public showcase and guests can view its public tasks, bugs, and links.</p>
     </div>
+    <div class="pt-2 border-t border-slate-700/50">
+        <label class="flex items-center gap-2 cursor-pointer">
+            <input type="hidden" name="is_featured" value="0">
+            <input type="checkbox" name="is_featured" value="1" {{ old('is_featured', $project->is_featured ?? false) ? 'checked' : '' }} class="rounded border-slate-600 bg-slate-900 text-sky-500 focus:ring-sky-500">
+            <span class="text-sm font-medium text-slate-400">Featured on guest dashboard</span>
+        </label>
+        <p class="text-slate-500 text-xs mt-1">Show this project in the Featured Projects carousel on the public portal (only if public).</p>
+    </div>
+    <div>
+        <label class="block text-sm font-medium text-slate-400 mb-1">Short description (guest featured card)</label>
+        <input type="text" name="short_description" value="{{ old('short_description', $project->short_description) }}" maxlength="500" placeholder="Brief tagline for guest showcase" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+        @error('short_description')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
+    </div>
+    <div>
+        <label class="block text-sm font-medium text-slate-400 mb-1">Featured image path (guest)</label>
+        <input type="text" name="featured_image_path" value="{{ old('featured_image_path', $project->featured_image_path) }}" placeholder="e.g. /images/projects/example.jpg or URL" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+        @error('featured_image_path')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
+    </div>
+    <div>
+        <label class="block text-sm font-medium text-slate-400 mb-1">Tech stack (guest chips, comma-separated)</label>
+        <input type="text" name="tech_stack" value="{{ old('tech_stack', $project->tech_stack) }}" placeholder="e.g. Laravel, Vue, Tailwind" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+        @error('tech_stack')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
+    </div>
     @endif
     @if(!$project)
     <div class="pt-2 border-t border-slate-700/50">

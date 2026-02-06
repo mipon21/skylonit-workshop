@@ -10,7 +10,7 @@
                     @php $currentProjectId = $link->project_id; @endphp
                     <h2 class="text-lg font-medium text-slate-300 border-b border-slate-700/50 pb-2">{{ $link->project->project_name ?? 'Project' }}</h2>
                 @endif
-                <div class="bg-slate-800/80 border border-slate-700/50 rounded-xl p-4 flex flex-wrap items-center justify-between gap-3">
+                <div class="bg-slate-800/60 backdrop-blur border border-slate-700/50 rounded-xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-lg hover:border-slate-600/80 transition-all max-md:p-4">
                     <div class="min-w-0 flex-1">
                         <p class="font-medium text-white">{{ $link->label }}</p>
                         @if($link->isApk() && $link->file_path)

@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Guest;
 
 use App\Http\Controllers\Controller;
 use App\Models\Bug;
+use App\Models\HotOffer;
 use App\Models\Project;
 use App\Models\Task;
+use App\Models\Testimonial;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -33,11 +35,23 @@ class GuestDashboardController extends Controller
             ->whereIn('project_id', $publicProjectIds)
             ->count();
 
+        $featuredProjects = Project::where('is_public', true)
+            ->where('is_featured', true)
+            ->orderByDesc('updated_at')
+            ->limit(12)
+            ->get();
+
+        $hotOffers = HotOffer::active()->orderBy('id')->get();
+        $testimonials = Testimonial::active()->orderBy('id')->get();
+
         return view('guest.dashboard', compact(
             'totalPublicProjects',
             'runningPublicProjects',
             'openPublicTasks',
-            'openPublicBugs'
+            'openPublicBugs',
+            'featuredProjects',
+            'hotOffers',
+            'testimonials'
         ));
     }
 }
