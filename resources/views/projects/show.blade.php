@@ -2,13 +2,14 @@
     <x-slot name="title">{{ $project->project_name }}</x-slot>
 
     <div class="space-y-6" x-data="{
-        activeTab: (() => { const h = window.location.hash.slice(1); return ['payments','expenses','client','documents','tasks','bugs','notes','links'].includes(h) ? h : 'payments'; })(),
+        activeTab: (() => { const h = window.location.hash.slice(1); return ['payments','expenses','client','documents','contracts','tasks','bugs','notes','links','activity'].includes(h) ? h : 'payments'; })(),
         setTab(tab) { this.activeTab = tab; window.location.hash = tab; },
         paymentModal: false,
         paymentEditModal: null,
         expenseModal: false,
         expenseEditModal: null,
         documentModal: false,
+        contractModal: false,
         taskModal: false,
         bugModal: false,
         noteModal: false,
@@ -261,10 +262,12 @@
                 <button @click="setTab('client')" :class="activeTab === 'client' ? 'bg-sky-500/20 text-sky-400 border-b-2 border-sky-500' : 'text-slate-400 hover:text-white'" class="px-5 py-4 font-medium text-sm whitespace-nowrap border-b-2 border-transparent">Client</button>
                 @endif
                 <button @click="setTab('documents')" :class="activeTab === 'documents' ? 'bg-sky-500/20 text-sky-400 border-b-2 border-sky-500' : 'text-slate-400 hover:text-white'" class="px-5 py-4 font-medium text-sm whitespace-nowrap border-b-2 border-transparent">Documents</button>
+                <button @click="setTab('contracts')" :class="activeTab === 'contracts' ? 'bg-sky-500/20 text-sky-400 border-b-2 border-sky-500' : 'text-slate-400 hover:text-white'" class="px-5 py-4 font-medium text-sm whitespace-nowrap border-b-2 border-transparent">Contracts</button>
                 <button @click="setTab('tasks')" :class="activeTab === 'tasks' ? 'bg-sky-500/20 text-sky-400 border-b-2 border-sky-500' : 'text-slate-400 hover:text-white'" class="px-5 py-4 font-medium text-sm whitespace-nowrap border-b-2 border-transparent">Tasks</button>
                 <button @click="setTab('bugs')" :class="activeTab === 'bugs' ? 'bg-sky-500/20 text-sky-400 border-b-2 border-sky-500' : 'text-slate-400 hover:text-white'" class="px-5 py-4 font-medium text-sm whitespace-nowrap border-b-2 border-transparent">Bugs</button>
                 <button @click="setTab('notes')" :class="activeTab === 'notes' ? 'bg-sky-500/20 text-sky-400 border-b-2 border-sky-500' : 'text-slate-400 hover:text-white'" class="px-5 py-4 font-medium text-sm whitespace-nowrap border-b-2 border-transparent">Notes</button>
                 <button @click="setTab('links')" :class="activeTab === 'links' ? 'bg-sky-500/20 text-sky-400 border-b-2 border-sky-500' : 'text-slate-400 hover:text-white'" class="px-5 py-4 font-medium text-sm whitespace-nowrap border-b-2 border-transparent">Links</button>
+                <button @click="setTab('activity')" :class="activeTab === 'activity' ? 'bg-sky-500/20 text-sky-400 border-b-2 border-sky-500' : 'text-slate-400 hover:text-white'" class="px-5 py-4 font-medium text-sm whitespace-nowrap border-b-2 border-transparent">Activity</button>
             </div>
 
             {{-- Tab: Payments --}}
@@ -417,14 +420,32 @@
             @if(!($isClient ?? false))
             @php $client = $project->client; @endphp
             <div x-show="activeTab === 'client'" class="p-5">
+                @if(session('success'))<p class="mb-4 px-4 py-3 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-sm">{{ session('success') }}</p>@endif
+                @if(session('info'))<p class="mb-4 px-4 py-3 rounded-xl bg-sky-500/20 border border-sky-500/30 text-sky-400 text-sm">{{ session('info') }}</p>@endif
+                @if(session('error'))<p class="mb-4 px-4 py-3 rounded-xl bg-red-500/20 border border-red-500/30 text-red-400 text-sm">{{ session('error') }}</p>@endif
+
                 <div class="flex items-center justify-between mb-4">
-                    <div>
-                        <h2 class="font-semibold text-white">Client</h2>
-                        <p class="text-slate-400 text-sm mt-0.5">{{ $client->name }}</p>
-                    </div>
-                    <a href="{{ route('clients.show', $client) }}" class="px-3 py-1.5 rounded-lg bg-sky-500/20 text-sky-400 hover:bg-sky-500/30 text-sm font-medium">View client</a>
+                    <h2 class="font-semibold text-white">Client</h2>
                 </div>
-                <div class="grid md:grid-cols-2 gap-4">
+
+                {{-- Primary client: change dropdown --}}
+                <div class="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-5 mb-4">
+                    <h3 class="text-sm font-medium text-slate-400 mb-3">Primary client</h3>
+                    <form action="{{ route('projects.client.update', $project) }}" method="POST" class="flex flex-wrap items-center gap-3">
+                        @csrf
+                        @method('PATCH')
+                        <select name="client_id" class="rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 min-w-[200px]" required>
+                            @foreach($clientsForDropdown as $c)
+                                <option value="{{ $c->id }}" {{ $c->id === $project->client_id ? 'selected' : '' }}>{{ $c->name }}</option>
+                            @endforeach
+                        </select>
+                        <button type="submit" class="px-3 py-2 rounded-lg bg-sky-500/20 text-sky-400 hover:bg-sky-500/30 text-sm font-medium">Change primary client</button>
+                        <a href="{{ route('clients.show', $client) }}" class="px-3 py-2 rounded-lg bg-slate-700/80 hover:bg-slate-600 text-slate-200 text-sm font-medium">View client</a>
+                    </form>
+                </div>
+
+                {{-- Primary client contact details --}}
+                <div class="grid md:grid-cols-2 gap-4 mb-6">
                     <div class="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-5">
                         <h3 class="text-sm font-medium text-slate-400 mb-3">Contact</h3>
                         <p class="text-slate-300">Phone: {{ $client->phone ?? '—' }}</p>
@@ -441,8 +462,42 @@
                     @endif
                 </div>
                 @if(!$client->phone && !$client->email && !$client->fb_link && !$client->whatsapp_number && !$client->address && !$client->kyc)
-                    <p class="text-slate-500 text-sm mt-4">No contact or details recorded for this client.</p>
+                    <p class="text-slate-500 text-sm mb-6">No contact or details recorded for this client.</p>
                 @endif
+
+                {{-- Additional clients --}}
+                <div class="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-5">
+                    <h3 class="text-sm font-medium text-slate-400 mb-3">Additional clients (same project access)</h3>
+                    <ul class="space-y-2 mb-4">
+                        @forelse($project->additionalClients as $addClient)
+                            <li class="flex items-center justify-between gap-3 py-2 border-b border-slate-700/30 last:border-0">
+                                <span class="text-white">{{ $addClient->name }}</span>
+                                <div class="flex items-center gap-2">
+                                    <a href="{{ route('clients.show', $addClient) }}" class="text-sky-400 hover:text-sky-300 text-sm">View</a>
+                                    <form action="{{ route('projects.additional-clients.destroy', [$project, $addClient]) }}" method="POST" class="inline" onsubmit="return confirm('Remove this client from the project?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="text-red-400 hover:text-red-300 text-sm">Remove</button>
+                                    </form>
+                                </div>
+                            </li>
+                        @empty
+                            <li class="text-slate-500 text-sm">No additional clients linked.</li>
+                        @endforelse
+                    </ul>
+                    <form action="{{ route('projects.additional-clients.store', $project) }}" method="POST" class="flex flex-wrap items-center gap-3">
+                        @csrf
+                        <select name="client_id" class="rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 min-w-[200px]" required>
+                            <option value="">Select client to add…</option>
+                            @foreach($clientsForDropdown as $c)
+                                @if($c->id !== $project->client_id && !$project->additionalClients->contains('id', $c->id))
+                                    <option value="{{ $c->id }}">{{ $c->name }}</option>
+                                @endif
+                            @endforeach
+                        </select>
+                        <button type="submit" class="px-3 py-2 rounded-lg bg-sky-500/20 text-sky-400 hover:bg-sky-500/30 text-sm font-medium">Add client</button>
+                    </form>
+                </div>
             </div>
             @endif
 
@@ -454,49 +509,107 @@
                 </div>
                 <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 max-md:gap-3">
                     @forelse($project->documents as $doc)
-                        <div class="bg-slate-800/80 border border-slate-700/50 rounded-xl p-4 grid gap-4" style="grid-template-columns: minmax(0, 1fr) auto;">
-                            <div class="min-w-0 space-y-1 overflow-hidden">
-                                <a href="{{ route('projects.documents.view', [$project, $doc]) }}" target="_blank" rel="noopener noreferrer" class="font-medium text-white hover:text-sky-400 transition block overflow-hidden max-w-full break-all line-clamp-2" title="{{ $doc->title }}">{{ $doc->title }}</a>
+                        <div class="bg-slate-800/80 border border-slate-700/50 rounded-xl p-4 flex flex-col gap-3">
+                            <a href="{{ route('projects.documents.view', [$project, $doc]) }}" target="_blank" rel="noopener noreferrer" class="font-medium text-white hover:text-sky-400 transition block min-w-0 break-words line-clamp-2" title="{{ $doc->title }}">{{ $doc->title }}</a>
+                            <div class="flex flex-wrap items-center justify-between gap-2 mt-auto">
                                 <p class="text-slate-500 text-xs flex flex-wrap items-center gap-x-1 gap-y-0.5">
-                                    <span class="text-slate-400 font-medium uppercase">{{ pathinfo($doc->file_path, PATHINFO_EXTENSION) }}</span>
-                                    <span class="text-slate-600">·</span>
+                                    @php $ext = pathinfo($doc->file_path, PATHINFO_EXTENSION); @endphp
+                                    @if($ext)<span class="text-slate-400 font-medium uppercase">{{ $ext }}</span><span class="text-slate-600">·</span>@endif
                                     <span class="whitespace-nowrap">{{ $doc->uploaded_at?->format('M j, Y') }}</span>
                                     <span class="text-slate-600">·</span>
-                                    <span class="text-slate-400 whitespace-nowrap">Uploaded by: {{ $doc->uploadedBy ? ucfirst($doc->uploadedBy->role) : '—' }}</span>
+                                    <span class="text-slate-400 whitespace-nowrap">By: {{ $doc->uploadedBy ? ucfirst($doc->uploadedBy->role) : '—' }}</span>
                                 </p>
-                            </div>
-                            @if(!($isClient ?? false))
-                            <div class="flex flex-col items-end gap-2 shrink-0 pl-3 border-l border-slate-600/80">
-                                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                                    <a href="{{ route('projects.documents.download', [$project, $doc]) }}" class="px-3 py-1.5 rounded-lg bg-slate-700/80 hover:bg-slate-600 text-slate-200 text-sm font-medium text-center whitespace-nowrap transition">Download</a>
+                                @if(!($isClient ?? false))
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <a href="{{ route('projects.documents.download', [$project, $doc]) }}" class="px-3 py-1.5 rounded-lg bg-slate-700/80 hover:bg-slate-600 text-slate-200 text-sm font-medium whitespace-nowrap transition">Download</a>
                                     <form action="{{ route('projects.documents.destroy', [$project, $doc]) }}" method="POST" class="inline" onsubmit="return confirm('Delete this document?');">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="w-full sm:w-auto px-3 py-1.5 rounded-lg bg-red-900/40 hover:bg-red-800/50 text-red-400 text-sm font-medium whitespace-nowrap transition border border-red-700/50">Delete</button>
+                                        <button type="submit" class="px-3 py-1.5 rounded-lg bg-red-900/40 hover:bg-red-800/50 text-red-400 text-sm font-medium whitespace-nowrap transition border border-red-700/50">Delete</button>
+                                    </form>
+                                    <form action="{{ route('projects.documents.update', [$project, $doc]) }}" method="POST" class="inline-flex items-center" id="document-visibility-{{ $doc->id }}">
+                                        @csrf
+                                        @method('PATCH')
+                                        <input type="hidden" name="is_public" value="{{ $doc->is_public ? '1' : '0' }}" id="document-is-public-input-{{ $doc->id }}">
+                                        <label class="visibility-toggle-wrap relative inline-flex items-center cursor-pointer gap-1.5 {{ $doc->is_public ? 'is-checked' : '' }}" title="{{ $doc->is_public ? 'Public – click to make private' : 'Private – click to make public' }}">
+                                            <input type="checkbox" {{ $doc->is_public ? 'checked' : '' }} class="sr-only document-visibility-toggle" data-input-id="document-is-public-input-{{ $doc->id }}" data-form-id="document-visibility-{{ $doc->id }}">
+                                            <span class="visibility-track relative block h-5 w-9 shrink-0 rounded-full border-2 border-slate-500 bg-slate-600 transition-colors duration-200" aria-hidden="true" style="min-width: 2.25rem; min-height: 1.25rem;"></span>
+                                            <span class="visibility-knob absolute z-10 rounded-full border-2 border-slate-400 bg-white shadow-md transition-transform duration-200 ease-out pointer-events-none" aria-hidden="true" style="left: 0.2rem; top: 0.2rem; width: 0.75rem; height: 0.75rem;"></span>
+                                            <span class="visibility-label text-xs font-medium whitespace-nowrap {{ $doc->is_public ? 'text-sky-400' : 'text-slate-400' }}">{{ $doc->is_public ? 'Public' : 'Private' }}</span>
+                                        </label>
                                     </form>
                                 </div>
-                                <form action="{{ route('projects.documents.update', [$project, $doc]) }}" method="POST" class="inline-flex items-center" id="document-visibility-{{ $doc->id }}">
-                                    @csrf
-                                    @method('PATCH')
-                                    <input type="hidden" name="is_public" value="{{ $doc->is_public ? '1' : '0' }}" id="document-is-public-input-{{ $doc->id }}">
-                                    <label class="visibility-toggle-wrap relative inline-flex items-center cursor-pointer gap-1.5 {{ $doc->is_public ? 'is-checked' : '' }}" title="{{ $doc->is_public ? 'Public – click to make private' : 'Private – click to make public' }}">
-                                        <input type="checkbox" {{ $doc->is_public ? 'checked' : '' }} class="sr-only document-visibility-toggle" data-input-id="document-is-public-input-{{ $doc->id }}" data-form-id="document-visibility-{{ $doc->id }}">
-                                        <span class="visibility-track relative block h-5 w-9 shrink-0 rounded-full border-2 border-slate-500 bg-slate-600 transition-colors duration-200" aria-hidden="true" style="min-width: 2.25rem; min-height: 1.25rem;"></span>
-                                        <span class="visibility-knob absolute z-10 rounded-full border-2 border-slate-400 bg-white shadow-md transition-transform duration-200 ease-out pointer-events-none" aria-hidden="true" style="left: 0.2rem; top: 0.2rem; width: 0.75rem; height: 0.75rem;"></span>
-                                        <span class="visibility-label text-xs font-medium whitespace-nowrap {{ $doc->is_public ? 'text-sky-400' : 'text-slate-400' }}">{{ $doc->is_public ? 'Public' : 'Private' }}</span>
-                                    </label>
-                                </form>
+                                @else
+                                <a href="{{ route('projects.documents.download', [$project, $doc]) }}" class="px-3 py-1.5 rounded-lg bg-slate-700/80 hover:bg-slate-600 text-slate-200 text-sm font-medium whitespace-nowrap transition">Download</a>
+                                @endif
                             </div>
-                            @else
-                            <div class="shrink-0 pl-3 border-l border-slate-600/80">
-                                <a href="{{ route('projects.documents.download', [$project, $doc]) }}" class="inline-block px-3 py-1.5 rounded-lg bg-slate-700/80 hover:bg-slate-600 text-slate-200 text-sm font-medium whitespace-nowrap transition">Download</a>
-                            </div>
-                            @endif
                         </div>
                     @empty
                         <p class="text-slate-500 text-sm col-span-full">No documents yet.</p>
                     @endforelse
                 </div>
+            </div>
+
+            {{-- Tab: Contracts --}}
+            <div x-show="activeTab === 'contracts'" class="p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="font-semibold text-white">Contracts</h2>
+                    @if(!($isClient ?? false))
+                    <button @click="contractModal = true" class="px-3 py-1.5 rounded-lg bg-sky-500/20 text-sky-400 hover:bg-sky-500/30 text-sm font-medium">Upload Contract</button>
+                    @endif
+                </div>
+                <ul class="space-y-4">
+                    @forelse($project->contracts as $contract)
+                        <li class="bg-slate-800/80 border border-slate-700/50 rounded-xl p-4 flex flex-wrap items-center justify-between gap-3">
+                            <div class="min-w-0">
+                                <span class="font-medium text-white">Contract #{{ $contract->id }}</span>
+                                <span @class([
+                                    'ml-2 px-2 py-0.5 rounded text-xs font-medium',
+                                    'bg-amber-500/20 text-amber-400' => $contract->status === 'pending',
+                                    'bg-emerald-500/20 text-emerald-400' => $contract->status === 'signed',
+                                ])>{{ $contract->status === 'signed' ? 'Signed' : 'Pending' }}</span>
+                                <p class="text-slate-500 text-xs mt-1">
+                                    Uploaded {{ $contract->created_at->format('M j, Y') }}@if($contract->signed_at) · Signed {{ $contract->signed_at->format('M j, Y') }}@endif
+                                </p>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <a href="{{ route('projects.contracts.view', [$project, $contract]) }}" target="_blank" rel="noopener" class="px-3 py-1.5 rounded-lg bg-slate-700/80 hover:bg-slate-600 text-slate-200 text-sm font-medium">View</a>
+                                @if($contract->status === 'signed')
+                                    <a href="{{ route('projects.contracts.download', [$project, $contract]) }}" class="px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 text-sm font-medium">Download Signed</a>
+                                @elseif($isClient ?? false)
+                                    <a href="{{ route('projects.contracts.sign-form', [$project, $contract]) }}" class="px-3 py-1.5 rounded-lg bg-sky-500/20 text-sky-400 hover:bg-sky-500/30 text-sm font-medium">Sign Contract</a>
+                                @endif
+                                @if(!($isClient ?? false))
+                                    @if($contract->status === 'pending')
+                                        <form action="{{ route('projects.contracts.send-email', [$project, $contract]) }}" method="POST" class="inline">
+                                            @csrf
+                                            <button type="submit" class="px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 text-sm font-medium">Send for Signature</button>
+                                        </form>
+                                    @endif
+                                    <a href="{{ route('projects.contracts.download', [$project, $contract]) }}" class="px-3 py-1.5 rounded-lg bg-slate-700/80 hover:bg-slate-600 text-slate-200 text-sm font-medium">Download</a>
+                                    <form action="{{ route('projects.contracts.destroy', [$project, $contract]) }}" method="POST" class="inline" onsubmit="return confirm('Delete this contract? Original and signed files will be removed.');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="px-3 py-1.5 rounded-lg bg-red-900/40 hover:bg-red-800/50 text-red-400 text-sm font-medium border border-red-700/50">Delete</button>
+                                    </form>
+                                @endif
+                            </div>
+                            <div class="w-full mt-2 pt-2 border-t border-slate-700/50">
+                                <p class="text-slate-400 text-xs font-medium mb-1">Audit trail</p>
+                                <ul class="text-slate-500 text-xs space-y-0.5">
+                                    @foreach($contract->audits->take(5) as $audit)
+                                        <li>{{ $audit->action }} · {{ $audit->user?->name ?? 'System' }} · {{ $audit->created_at->format('M j, Y g:i A') }}</li>
+                                    @endforeach
+                                    @if($contract->audits->isEmpty())
+                                        <li>No activity yet.</li>
+                                    @endif
+                                </ul>
+                            </div>
+                        </li>
+                    @empty
+                        <li class="text-slate-500 text-sm">No contracts yet. @if(!($isClient ?? false)) Upload a contract (PDF preferred) to send for signature. @endif</li>
+                    @endforelse
+                </ul>
             </div>
 
             {{-- Tab: Tasks --}}
@@ -740,6 +853,54 @@
                     @endforelse
                 </ul>
             </div>
+
+            {{-- Tab: Activity — same height/scroll pattern as dashboard Recent Activity --}}
+            <div x-show="activeTab === 'activity'" class="p-5 flex flex-col overflow-hidden" style="height: 268px;">
+                <h2 class="font-semibold text-white shrink-0 mb-2">Activity</h2>
+                <div class="flex-1 min-h-0 overflow-y-auto relative pl-1 pr-2 -mr-2">
+                    {{-- Vertical line through node centers (w-8 column center = 4px + 16px) --}}
+                    <div class="absolute left-5 top-2 bottom-2 w-px bg-gradient-to-b from-sky-500/50 via-slate-500/50 to-transparent rounded-full" aria-hidden="true"></div>
+                    <ul class="relative space-y-0">
+                        @forelse($activities as $activity)
+                            <li class="flex gap-4 py-2 first:pt-0 group">
+                                <div class="shrink-0 w-8 flex justify-center pt-0.5">
+                                    <div class="w-7 h-7 rounded-full border-2 border-slate-800 bg-slate-700/90 flex items-center justify-center ring-2 ring-slate-600/50 group-hover:ring-sky-500/50 transition-all z-10
+                                        @switch(\App\Models\ProjectActivity::iconFor($activity->action_type))
+                                            @case('payment') text-emerald-400 @break
+                                            @case('task') text-sky-400 @break
+                                            @case('bug') text-red-400 @break
+                                            @case('document') text-amber-400 @break
+                                            @case('note') text-violet-400 @break
+                                            @case('link') text-cyan-400 @break
+                                            @case('expense') text-orange-400 @break
+                                            @case('project') text-slate-400 @break
+                                            @case('invoice') text-indigo-400 @break
+                                            @default text-slate-400
+                                        @endswitch">
+                                        @switch(\App\Models\ProjectActivity::iconFor($activity->action_type))
+                                            @case('payment') <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2h-2m-4-1V7a2 2 0 012-2h2a2 2 0 012 2v1"/></svg> @break
+                                            @case('task') <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg> @break
+                                            @case('bug') <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> @break
+                                            @case('document') <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> @break
+                                            @case('note') <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg> @break
+                                            @case('link') <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg> @break
+                                            @case('expense') <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> @break
+                                            @case('invoice') <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> @break
+                                            @default <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                        @endswitch
+                                    </div>
+                                </div>
+                                <div class="min-w-0 flex-1 pb-1 border-b border-slate-700/30 last:border-0">
+                                    <p class="text-slate-200 text-sm">{{ $activity->description }}</p>
+                                    <p class="text-slate-500 text-xs mt-1">{{ $activity->actor_name }} · {{ $activity->created_at->format('M j, Y g:i A') }}</p>
+                                </div>
+                            </li>
+                        @empty
+                            <p class="text-slate-500 text-sm py-4 pl-2">No activity yet.</p>
+                        @endforelse
+                    </ul>
+                </div>
+            </div>
         </div>
 
         <style>
@@ -855,6 +1016,9 @@
         @include('projects.partials.modal-expense-edit')
         @endif
         @include('projects.partials.modal-document')
+        @if(!($isClient ?? false))
+        @include('projects.partials.modal-contract')
+        @endif
         @include('projects.partials.modal-task')
         @include('projects.partials.modal-bug')
         @include('projects.partials.modal-task-edit')

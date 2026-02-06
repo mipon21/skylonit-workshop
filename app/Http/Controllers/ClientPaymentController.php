@@ -33,7 +33,7 @@ class ClientPaymentController extends Controller
                 ->with('info', 'This page is for client accounts only. If you just completed a payment as a guest, it was successful — log in with your client account to view your payments and invoice.');
         }
 
-        $payments = Payment::whereHas('project', fn ($q) => $q->where('client_id', $client->id))
+        $payments = Payment::whereHas('project', fn ($q) => $q->forClient($client->id))
             ->with('project')
             ->orderByDesc('created_at')
             ->paginate(20);
@@ -117,7 +117,7 @@ class ClientPaymentController extends Controller
         }
 
         $user = $request->user();
-        if ($user && $user->client && $payment->project->client_id === $user->client->id) {
+        if ($user && $user->client && $payment->project->hasClientAccess($user->client->id)) {
             return redirect()->route('invoices.index')->with('success', 'Payment received. Your invoice is ready.');
         }
 

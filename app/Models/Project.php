@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Project extends Model
@@ -95,6 +96,28 @@ class Project extends Model
         return $this->belongsTo(Client::class);
     }
 
+    /** Additional clients linked to this project (excluding the primary client). */
+    public function additionalClients(): BelongsToMany
+    {
+        return $this->belongsToMany(Client::class, 'project_clients')->withTimestamps();
+    }
+
+    /** Scope: projects visible to this client (primary or additional). */
+    public function scopeForClient($query, int $clientId)
+    {
+        return $query->where(function ($q) use ($clientId) {
+            $q->where('client_id', $clientId)
+                ->orWhereHas('additionalClients', fn ($q2) => $q2->where('clients.id', $clientId));
+        });
+    }
+
+    /** Whether this client (by id) has access to the project (primary or additional). */
+    public function hasClientAccess(int $clientId): bool
+    {
+        return $this->client_id === $clientId
+            || $this->additionalClients()->where('clients.id', $clientId)->exists();
+    }
+
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
@@ -138,6 +161,16 @@ class Project extends Model
     public function invoices(): HasMany
     {
         return $this->hasMany(Invoice::class);
+    }
+
+    public function projectActivities(): HasMany
+    {
+        return $this->hasMany(ProjectActivity::class)->orderByDesc('created_at');
+    }
+
+    public function contracts(): HasMany
+    {
+        return $this->hasMany(Contract::class)->orderByDesc('created_at');
     }
 
     /** Whether this project has a Final Payment (no more payments can be added). */

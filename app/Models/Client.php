@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Client extends Model
@@ -42,5 +43,16 @@ class Client extends Model
     public function projects(): HasMany
     {
         return $this->hasMany(Project::class);
+    }
+
+    /** Projects where this client is linked as additional (not primary). */
+    public function additionalProjects(): BelongsToMany
+    {
+        return $this->belongsToMany(Project::class, 'project_clients')->withTimestamps();
+    }
+
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(ClientNotification::class)->orderByDesc('created_at');
     }
 }

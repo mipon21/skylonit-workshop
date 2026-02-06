@@ -37,6 +37,8 @@ class EmailTemplate extends Model
             'bug_title',
             'login_url',
             'client_password',
+            'contract_link',
+            'signed_at',
         ];
     }
 }

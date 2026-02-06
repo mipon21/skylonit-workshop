@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -16,7 +17,7 @@ class DocumentController extends Controller
 {
     private function authorizeProjectForClient(Project $project): void
     {
-        if (Auth::user()->isClient() && (! Auth::user()->client || $project->client_id !== Auth::user()->client->id)) {
+        if (Auth::user()->isClient() && (! Auth::user()->client || ! $project->hasClientAccess(Auth::user()->client->id))) {
             abort(403, 'You do not have access to this project.');
         }
     }
@@ -26,13 +27,18 @@ class DocumentController extends Controller
         $this->authorizeProjectForClient($project);
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
-            'file' => ['required', 'file', 'mimes:pdf,doc,docx,png,jpg,jpeg,zip', 'max:512000'], // 500 MB (max in KB)
+            'file' => ['required', 'file', 'max:512000'], // 500 MB (max in KB) — any type (apk, aab, pdf, zip, 7z, rar, etc.)
             'is_public' => ['nullable', 'boolean'],
             'send_email' => ['nullable', 'boolean'],
         ]);
 
         $file = $request->file('file');
-        $path = $file->store('project-documents/' . $project->id, 'local');
+        $extension = $file->getClientOriginalExtension() ?: 'bin';
+        $path = $file->storeAs(
+            'project-documents/' . $project->id,
+            Str::random(40) . '.' . $extension,
+            'local'
+        );
 
         $isPublic = Auth::user()->isClient()
             ? true

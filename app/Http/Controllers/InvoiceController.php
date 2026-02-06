@@ -25,7 +25,7 @@ class InvoiceController extends Controller
             if (! $client) {
                 abort(403, 'You must be associated with a client account.');
             }
-            $query->whereHas('project', fn ($q) => $q->where('client_id', $client->id));
+            $query->whereHas('project', fn ($q) => $q->forClient($client->id));
         }
 
         $invoices = $query->paginate(20);
@@ -43,7 +43,7 @@ class InvoiceController extends Controller
         // Security check: Admin can download any invoice, Client can only download their own
         if ($user->role === 'client') {
             $client = $user->client;
-            if (!$client || $invoice->project->client_id !== $client->id) {
+            if (!$client || !$invoice->project->hasClientAccess($client->id)) {
                 abort(403, 'Unauthorized access to this invoice.');
             }
         }
@@ -72,7 +72,7 @@ class InvoiceController extends Controller
         // Security check: Admin can view any invoice, Client can only view their own
         if ($user->role === 'client') {
             $client = $user->client;
-            if (!$client || $invoice->project->client_id !== $client->id) {
+            if (!$client || !$invoice->project->hasClientAccess($client->id)) {
                 abort(403, 'Unauthorized access to this invoice.');
             }
         }

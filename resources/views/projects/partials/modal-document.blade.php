@@ -12,8 +12,8 @@
                         @error('title')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-1">File (pdf, docx, png, jpg, zip, max 500 MB) *</label>
-                        <input type="file" name="file" required accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.zip" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 file:mr-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-slate-700 file:text-slate-200 text-sm">
+                        <label class="block text-sm font-medium text-slate-400 mb-1">File (any type: apk, aab, pdf, zip, 7z, rar, etc., max 500 MB) *</label>
+                        <input type="file" name="file" required class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 file:mr-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-slate-700 file:text-slate-200 text-sm">
                         @error('file')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
                     </div>
                     @if(!($isClient ?? false))

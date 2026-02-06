@@ -3,6 +3,7 @@
 use App\Http\Controllers\BugController;
 use App\Http\Controllers\CalendarNoteController;
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\ContractController;
 use App\Http\Controllers\ClientPaymentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentController;
@@ -60,6 +61,9 @@ Route::middleware(['auth'])->group(function () {
         Route::put('projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
         Route::delete('projects/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
         Route::patch('projects/{project}/status', [ProjectController::class, 'updateStatus'])->name('projects.status.update');
+        Route::patch('projects/{project}/client', [ProjectController::class, 'updateClient'])->name('projects.client.update');
+        Route::post('projects/{project}/additional-clients', [ProjectController::class, 'addClient'])->name('projects.additional-clients.store');
+        Route::delete('projects/{project}/additional-clients/{client}', [ProjectController::class, 'removeClient'])->name('projects.additional-clients.destroy');
 
         Route::post('projects/{project}/payments', [PaymentController::class, 'store'])->name('projects.payments.store');
         Route::patch('projects/{project}/payments/{payment}', [PaymentController::class, 'update'])->name('projects.payments.update');
@@ -74,6 +78,10 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('projects/{project}/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('projects.expenses.destroy');
 
         Route::patch('projects/{project}/documents/{document}', [DocumentController::class, 'update'])->name('projects.documents.update');
+
+        Route::post('projects/{project}/contracts', [ContractController::class, 'store'])->name('projects.contracts.store');
+        Route::delete('projects/{project}/contracts/{contract}', [ContractController::class, 'destroy'])->name('projects.contracts.destroy');
+        Route::post('projects/{project}/contracts/{contract}/send-email', [ContractController::class, 'sendEmail'])->name('projects.contracts.send-email');
 
         Route::post('projects/{project}/tasks', [TaskController::class, 'store'])->name('projects.tasks.store');
         Route::patch('projects/{project}/tasks/{task}', [TaskController::class, 'update'])->name('projects.tasks.update');
@@ -108,6 +116,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('projects/{project}/documents/{document}/view', [DocumentController::class, 'view'])->name('projects.documents.view');
     Route::get('projects/{project}/documents/{document}/download', [DocumentController::class, 'download'])->name('projects.documents.download');
     Route::delete('projects/{project}/documents/{document}', [DocumentController::class, 'destroy'])->name('projects.documents.destroy');
+
+    Route::get('projects/{project}/contracts/{contract}/view', [ContractController::class, 'view'])->name('projects.contracts.view');
+    Route::get('projects/{project}/contracts/{contract}/download', [ContractController::class, 'download'])->name('projects.contracts.download');
+    Route::get('projects/{project}/contracts/{contract}/sign', [ContractController::class, 'signForm'])->name('projects.contracts.sign-form');
+    Route::post('projects/{project}/contracts/{contract}/sign', [ContractController::class, 'sign'])->name('projects.contracts.sign');
 
     // Bugs: client can create and view attachment
     Route::post('projects/{project}/bugs', [BugController::class, 'store'])->name('projects.bugs.store');

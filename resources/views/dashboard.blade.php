@@ -93,6 +93,29 @@
             </div>
         </div>
 
+        @if(($isClient ?? false) && $clientNotifications->isNotEmpty())
+        <div class="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-4 flex flex-col overflow-hidden" style="height: 268px;">
+            <h2 class="text-slate-300 font-semibold text-sm shrink-0 mb-2 flex items-center gap-1.5">
+                <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                Notifications
+            </h2>
+            <ul class="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1 -mr-1">
+                @foreach($clientNotifications as $notif)
+                    <li class="flex items-center justify-between gap-3 py-2 border-b border-slate-700/30 last:border-0">
+                        <div class="min-w-0">
+                            <p class="text-white font-medium text-sm">{{ $notif->title }}</p>
+                            @if($notif->body)<p class="text-slate-400 text-xs mt-0.5">{{ $notif->body }}</p>@endif
+                            <p class="text-slate-500 text-xs mt-0.5">{{ $notif->created_at->diffForHumans() }}</p>
+                        </div>
+                        @if($notif->link)
+                            <a href="{{ $notif->link }}" class="shrink-0 px-3 py-1.5 rounded-lg bg-sky-500/20 text-sky-400 hover:bg-sky-500/30 text-xs font-medium">View</a>
+                        @endif
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+        @endif
+
         {{-- Calendar & Chart: equal width on desktop; full-width stack on mobile --}}
         <div class="grid grid-cols-2 max-md:grid-cols-1 gap-4 items-stretch">
             {{-- Calendar: 7-column grid with date notes --}}
@@ -177,55 +200,63 @@
                 </div>
             </div>
 
-            {{-- Overview pie chart: same height as calendar --}}
-            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-xl p-3 shadow-lg flex flex-col min-w-0 max-md:w-full" style="height: 268px;">
+            {{-- Recent Activity feed: GitHub-style timeline, same height as calendar, scrollable --}}
+            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-xl p-3 shadow-lg flex flex-col min-w-0 max-md:w-full overflow-hidden" style="height: 268px;">
                 <h2 class="text-slate-300 font-semibold text-sm mb-2 shrink-0 flex items-center gap-1.5">
-                    <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/></svg>
-                    Overview
+                    <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    Recent Activity
                 </h2>
-                @if (array_sum($overviewChart['values']) > 0)
-                    <div class="flex items-center justify-center flex-1 min-h-0" style="width: 100%;">
-                        <canvas id="dashboardOverviewChart" width="200" height="200" style="max-height: 200px; max-width: 100%;"></canvas>
-                    </div>
-                    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-                    <script>
-                        (function() {
-                            const ctx = document.getElementById('dashboardOverviewChart');
-                            if (!ctx) return;
-                            if (ctx.chart) ctx.chart.destroy();
-                            ctx.chart = new Chart(ctx, {
-                                type: 'doughnut',
-                                data: {
-                                    labels: @json($overviewChart['labels']),
-                                    datasets: [{
-                                        data: @json($overviewChart['values']),
-                                        backgroundColor: [
-                                            'rgba(248, 113, 113, 0.8)',
-                                            'rgba(251, 191, 36, 0.8)',
-                                            'rgba(56, 189, 248, 0.8)',
-                                            'rgba(148, 163, 184, 0.8)'
-                                        ],
-                                        borderColor: ['#f87171', '#fbbf24', '#38bdf8', '#94a3b8'],
-                                        borderWidth: 1
-                                    }]
-                                },
-                                options: {
-                                    responsive: true,
-                                    maintainAspectRatio: true,
-                                    animation: false,
-                                    animations: { resize: { duration: 0 } },
-                                    plugins: {
-                                        legend: { position: 'bottom', labels: { color: '#cbd5e1', padding: 8, font: { size: 10 } } }
-                                    }
-                                }
-                            });
-                        })();
-                    </script>
-                @else
-                    <div class="flex items-center justify-center flex-1 min-h-0 rounded-lg bg-slate-700/30 border border-slate-600/50">
-                        <p class="text-slate-500 text-xs">No overview data yet</p>
-                    </div>
-                @endif
+                <div class="flex-1 min-h-0 overflow-y-auto relative pl-1">
+                    {{-- Vertical line running through timeline --}}
+                    <div class="activity-timeline-line absolute left-3 top-0 bottom-0 w-px bg-gradient-to-b from-slate-500/80 via-slate-500/60 to-transparent" aria-hidden="true"></div>
+                    <ul class="relative space-y-0">
+                        @forelse($recentActivities as $activity)
+                            <li class="activity-timeline-item flex gap-3 py-2 first:pt-0 last:pb-0 group">
+                                <div class="shrink-0 w-6 flex justify-center pt-0.5">
+                                    <div class="activity-timeline-dot w-5 h-5 rounded-full border-2 border-slate-800 bg-slate-700/90 flex items-center justify-center ring-2 ring-slate-600/50 group-hover:ring-sky-500/40 transition-all z-10
+                                        @switch(\App\Models\ProjectActivity::iconFor($activity->action_type))
+                                            @case('payment') text-emerald-400 @break
+                                            @case('task') text-sky-400 @break
+                                            @case('bug') text-red-400 @break
+                                            @case('document') text-amber-400 @break
+                                            @case('note') text-violet-400 @break
+                                            @case('link') text-cyan-400 @break
+                                            @case('expense') text-orange-400 @break
+                                            @case('project') text-slate-400 @break
+                                            @case('invoice') text-indigo-400 @break
+                                            @default text-slate-400
+                                        @endswitch">
+                                        @switch(\App\Models\ProjectActivity::iconFor($activity->action_type))
+                                            @case('payment') <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2h-2m-4-1V7a2 2 0 012-2h2a2 2 0 012 2v1"/></svg> @break
+                                            @case('task') <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg> @break
+                                            @case('bug') <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> @break
+                                            @case('document') <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> @break
+                                            @case('note') <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg> @break
+                                            @case('link') <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg> @break
+                                            @case('expense') <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> @break
+                                            @case('invoice') <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> @break
+                                            @default <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                        @endswitch
+                                    </div>
+                                </div>
+                                <div class="min-w-0 flex-1 pb-1">
+                                    <p class="text-slate-200 text-xs leading-tight line-clamp-2">{{ $activity->description }}</p>
+                                    <p class="text-slate-500 text-[10px] mt-0.5">
+                                        <span class="text-slate-400 font-medium">Project:</span>
+                                        @if($activity->project)
+                                            <a href="{{ route('projects.show', $activity->project) }}" class="text-sky-400 hover:text-sky-300">{{ $activity->project->project_name }}</a>
+                                        @else
+                                            <span>—</span>
+                                        @endif
+                                        <span class="text-slate-600">·</span> {{ $activity->created_at->diffForHumans() }}
+                                    </p>
+                                </div>
+                            </li>
+                        @empty
+                            <li class="text-slate-500 text-xs py-4 pl-2">No recent activity</li>
+                        @endforelse
+                    </ul>
+                </div>
             </div>
         </div>
     </div>

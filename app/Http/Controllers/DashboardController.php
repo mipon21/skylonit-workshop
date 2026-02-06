@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bug;
+use App\Models\ClientNotification;
 use App\Models\Document;
 use App\Models\Project;
+use App\Models\ProjectActivity;
 use App\Models\ProjectNote;
 use App\Models\Task;
 use Illuminate\Support\Facades\Auth;
@@ -19,7 +21,7 @@ class DashboardController extends Controller
         $projectQuery = Project::query();
 
         if ($isClient && $user->client) {
-            $projectQuery->where('client_id', $user->client->id);
+            $projectQuery->forClient($user->client->id);
         }
 
         $projects = $projectQuery->get();
@@ -66,10 +68,29 @@ class DashboardController extends Controller
             $notesCount = $notesCount->count();
         }
 
-        $overviewChart = [
-            'labels' => ['Open Bugs', 'Active Tasks', 'Documents', 'Notes'],
-            'values' => [$openBugs, $activeTasks, $documentsCount, $notesCount],
-        ];
+        // Recent activity feed: admin = all projects, client = own projects + client visibility only
+        $recentActivitiesQuery = ProjectActivity::with(['project', 'user'])
+            ->orderByDesc('created_at')
+            ->limit(50);
+        if ($isClient) {
+            if (empty($projectIds)) {
+                $recentActivities = collect();
+            } else {
+                $recentActivities = $recentActivitiesQuery->whereIn('project_id', $projectIds)
+                    ->where('visibility', 'client')
+                    ->get();
+            }
+        } else {
+            $recentActivities = $recentActivitiesQuery->get();
+        }
+
+        $clientNotifications = collect();
+        if ($isClient && $user->client) {
+            $clientNotifications = ClientNotification::where('client_id', $user->client->id)
+                ->orderByDesc('created_at')
+                ->limit(10)
+                ->get();
+        }
 
         return view('dashboard', compact(
             'isClient',
@@ -83,7 +104,8 @@ class DashboardController extends Controller
             'activeTasks',
             'documentsCount',
             'notesCount',
-            'overviewChart'
+            'recentActivities',
+            'clientNotifications'
         ));
     }
 }

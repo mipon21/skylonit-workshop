@@ -15,7 +15,7 @@ class BugController extends Controller
 {
     private function authorizeProjectForClient(Project $project): void
     {
-        if (Auth::user()->isClient() && (! Auth::user()->client || $project->client_id !== Auth::user()->client->id)) {
+        if (Auth::user()->isClient() && (! Auth::user()->client || ! $project->hasClientAccess(Auth::user()->client->id))) {
             abort(403, 'You do not have access to this project.');
         }
     }

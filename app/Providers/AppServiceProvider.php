@@ -5,15 +5,19 @@ namespace App\Providers;
 use App\Models\Bug;
 use App\Models\Document;
 use App\Models\Expense;
+use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\Project;
+use App\Models\ProjectLink;
 use App\Models\ProjectNote;
 use App\Models\Setting;
 use App\Models\Task;
 use App\Observers\BugObserver;
 use App\Observers\DocumentObserver;
 use App\Observers\ExpenseObserver;
+use App\Observers\InvoiceObserver;
 use App\Observers\PaymentObserver;
+use App\Observers\ProjectLinkObserver;
 use App\Observers\ProjectNoteObserver;
 use App\Observers\ProjectObserver;
 use App\Observers\TaskObserver;
@@ -57,5 +61,7 @@ class AppServiceProvider extends ServiceProvider
         Task::observe(TaskObserver::class);
         Bug::observe(BugObserver::class);
         ProjectNote::observe(ProjectNoteObserver::class);
+        ProjectLink::observe(ProjectLinkObserver::class);
+        Invoice::observe(InvoiceObserver::class);
     }
 }

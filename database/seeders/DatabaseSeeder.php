@@ -22,6 +22,8 @@ class DatabaseSeeder extends Seeder
             BugSeeder::class,
             DocumentSeeder::class,
             ProjectNoteSeeder::class,
+            ProjectActivitySeeder::class,
+            ContractSeeder::class,
         ]);
     }
 }

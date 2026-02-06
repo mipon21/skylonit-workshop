@@ -20,7 +20,7 @@ class ProjectController extends Controller
             ->orderByDesc('project_code');
 
         if (Auth::user()->isClient() && Auth::user()->client) {
-            $query->where('client_id', Auth::user()->client->id);
+            $query->forClient(Auth::user()->client->id);
         }
 
         $projects = $query->get();
@@ -70,12 +70,17 @@ class ProjectController extends Controller
     {
         $user = Auth::user();
         if ($user->isClient()) {
-            if (! $user->client || $project->client_id !== $user->client->id) {
+            if (! $user->client) {
+                abort(403, 'You do not have access to this project.');
+            }
+            $hasAccess = $project->client_id === $user->client->id
+                || $project->additionalClients()->where('clients.id', $user->client->id)->exists();
+            if (! $hasAccess) {
                 abort(403, 'You do not have access to this project.');
             }
         }
 
-        $project->load(['client', 'payments', 'expenses', 'documents' => fn ($q) => $q->with('uploadedBy'), 'tasks', 'bugs', 'projectNotes', 'projectLinks', 'projectPayouts'])
+        $project->load(['client', 'additionalClients', 'payments', 'expenses', 'documents' => fn ($q) => $q->with('uploadedBy'), 'contracts' => fn ($q) => $q->with(['uploadedByUser', 'signedByUser', 'audits' => fn ($aq) => $aq->with('user')]), 'tasks', 'bugs', 'projectNotes', 'projectLinks', 'projectPayouts'])
             ->loadCount(['tasks', 'tasks as tasks_done_count' => fn ($q) => $q->where('status', 'done')]);
 
         $isClient = $user->isClient();
@@ -85,7 +90,59 @@ class ProjectController extends Controller
             $project->setRelation('documents', $project->documents->where('is_public', true));
             $project->setRelation('projectLinks', $project->projectLinks->where('is_public', true));
         }
-        return view('projects.show', compact('project', 'isClient'));
+
+        $activitiesQuery = $project->projectActivities()->with('user')->orderByDesc('created_at');
+        if ($isClient) {
+            $activitiesQuery->where('visibility', 'client');
+        }
+        $activities = $activitiesQuery->get();
+
+        $clientsForDropdown = $user->isClient() ? collect() : Client::orderBy('name')->get();
+
+        return view('projects.show', compact('project', 'isClient', 'activities', 'clientsForDropdown'));
+    }
+
+    public function updateClient(Request $request, Project $project): RedirectResponse
+    {
+        if (Auth::user()->isClient()) {
+            abort(403);
+        }
+        $validated = $request->validate([
+            'client_id' => ['required', 'exists:clients,id'],
+        ]);
+        $project->update($validated);
+        return redirect()->route('projects.show', $project)->withFragment('client')->with('success', 'Primary client updated.');
+    }
+
+    public function addClient(Request $request, Project $project): RedirectResponse
+    {
+        if (Auth::user()->isClient()) {
+            abort(403);
+        }
+        $validated = $request->validate([
+            'client_id' => ['required', 'exists:clients,id'],
+        ]);
+        $clientId = (int) $validated['client_id'];
+        if ($clientId === $project->client_id) {
+            return redirect()->route('projects.show', $project)->withFragment('client')->with('info', 'That client is already the primary client.');
+        }
+        if ($project->additionalClients()->where('clients.id', $clientId)->exists()) {
+            return redirect()->route('projects.show', $project)->withFragment('client')->with('info', 'That client is already linked.');
+        }
+        $project->additionalClients()->attach($clientId);
+        return redirect()->route('projects.show', $project)->withFragment('client')->with('success', 'Client added to project.');
+    }
+
+    public function removeClient(Project $project, Client $client): RedirectResponse
+    {
+        if (Auth::user()->isClient()) {
+            abort(403);
+        }
+        if ($project->client_id === $client->id) {
+            return redirect()->route('projects.show', $project)->withFragment('client')->with('error', 'Cannot remove the primary client. Change primary client first.');
+        }
+        $project->additionalClients()->detach($client->id);
+        return redirect()->route('projects.show', $project)->withFragment('client')->with('success', 'Client removed from project.');
     }
 
     public function edit(Project $project): View

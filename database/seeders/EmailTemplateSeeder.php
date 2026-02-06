@@ -70,6 +70,18 @@ class EmailTemplateSeeder extends Seeder
                 'subject' => 'Task completed: {{task_title}} – {{project_name}}',
                 'body' => "<p>Hello {{client_name}},</p>\n<p>The following task has been marked as done for {{project_name}}.</p>\n<p><strong>Task:</strong> {{task_title}}</p>\n<p>View project: {{login_url}}</p>",
             ],
+            [
+                'key' => 'client_contract_uploaded',
+                'name' => 'Client contract uploaded (ready for signature)',
+                'subject' => 'Contract ready for signature – {{project_name}}',
+                'body' => "<p>Hello {{client_name}},</p>\n<p>A contract has been uploaded for your project <strong>{{project_name}}</strong> and is ready for your signature.</p>\n<p><strong>Sign here:</strong> <a href=\"{{contract_link}}\">{{contract_link}}</a></p>\n<p>Or log in to your portal: {{login_url}}</p>",
+            ],
+            [
+                'key' => 'client_contract_signed',
+                'name' => 'Client contract signed (confirmation)',
+                'subject' => 'Contract signed – {{project_name}}',
+                'body' => "<p>Hello {{client_name}},</p>\n<p>This is to confirm that the contract for project <strong>{{project_name}}</strong> was signed on {{signed_at}}.</p>\n<p>The signed copy is attached to this email (if applicable).</p>",
+            ],
         ];
 
         foreach ($templates as $t) {
