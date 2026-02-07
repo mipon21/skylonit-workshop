@@ -12,7 +12,7 @@
                     </div>
                     <span class="text-slate-400 text-sm font-medium">{{ $isClient ?? false ? 'Total Contract Amount' : 'Total Revenue' }}</span>
                 </div>
-                <p class="text-2xl font-bold text-white">৳ {{ number_format($isClient ?? false ? $totalContractAmount : $totalRevenue, 0) }}</p>
+                <p class="text-2xl font-bold text-white"><span class="payment-amount">৳ {{ number_format($isClient ?? false ? $totalContractAmount : $totalRevenue, 0) }}</span></p>
                 <p class="text-slate-500 text-xs mt-1">{{ $isClient ?? false ? 'Your projects' : 'Gross contract amount' }}</p>
             </div>
 
@@ -23,7 +23,7 @@
                     </div>
                     <span class="text-slate-400 text-sm font-medium">{{ $isClient ?? false ? 'Total Paid' : 'Total Profit' }}</span>
                 </div>
-                <p class="text-2xl font-bold text-emerald-400">৳ {{ number_format($isClient ?? false ? ($totalPaid ?? 0) : $totalProfit, 0) }}</p>
+                <p class="text-2xl font-bold text-emerald-400"><span class="payment-amount">৳ {{ number_format($isClient ?? false ? ($totalPaid ?? 0) : $totalProfit, 0) }}</span></p>
                 <p class="text-slate-500 text-xs mt-1">{{ $isClient ?? false ? 'Received' : 'Realized from completed payments' }}</p>
             </div>
 
@@ -34,7 +34,7 @@
                     </div>
                     <span class="text-slate-400 text-sm font-medium">Total Due</span>
                 </div>
-                <p class="text-2xl font-bold text-amber-400">৳ {{ number_format($totalDue, 0) }}</p>
+                <p class="text-2xl font-bold text-amber-400"><span class="payment-amount">৳ {{ number_format($totalDue, 0) }}</span></p>
                 <p class="text-slate-500 text-xs mt-1">{{ $isClient ?? false ? 'Outstanding' : 'Unpaid from clients' }}</p>
             </div>
 
@@ -240,7 +240,7 @@
                                     </div>
                                 </div>
                                 <div class="min-w-0 flex-1 pb-1">
-                                    <p class="text-slate-200 text-xs leading-tight line-clamp-2">{{ $activity->description }}</p>
+                                    <p class="text-slate-200 text-xs leading-tight line-clamp-2">@if(in_array($activity->action_type, ['payment_created', 'payment_marked_paid', 'expense_created', 'invoice_generated']))<span class="payment-amount">{{ $activity->description }}</span>@else{{ $activity->description }}@endif</p>
                                     <p class="text-slate-500 text-[10px] mt-0.5">
                                         <span class="text-slate-400 font-medium">Project:</span>
                                         @if($activity->project)

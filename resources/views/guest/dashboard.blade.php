@@ -8,6 +8,26 @@
   .guest-hero-view-projects { background: #08B1DA !important; color: #fff !important; border-color: #08B1DA !important; }
   .guest-hero-view-projects:hover { background: #07a0c7 !important; border-color: #07a0c7 !important; }
 }
+@media (max-width: 767px) {
+  .guest-hero-buttons .guest-btn-mobile { display: flex; width: 100%; justify-content: center; align-items: center; text-align: center; }
+}
+@media (max-width: 767px) {
+  .guest-cta-ready-section a[href*="contact"] { display: flex; justify-content: center; align-items: center; text-align: center; }
+}
+@media (max-width: 767px) {
+  .guest-hot-offer-cta { display: flex !important; justify-content: center; align-items: center; text-align: center; }
+}
+/* Hot Offer description: readable Bengali/English, lists and highlights */
+.hot-offer-description { font-size: 0.875rem; line-height: 1.6; color: rgb(148 163 184); text-align: left; max-height: 420px; overflow-y: auto; padding-right: 4px; }
+.hot-offer-description::-webkit-scrollbar { width: 6px; }
+.hot-offer-description::-webkit-scrollbar-track { background: rgba(51,65,85,0.3); border-radius: 9999px; }
+.hot-offer-description::-webkit-scrollbar-thumb { background: rgba(100,116,139,0.5); border-radius: 9999px; }
+.hot-offer-description p.hot-offer-paragraph { margin: 0.5rem 0; }
+.hot-offer-description p.hot-offer-paragraph:first-child { font-size: 1rem; font-weight: 600; color: rgb(226 232 240); }
+.hot-offer-description p.hot-offer-highlight { margin: 0.5rem 0; padding: 0.35rem 0; border-left: 3px solid rgba(6,182,212,0.6); padding-left: 0.75rem; color: rgb(203 213 225); }
+.hot-offer-description ul.hot-offer-list { list-style: none; padding-left: 0; margin: 0.5rem 0 1rem 0; }
+.hot-offer-description ul.hot-offer-list li { position: relative; padding-left: 1.25rem; margin-bottom: 0.35rem; }
+.hot-offer-description ul.hot-offer-list li::before { content: "•"; position: absolute; left: 0; color: rgb(6 182 212); font-weight: bold; }
 </style>
     {{-- Hero: extra bottom padding so dashboard cards never overlap the buttons --}}
     <section class="relative z-10 rounded-2xl overflow-hidden mb-6 max-md:mb-6">
@@ -16,12 +36,12 @@
         <div class="relative px-6 pt-14 pb-10 max-md:pt-10 max-md:pb-8 max-md:px-4 text-center">
             <h1 class="text-3xl md:text-4xl font-bold text-white tracking-tight mb-3 max-md:text-2xl">Build Your Next Digital Product With Skylon-IT</h1>
             <p class="guest-hero-subtext text-slate-300 text-lg max-w-xl mx-auto max-md:text-base">We turn ideas into polished apps and websites. From concept to launch—quality code, clear communication, on time.</p>
-            <div class="flex flex-wrap items-center justify-center gap-4 max-md:flex-row max-md:gap-2 max-md:pb-2">
-                <a href="{{ route('guest.contact') }}" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-white bg-gradient-to-r from-cyan-500 to-sky-500 hover:from-cyan-400 hover:to-sky-400 shadow-lg shadow-cyan-500/25 transition-all duration-300 hover:shadow-cyan-500/40 hover:-translate-y-0.5 max-md:px-3 max-md:py-2 max-md:text-sm max-md:gap-1.5">
+            <div class="flex flex-wrap items-center justify-center gap-4 max-md:flex-col max-md:gap-2 max-md:pb-2 guest-hero-buttons max-md:w-full">
+                <a href="{{ route('guest.contact') }}" class="guest-btn-mobile inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-white bg-gradient-to-r from-cyan-500 to-sky-500 hover:from-cyan-400 hover:to-sky-400 shadow-lg shadow-cyan-500/25 transition-all duration-300 hover:shadow-cyan-500/40 hover:-translate-y-0.5 max-md:px-3 max-md:py-2 max-md:text-sm max-md:gap-1.5">
                     <svg class="w-5 h-5 max-md:w-4 max-md:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                     Start Project
                 </a>
-                <a href="{{ route('guest.projects.index') }}" class="guest-hero-view-projects inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-slate-200 bg-slate-800/80 border border-slate-600/80 hover:bg-slate-700/80 hover:border-slate-500 transition-all duration-300 max-md:px-3 max-md:py-2 max-md:text-sm max-md:gap-1.5 max-md:border-slate-500/80">
+                <a href="{{ route('guest.projects.index') }}" class="guest-btn-mobile guest-hero-view-projects inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-slate-200 bg-slate-800/80 border border-slate-600/80 hover:bg-slate-700/80 hover:border-slate-500 transition-all duration-300 max-md:px-3 max-md:py-2 max-md:text-sm max-md:gap-1.5 max-md:border-slate-500/80">
                     <svg class="w-5 h-5 max-md:w-4 max-md:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
                     View Projects
                 </a>
@@ -32,7 +52,7 @@
     {{-- Stats (animated counters) – clear gap below hero so buttons stay visible --}}
     <section class="mb-12 max-md:mb-10 mt-2" x-data="guestStats()">
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 max-md:gap-3">
-            <div class="bg-slate-800/60 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg hover:shadow-xl hover:border-slate-600/50 transition-all duration-300 hover:-translate-y-0.5 max-md:p-4">
+            <a href="{{ route('guest.projects.index') }}" class="block bg-slate-800/60 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg hover:shadow-xl hover:border-slate-600/50 transition-all duration-300 hover:-translate-y-0.5 max-md:p-4 cursor-pointer">
                 <div class="flex items-center gap-3 mb-2">
                     <div class="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center">
                         <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
@@ -41,8 +61,8 @@
                 </div>
                 <p class="text-2xl font-bold text-white tabular-nums" x-text="totalPublicProjects">0</p>
                 <p class="text-slate-500 text-xs mt-0.5">Showcase</p>
-            </div>
-            <div class="bg-slate-800/60 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg hover:shadow-xl hover:border-slate-600/50 transition-all duration-300 hover:-translate-y-0.5 max-md:p-4">
+            </a>
+            <a href="{{ route('guest.projects.index', ['status' => 'running']) }}" class="block bg-slate-800/60 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg hover:shadow-xl hover:border-slate-600/50 transition-all duration-300 hover:-translate-y-0.5 max-md:p-4 cursor-pointer">
                 <div class="flex items-center gap-3 mb-2">
                     <div class="w-10 h-10 rounded-xl bg-sky-500/20 flex items-center justify-center">
                         <svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
@@ -51,7 +71,7 @@
                 </div>
                 <p class="text-2xl font-bold text-white tabular-nums" x-text="runningPublicProjects">0</p>
                 <p class="text-slate-500 text-xs mt-0.5">Pending + Running</p>
-            </div>
+            </a>
             <div class="bg-slate-800/60 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg hover:shadow-xl hover:border-slate-600/50 transition-all duration-300 hover:-translate-y-0.5 max-md:p-4">
                 <div class="flex items-center gap-3 mb-2">
                     <div class="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
@@ -159,12 +179,12 @@
                         @endif
                         <h3 class="text-lg font-semibold text-white mb-2">{{ $offer->title }}</h3>
                         @if($offer->description)
-                            <p class="text-slate-400 text-sm flex-1 mb-4">{{ $offer->description }}</p>
+                            <div class="hot-offer-description flex-1 mb-4">{!! $offer->formatted_description !!}</div>
                         @endif
                         @if($offer->price !== null)
                             <p class="text-2xl font-bold text-cyan-400 mb-4">৳{{ number_format($offer->price, 0) }}</p>
                         @endif
-                        <a href="{{ route('guest.contact') }}" class="inline-flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-cyan-500 to-sky-500 hover:from-cyan-400 hover:to-sky-400 shadow-lg shadow-cyan-500/20 transition-all duration-300 hover:shadow-cyan-500/30">
+                        <a href="{{ route('guest.contact') }}" class="guest-hot-offer-cta inline-flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-cyan-500 to-sky-500 hover:from-cyan-400 hover:to-sky-400 shadow-lg shadow-cyan-500/20 transition-all duration-300 hover:shadow-cyan-500/30">
                             {{ $offer->cta_text }}
                         </a>
                     </div>
@@ -215,7 +235,8 @@
                 <h2 class="text-lg font-semibold text-white">Ready to start?</h2>
                 <p class="text-slate-400 text-sm mt-0.5">Tell us about your project and we’ll get back to you.</p>
             </div>
-            <a href="{{ route('guest.contact') }}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-white bg-gradient-to-r from-cyan-500 to-sky-500 hover:from-cyan-400 hover:to-sky-400 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/25 max-md:w-full max-md:justify-center">
+            <a href="{{ route('guest.contact') }}" class="guest-cta-ready-btn inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-cyan-500 to-sky-500 hover:from-cyan-400 hover:to-sky-400 shadow-lg shadow-cyan-500/30 ring-2 ring-cyan-400/40 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-500/40 hover:-translate-y-0.5 hover:ring-cyan-400/60 max-md:w-full max-md:px-5 max-md:py-2.5">
+                <svg class="w-5 h-5 max-md:w-4 max-md:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                 Start Project
             </a>
         </div>

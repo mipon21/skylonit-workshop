@@ -16,6 +16,20 @@
         .guest-floating-start:hover {
             box-shadow: 0 20px 50px -10px rgba(6, 182, 212, 0.6), 0 0 0 1px rgba(255,255,255,0.1);
         }
+        /* Desktop: fixed sidebar + fixed header, only main scrolls */
+        @media (min-width: 768px) {
+            html, body { height: 100%; overflow: hidden !important; }
+            .guest-layout-root { height: 100vh !important; overflow: hidden !important; }
+            .guest-layout-sidebar { position: fixed !important; top: 0 !important; left: 0 !important; bottom: 0 !important; width: 16rem !important; z-index: 30 !important; display: flex !important; flex-direction: column !important; height: 100vh !important; overflow: hidden !important; }
+            .guest-layout-sidebar-nav { flex: 1 1 0 !important; min-height: 0 !important; overflow-y: auto !important; }
+            .guest-layout-header { position: fixed !important; top: 0 !important; left: 16rem !important; right: 0 !important; height: 3.5rem !important; z-index: 25 !important; background: rgb(15 23 42 / 0.95) !important; backdrop-filter: blur(8px); }
+            .guest-layout-main-wrap { margin-left: 16rem !important; margin-top: 3.5rem !important; height: calc(100vh - 3.5rem) !important; overflow: auto !important; }
+        }
+        @media (max-width: 767px) {
+            body.guest-on-dashboard #guest-floating-ctas .guest-floating-start {
+                display: none !important;
+            }
+        }
         @media (max-width: 767px) {
             .guest-portal-mobile-header {
                 position: fixed !important;
@@ -38,12 +52,12 @@
         }
     </style>
 </head>
-<body class="font-sans antialiased bg-slate-950 text-slate-200 min-h-screen">
-    <div class="flex min-h-screen" x-data="{ sidebarOpen: false }">
+<body class="font-sans antialiased bg-slate-950 text-slate-200 min-h-screen {{ request()->routeIs('guest.dashboard') ? 'guest-on-dashboard' : '' }}">
+    <div class="guest-layout-root flex min-h-screen" x-data="{ sidebarOpen: false }">
         {{-- Mobile backdrop --}}
         <div x-show="sidebarOpen" x-cloak @click="sidebarOpen = false" class="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm md:hidden" aria-hidden="true"></div>
-        {{-- Sidebar --}}
-        <aside class="w-64 shrink-0 bg-slate-900/95 border-r border-slate-700/50 flex flex-col max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-40 max-md:transition-transform max-md:duration-200 max-md:ease-out max-md:-translate-x-full"
+        {{-- Sidebar: fixed on desktop (no scroll); on mobile fixed drawer --}}
+        <aside class="guest-layout-sidebar w-64 shrink-0 bg-slate-900/95 border-r border-slate-700/50 flex flex-col max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-40 max-md:transition-transform max-md:duration-200 max-md:ease-out max-md:-translate-x-full"
                :class="sidebarOpen && 'max-md:translate-x-0'">
             <div class="p-5 border-b border-slate-700/50">
                 <a href="{{ route('guest.dashboard') }}" class="flex items-center gap-2" @click="sidebarOpen = false">
@@ -54,7 +68,7 @@
                     @endif
                 </a>
             </div>
-            <nav class="flex-1 p-3 space-y-0.5">
+            <nav class="guest-layout-sidebar-nav flex-1 p-3 space-y-0.5">
                 <a href="{{ route('guest.dashboard') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800/80 hover:text-white transition {{ request()->routeIs('guest.dashboard') ? 'bg-sky-500/20 text-sky-400' : '' }}" @click="sidebarOpen = false">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
                     Dashboard
@@ -75,15 +89,15 @@
         </aside>
 
         <div class="flex-1 flex flex-col min-w-0 min-h-0">
-            {{-- Header: sticky on desktop; on mobile use class for fixed position (see style block) --}}
-            <header class="guest-portal-mobile-header h-14 shrink-0 flex items-center justify-end px-6 border-b border-slate-800/80 bg-slate-900/50 md:relative">
+            {{-- Header: fixed on desktop (stays visible); on mobile fixed via CSS --}}
+            <header class="guest-layout-header guest-portal-mobile-header h-14 shrink-0 flex items-center justify-end px-6 border-b border-slate-800/80 bg-slate-900/50">
                 <button type="button" @click="sidebarOpen = true" class="p-2 rounded-lg hover:bg-slate-800/80 text-slate-300 hover:text-white transition md:hidden" aria-label="Open menu">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
                 <a href="{{ route('login') }}" class="px-3 py-2 rounded-lg hover:bg-slate-800/80 text-slate-300 hover:text-white text-sm font-medium transition">Login</a>
             </header>
 
-            <main class="guest-portal-mobile-main flex-1 p-6 overflow-auto max-md:p-4 pb-28 max-md:pb-28">
+            <main class="guest-layout-main-wrap guest-portal-mobile-main flex-1 min-h-0 p-6 overflow-auto max-md:p-4 pb-28 max-md:pb-28">
                 @if (session('success'))
                     <div class="mb-4 px-4 py-3 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-sm">
                         {{ session('success') }}
@@ -101,12 +115,14 @@
 
     {{-- Floating buttons: wrapper with inline critical styles so they always show (no overflow/z-index issues) --}}
     <div id="guest-floating-ctas" style="position:fixed;bottom:0;right:0;z-index:2147483647;pointer-events:none;display:flex;flex-direction:column;align-items:flex-end;gap:12px;padding:20px;padding-bottom:24px;">
-        {{-- Start Project – above WhatsApp --}}
+        {{-- Start Project – above WhatsApp (hidden on Contact page) --}}
+        @unless(request()->routeIs('guest.contact'))
         <a href="{{ route('guest.contact') }}" aria-label="Start Project" style="pointer-events:auto;display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:9999px;font-weight:600;color:#fff;text-decoration:none;background:linear-gradient(to right,#06b6d4,#0ea5e9);box-shadow:0 10px 40px -10px rgba(6,182,212,0.5);"
            class="guest-floating-start hover:opacity-95 transition max-md:px-4 max-md:py-3">
             <svg class="w-5 h-5 max-md:w-4 max-md:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
             <span class="max-md:sr-only">Start Project</span>
         </a>
+        @endunless
         {{-- WhatsApp – bottom-right corner --}}
         <a href="https://wa.me/{{ $whatsappNumber ?? '8801743233833' }}" target="_blank" rel="noopener noreferrer" aria-label="Contact on WhatsApp"
            style="pointer-events:auto;display:flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:50%;background:#10b981;color:#fff;text-decoration:none;box-shadow:0 10px 25px -5px rgba(0,0,0,.25);"

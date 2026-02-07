@@ -17,7 +17,7 @@
                 </div>
                 <div>
                     <label for="description" class="block text-sm font-medium text-slate-400 mb-1">Description</label>
-                    <textarea name="description" id="description" rows="3" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">{{ old('description', $hotOffer->description) }}</textarea>
+                    <textarea name="description" id="description" rows="12" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 font-mono text-sm" placeholder="Plain text; use new lines for paragraphs. Lines starting with ১।, ২। or 1., 2. become a bullet list.">{{ old('description', $hotOffer->description) }}</textarea>
                     @error('description')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
                 </div>
                 <div>

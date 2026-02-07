@@ -25,8 +25,10 @@ class Payment extends Model
     public const PAID_METHOD_CASH = 'cash';
 
     public const TYPE_FIRST = 'first';
+    public const TYPE_ADVANCE = 'advance';
     public const TYPE_MIDDLE = 'middle';
     public const TYPE_FINAL = 'final';
+    public const TYPE_TIP = 'tip';
 
     public const PAYMENT_METHODS = [
         'DBBL',
@@ -51,6 +53,7 @@ class Payment extends Model
         'payment_link',
         'paid_at',
         'paid_method',
+        'payment_hash',
     ];
 
     protected $casts = [

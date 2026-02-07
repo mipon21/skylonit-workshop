@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\ProjectCreated;
+use App\Jobs\SendTemplateMailJob;
 use App\Models\Client;
 use App\Models\Project;
 use Illuminate\Http\RedirectResponse;
@@ -12,6 +13,26 @@ use Illuminate\View\View;
 
 class ProjectController extends Controller
 {
+    private function sendClientProjectCreatedEmail(Project $project, Client $client): void
+    {
+        $email = $client->user?->email ?? $client->email;
+        if (! $email) {
+            return;
+        }
+
+        SendTemplateMailJob::dispatch(
+            'client_project_created',
+            $email,
+            [
+                'client_name' => $client->name,
+                'client_email' => $email,
+                'project_name' => $project->project_name,
+                'project_code' => $project->project_code ?? '',
+                'login_url' => route('login'),
+            ]
+        );
+    }
+
     public function index(): View
     {
         $query = Project::with('client')
@@ -111,7 +132,11 @@ class ProjectController extends Controller
         $validated = $request->validate([
             'client_id' => ['required', 'exists:clients,id'],
         ]);
+        $newClient = Client::find($validated['client_id']);
         $project->update($validated);
+        if ($newClient) {
+            $this->sendClientProjectCreatedEmail($project, $newClient);
+        }
         return redirect()->route('projects.show', $project)->withFragment('client')->with('success', 'Primary client updated.');
     }
 
@@ -131,6 +156,10 @@ class ProjectController extends Controller
             return redirect()->route('projects.show', $project)->withFragment('client')->with('info', 'That client is already linked.');
         }
         $project->additionalClients()->attach($clientId);
+        $addedClient = Client::find($clientId);
+        if ($addedClient) {
+            $this->sendClientProjectCreatedEmail($project, $addedClient);
+        }
         return redirect()->route('projects.show', $project)->withFragment('client')->with('success', 'Client added to project.');
     }
 

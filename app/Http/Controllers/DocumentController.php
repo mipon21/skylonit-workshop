@@ -91,7 +91,21 @@ class DocumentController extends Controller
         if ($document->project_id !== $project->id) {
             abort(404);
         }
-        return Storage::download($document->file_path, $document->title . '.' . pathinfo($document->file_path, PATHINFO_EXTENSION));
+        $disk = Storage::disk('local');
+        if (! $disk->exists($document->file_path)) {
+            abort(404);
+        }
+        $filename = $document->title . '.' . pathinfo($document->file_path, PATHINFO_EXTENSION);
+        // Stream download without requiring file_size metadata (avoids Flysystem UnableToRetrieveMetadata)
+        return response()->streamDownload(function () use ($disk, $document) {
+            $stream = $disk->readStream($document->file_path);
+            if (is_resource($stream)) {
+                fpassthru($stream);
+                fclose($stream);
+            }
+        }, $filename, [
+            'Content-Type' => 'application/octet-stream',
+        ]);
     }
 
     public function destroy(Project $project, Document $document): RedirectResponse

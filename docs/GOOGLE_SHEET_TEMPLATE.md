@@ -2,7 +2,48 @@
 
 Create a Google Sheet and add these tabs with the following headers (first row). The app will fill rows; **do not use the first row for data**. Revenue columns (e.g. contract_amount, expense_total, net_base on Projects) are written by the ERP only and must never be used to overwrite ERP revenue.
 
-## Tab: Projects
+---
+
+## Production: Projects tab (single tab, bidirectional)
+
+Use **one tab named "Projects"** with this header row. Columns A–Z are editable (allowed fields); AA–AL are ERP system columns (read-only from sheet; ERP overwrites these).
+
+| Col | Header | Editable | Notes |
+|-----|--------|----------|--------|
+| A | SL | | Row / serial |
+| B | Project Name | ✓ | |
+| C | Project ID | | Display (e.g. SLN-000001) |
+| D | Order ID | ✓ | |
+| E | Contract Date | | |
+| F | Delivery Date | ✓ | |
+| G | Project Type | ✓ | |
+| H | Payment Method | ✓ | |
+| I | Contract Amount | | ERP source |
+| J | Advance | ✓ | One payment (type=advance) |
+| K | Due | | ERP calculated |
+| L | Middle Payments | ✓ | Comma-separated amounts (unlimited) |
+| M | Final Pay | ✓ | One payment |
+| N | Tips | ✓ | Tip payment |
+| O | Expense | ✓ | Creates/updates ERP expense |
+| P | Balance | | ERP calculated |
+| Q | Company Share | read-only | Legacy |
+| R | Sales Share | read-only | Legacy |
+| S | Payment Status | | ERP derived |
+| T | Project Status | ✓ | |
+| U–Z | Client Name, Phone, Address, Email, Facebook Link, KYC | ✓ | |
+| AA | erp_project_id | | Primary key; match row to ERP |
+| AB | updated_at | | Conflict resolution |
+| AC–AL | expense_total, net_base, overhead, sales, developer, profit, *_paid | | **ERP only**; do not edit |
+
+- **Sync**: Scheduled every 5 minutes; or **Settings → Google Sync → Sync Now**.
+- **Conflict**: If Sheet `updated_at` newer → update ERP allowed fields and import payments/expense. If ERP newer → overwrite sheet row. Sheet deletes are ignored.
+- **Payments**: Advance (one), Middle (unlimited, comma-separated), Final (one), Tips. Imported as gateway=manual, status=PAID. Dedupe by payment hash.
+
+---
+
+## Legacy tab layout (multi-tab)
+
+## Tab: Projects (legacy)
 
 | erp_id | updated_at | project_name | project_code | client_id | client_name | contract_amount | contract_date | delivery_date | status | expense_total | net_base |
 

@@ -11,12 +11,19 @@ class GuestProjectController extends Controller
 {
     /**
      * Public project list: only is_public = true. No client/budget/payment info.
+     * Optional ?status=running to show only Pending + Running.
      */
-    public function index(): View
+    public function index(Request $request): View
     {
-        $projects = Project::where('is_public', true)
+        $query = Project::where('is_public', true)
             ->with(['projectLinks' => fn ($q) => $q->where('is_public', true)])
-            ->withCount(['tasks', 'tasks as tasks_done_count' => fn ($q) => $q->where('status', 'done')])
+            ->withCount(['tasks', 'tasks as tasks_done_count' => fn ($q) => $q->where('status', 'done')]);
+
+        if ($request->query('status') === 'running') {
+            $query->whereIn('status', ['Pending', 'Running']);
+        }
+
+        $projects = $query
             ->orderByRaw('CASE WHEN project_code IS NULL OR project_code = "" THEN 1 ELSE 0 END')
             ->orderByDesc('project_code')
             ->get();

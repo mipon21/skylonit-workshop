@@ -10,6 +10,15 @@
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
+        /* Desktop: fixed sidebar + fixed header, only main scrolls */
+        @media (min-width: 768px) {
+            html, body { height: 100%; overflow: hidden !important; }
+            .app-layout-root { height: 100vh !important; overflow: hidden !important; }
+            .app-layout-sidebar { position: fixed !important; top: 0 !important; left: 0 !important; bottom: 0 !important; width: 16rem !important; z-index: 30 !important; display: flex !important; flex-direction: column !important; height: 100vh !important; overflow: hidden !important; }
+            .app-layout-sidebar-nav { flex: 1 1 0 !important; min-height: 0 !important; overflow-y: auto !important; }
+            .app-layout-header { position: fixed !important; top: 0 !important; left: 16rem !important; right: 0 !important; height: 3.5rem !important; z-index: 25 !important; background: rgb(15 23 42 / 0.95) !important; backdrop-filter: blur(8px); }
+            .app-layout-main-wrap { margin-left: 16rem !important; margin-top: 3.5rem !important; height: calc(100vh - 3.5rem) !important; overflow: auto !important; }
+        }
         @media (max-width: 767px) {
             .app-layout-mobile-header {
                 position: fixed !important;
@@ -31,13 +40,25 @@
             }
         }
     </style>
+    @if((request()->routeIs('projects.*') || request()->routeIs('dashboard')) && Auth::user()->isAdmin())
+    <script>
+    (function(){
+        try {
+            if (JSON.parse(localStorage.getItem('paymentBlur') || 'false')) {
+                document.documentElement.classList.add('payment-blur-active');
+            }
+        } catch(e) {}
+    })();
+    </script>
+    <style>html.payment-blur-active .payment-amount{filter:blur(5px)!important;user-select:none!important}</style>
+    @endif
 </head>
 <body class="font-sans antialiased bg-slate-950 text-slate-200 min-h-screen">
-    <div class="flex min-h-screen" x-data="{ sidebarOpen: false }">
+    <div class="app-layout-root flex min-h-screen" x-data="{ sidebarOpen: false }">
         {{-- Mobile backdrop: close sidebar on tap --}}
         <div x-show="sidebarOpen" x-cloak @click="sidebarOpen = false" class="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm md:hidden" aria-hidden="true"></div>
-        {{-- Left Sidebar: on mobile fixed drawer, hidden by default; desktop unchanged --}}
-        <aside class="w-64 shrink-0 bg-slate-900/95 border-r border-slate-700/50 flex flex-col max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-40 max-md:transition-transform max-md:duration-200 max-md:ease-out max-md:-translate-x-full"
+        {{-- Left Sidebar: fixed on desktop (no scroll); on mobile fixed drawer, hidden by default --}}
+        <aside class="app-layout-sidebar w-64 shrink-0 bg-slate-900/95 border-r border-slate-700/50 flex flex-col max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-40 max-md:transition-transform max-md:duration-200 max-md:ease-out max-md:-translate-x-full"
                :class="sidebarOpen && 'max-md:translate-x-0'">
             <div class="p-5 border-b border-slate-700/50">
                 <a href="{{ route('dashboard') }}" class="flex items-center gap-2" @click="sidebarOpen = false">
@@ -48,7 +69,7 @@
                     @endif
                 </a>
             </div>
-            <nav class="flex-1 p-3 space-y-0.5">
+            <nav class="app-layout-sidebar-nav flex-1 p-3 space-y-0.5">
                 <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800/80 hover:text-white transition {{ request()->routeIs('dashboard') ? 'bg-sky-500/20 text-sky-400' : '' }}" @click="sidebarOpen = false">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
                     Dashboard
@@ -98,16 +119,39 @@
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
                     Email Footer
                 </a>
+                <a href="{{ route('google-sync.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800/80 hover:text-white transition {{ request()->routeIs('google-sync.*') ? 'bg-sky-500/20 text-sky-400' : '' }}" @click="sidebarOpen = false">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    Google Sync
+                </a>
                 @endif
             </nav>
         </aside>
 
-        <div class="flex-1 flex flex-col min-w-0">
-            {{-- Top Bar: fixed on mobile so it stays visible when scrolling --}}
-            <header class="app-layout-mobile-header h-14 shrink-0 flex items-center justify-end px-6 border-b border-slate-800/80 bg-slate-900/50 max-md:justify-between max-md:px-4 md:relative">
+        <div class="flex-1 flex flex-col min-w-0 min-h-0">
+            {{-- Top Bar: fixed on desktop (stays visible); fixed on mobile via CSS --}}
+            <header class="app-layout-header app-layout-mobile-header h-14 shrink-0 flex items-center justify-end gap-3 px-6 border-b border-slate-800/80 bg-slate-900/50 max-md:justify-between max-md:px-4">
                 <button type="button" @click="sidebarOpen = true" class="p-2 rounded-lg hover:bg-slate-800/80 text-slate-300 hover:text-white transition md:hidden" aria-label="Open menu">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
+                @if((request()->routeIs('projects.*') || request()->routeIs('dashboard')) && Auth::user()->isAdmin())
+                <div x-data="{
+                    paymentBlur: (function(){ try { return JSON.parse(localStorage.getItem('paymentBlur') || 'false'); } catch(e) { return false; } })(),
+                    syncBlur() {
+                        const active = !!this.paymentBlur;
+                        document.documentElement.classList.toggle('payment-blur-active', active);
+                        localStorage.setItem('paymentBlur', JSON.stringify(active));
+                    },
+                    init() {
+                        this.$watch('paymentBlur', () => this.syncBlur());
+                        this.syncBlur();
+                    }
+                }" x-effect="syncBlur()" class="flex items-center">
+                    <button type="button" @click="paymentBlur = !paymentBlur" :class="paymentBlur ? 'bg-amber-500/30 text-amber-400 border-amber-500/50' : 'bg-slate-800/80 text-slate-300 border-slate-600 hover:text-white'" class="px-3 py-1.5 rounded-lg border text-sm font-medium transition flex items-center gap-1.5" :title="paymentBlur ? 'Payment numbers blurred – click to show' : 'Click to blur payment numbers'">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                        <span x-text="paymentBlur ? 'Show payments' : 'Blur payments'">Blur payments</span>
+                    </button>
+                </div>
+                @endif
                 <div x-data="{ open: false }" class="relative max-md:flex max-md:items-center">
                     <button @click="open = !open" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-800/80 transition">
                         <span class="text-sm font-medium text-slate-200">{{ Auth::user()->name }}</span>
@@ -123,8 +167,8 @@
                 </div>
             </header>
 
-            {{-- Main Content --}}
-            <main class="app-layout-mobile-main flex-1 p-6 overflow-auto max-md:p-4">
+            {{-- Main Content: only this area scrolls on desktop --}}
+            <main class="app-layout-main-wrap app-layout-mobile-main flex-1 min-h-0 p-6 overflow-auto max-md:p-4">
                 @if (session('success'))
                     <div class="mb-4 px-4 py-3 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-sm">
                         {{ session('success') }}

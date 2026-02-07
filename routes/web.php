@@ -9,6 +9,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\EmailFooterController;
 use App\Http\Controllers\EmailTemplateController;
+use App\Http\Controllers\GoogleSyncController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\Guest\GuestDashboardController;
 use App\Http\Controllers\Guest\GuestLinkController;
@@ -134,6 +135,8 @@ Route::middleware(['auth'])->group(function () {
         Route::put('settings/email-templates/{email_template}', [EmailTemplateController::class, 'update'])->name('email-templates.update');
         Route::get('settings/email-footer', [EmailFooterController::class, 'index'])->name('email-footer.index');
         Route::put('settings/email-footer', [EmailFooterController::class, 'update'])->name('email-footer.update');
+        Route::get('settings/google-sync', [GoogleSyncController::class, 'index'])->name('google-sync.index');
+        Route::post('settings/google-sync/sync-now', [GoogleSyncController::class, 'syncNow'])->name('google-sync.sync-now');
     });
 
     // Shared: projects index & show (controller scopes for client) – under dashboard to avoid conflict with guest /projects

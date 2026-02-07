@@ -50,7 +50,9 @@ class Project extends Model
         'client_id',
         'project_name',
         'project_code',
+        'order_id',
         'project_type',
+        'payment_method',
         'contract_amount',
         'contract_date',
         'delivery_date',
@@ -192,8 +194,8 @@ class Project extends Model
         if ($this->hasFinalPayment()) {
             return [];
         }
-        // Treat null/legacy payments as "first" taken
-        $hasFirst = $this->payments()->whereIn('payment_type', [Payment::TYPE_FIRST, null])->exists();
+        // Treat null/legacy/advance as "first" taken
+        $hasFirst = $this->payments()->whereIn('payment_type', [Payment::TYPE_FIRST, Payment::TYPE_ADVANCE, null])->exists();
 
         if (!$hasFirst) {
             return [

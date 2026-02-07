@@ -1,11 +1,13 @@
 <?php
 
 return [
-    'spreadsheet_id' => env('GOOGLE_SHEETS_SPREADSHEET_ID', ''),
+    'spreadsheet_id' => env('GOOGLE_SHEET_ID', env('GOOGLE_SHEETS_SPREADSHEET_ID', '')),
     'credentials_path' => (function () {
         $path = env('GOOGLE_SHEETS_CREDENTIALS', storage_path('app/google-credentials.json'));
         return str_starts_with($path, '/') || preg_match('#^[A-Za-z]:\\\\#', $path) ? $path : base_path($path);
     })(),
+    'client_email' => env('GOOGLE_CLIENT_EMAIL', null),
+    'private_key' => env('GOOGLE_PRIVATE_KEY', null),
     'enabled' => (bool) env('GOOGLE_SHEETS_SYNC_ENABLED', false),
 
     'tabs' => [
@@ -16,5 +18,46 @@ return [
         'tasks' => 'Tasks',
         'bugs' => 'Bugs',
         'notes' => 'Notes',
+    ],
+
+    'projects_sheet_columns' => [
+        'sl' => 0,
+        'project_name' => 1,
+        'project_id' => 2,
+        'order_id' => 3,
+        'contract_date' => 4,
+        'delivery_date' => 5,
+        'project_type' => 6,
+        'payment_method' => 7,
+        'contract_amount' => 8,
+        'advance' => 9,
+        'due' => 10,
+        'middle_payments' => 11,
+        'final_pay' => 12,
+        'tips' => 13,
+        'expense' => 14,
+        'balance' => 15,
+        'company_share' => 16,
+        'sales_share' => 17,
+        'payment_status' => 18,
+        'project_status' => 19,
+        'client_name' => 20,
+        'client_phone' => 21,
+        'client_address' => 22,
+        'client_email' => 23,
+        'facebook_link' => 24,
+        'kyc' => 25,
+        'erp_project_id' => 26,
+        'updated_at' => 27,
+        'expense_total' => 28,
+        'net_base' => 29,
+        'overhead' => 30,
+        'sales' => 31,
+        'developer' => 32,
+        'profit' => 33,
+        'overhead_paid' => 34,
+        'sales_paid' => 35,
+        'developer_paid' => 36,
+        'profit_paid' => 37,
     ],
 ];

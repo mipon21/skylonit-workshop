@@ -1,4 +1,9 @@
 <x-guest-portal-layout title="Contact">
+    <style>
+    @media (max-width: 767px) {
+        .guest-contact-submit { display: flex; width: 100%; justify-content: center; align-items: center; text-align: center; }
+    }
+    </style>
     <div class="space-y-6 max-w-2xl max-md:max-w-none">
         <h1 class="text-2xl font-semibold text-white max-md:text-xl">Contact</h1>
         <p class="text-slate-400 text-sm">Submit an enquiry and we’ll get back to you soon.</p>
@@ -37,7 +42,10 @@
                 @error('message')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
             </div>
             <div class="pt-2">
-                <button type="submit" class="px-5 py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-cyan-500 to-sky-500 hover:from-cyan-400 hover:to-sky-400 shadow-lg shadow-cyan-500/20 transition-all duration-300 max-md:w-full max-md:py-3.5">Submit</button>
+                <button type="submit" class="guest-contact-submit inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-cyan-500 to-sky-500 hover:from-cyan-400 hover:to-sky-400 shadow-lg shadow-cyan-500/30 ring-2 ring-cyan-400/40 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-500/40 hover:-translate-y-0.5 hover:ring-cyan-400/60 max-md:w-full max-md:px-5 max-md:py-3.5">
+                    <svg class="w-5 h-5 max-md:w-4 max-md:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    Submit
+                </button>
             </div>
         </form>
         </div>

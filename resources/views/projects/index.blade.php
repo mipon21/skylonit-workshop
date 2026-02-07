@@ -123,7 +123,7 @@
                         <div class="mt-3" x-data="{ payFill: 0, payTarget: {{ $paymentProgressPercent }} }" x-init="setTimeout(() => { payFill = payTarget }, 200)">
                             <div class="flex items-center justify-between text-xs mb-1">
                                 <span class="text-slate-500 font-medium">Payment progress</span>
-                                <span class="text-emerald-400 tabular-nums" x-text="payFill + '%'">{{ $paymentProgressPercent }}%</span>
+                                <span class="payment-amount text-emerald-400 tabular-nums" x-text="payFill + '%'">{{ $paymentProgressPercent }}%</span>
                             </div>
                             <div class="relative w-full overflow-hidden rounded-full border border-slate-600/50 bg-slate-700/90" style="height: 13px;">
                                 <div class="absolute top-0 left-0 bottom-0 rounded-full transition-[width] duration-700 ease-out" style="height: 13px; background: linear-gradient(to right, #10b981, #34d399);" :style="{ width: payFill + '%' }"></div>
@@ -131,11 +131,11 @@
                         </div>
                         <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between text-sm">
                             <span class="text-slate-400">Contract</span>
-                            <span class="text-white font-medium">৳ {{ number_format($project->contract_amount, 0) }}</span>
+                            <span class="payment-amount text-white font-medium">৳ {{ number_format($project->contract_amount, 0) }}</span>
                         </div>
                         <div class="mt-1 flex justify-between text-sm">
                             <span class="text-slate-400">Due</span>
-                            <span class="{{ $project->due > 0 ? 'text-amber-400' : 'text-emerald-400' }} font-medium">৳ {{ number_format($project->due, 0) }}</span>
+                            <span class="payment-amount {{ $project->due > 0 ? 'text-amber-400' : 'text-emerald-400' }} font-medium">৳ {{ number_format($project->due, 0) }}</span>
                         </div>
                     </a>
                     <div class="mt-4 pt-4 border-t border-slate-700/50 flex flex-wrap items-center gap-2">

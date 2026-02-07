@@ -19,6 +19,7 @@ class ContractAudit extends Model
         'user_id',
         'ip_address',
         'user_agent',
+        'created_at',
     ];
 
     protected $casts = [

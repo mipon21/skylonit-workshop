@@ -108,14 +108,14 @@
             <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-4 flex flex-col justify-between max-md:shrink-0 max-md:min-w-[200px] max-md:snap-start">
                 <div>
                     <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">Contract {{ ($isClient ?? false) ? 'Amount' : '' }}</p>
-                    <p class="text-lg font-bold text-white mt-0.5">৳ {{ number_format($project->contract_amount, 0) }}</p>
+                    <p class="text-lg font-bold text-white mt-0.5"><span class="payment-amount">৳ {{ number_format($project->contract_amount, 0) }}</span></p>
                 </div>
                 <div class="mt-2 pt-2 border-t border-slate-700/50 min-h-[2.5rem] md:block hidden" aria-hidden="true"></div>
             </div>
             <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-4 flex flex-col justify-between max-md:shrink-0 max-md:min-w-[200px] max-md:snap-start">
                 <div>
                     <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">Total Expenses</p>
-                    <p class="text-lg font-bold text-white mt-0.5">৳ {{ number_format(($isClient ?? false) ? $project->public_expense_total : $project->expense_total, 0) }}</p>
+                    <p class="text-lg font-bold text-white mt-0.5"><span class="payment-amount">৳ {{ number_format(($isClient ?? false) ? $project->public_expense_total : $project->expense_total, 0) }}</span></p>
                 </div>
                 <div class="mt-2 pt-2 border-t border-slate-700/50 min-h-[2.5rem] md:block hidden" aria-hidden="true"></div>
             </div>
@@ -123,7 +123,7 @@
             <div class="bg-slate-800/80 backdrop-blur border border-sky-500/30 rounded-2xl p-4 flex flex-col justify-between max-md:shrink-0 max-md:min-w-[200px] max-md:snap-start">
                 <div>
                     <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">Net base</p>
-                    <p class="text-lg font-bold {{ $project->is_net_base_negative ? 'text-amber-400' : 'text-white' }} mt-0.5">৳ {{ number_format($project->net_base, 0) }}</p>
+                    <p class="text-lg font-bold {{ $project->is_net_base_negative ? 'text-amber-400' : 'text-white' }} mt-0.5"><span class="payment-amount">৳ {{ number_format($project->net_base, 0) }}</span></p>
                 </div>
                 <div class="mt-2 pt-2 border-t border-slate-700/50 min-h-[2.5rem] md:block hidden" aria-hidden="true"></div>
             </div>
@@ -140,24 +140,24 @@
             @endphp
             <div role="button" tabindex="0" title="Click to edit payout" @click="payoutType = 'overhead'; payoutModal = true" @keydown.enter="payoutType = 'overhead'; payoutModal = true" class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-4 cursor-pointer hover:border-slate-600 transition group max-md:shrink-0 max-md:min-w-[200px] max-md:snap-start">
                 <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">Overhead</p>
-                <p class="text-lg font-bold text-white mt-0.5">৳ {{ number_format($project->realized_overhead, 0) }}</p>
-                <p class="text-slate-500 text-xs mt-0.5">of ৳ {{ number_format($project->overhead, 0) }}</p>
+                <p class="text-lg font-bold text-white mt-0.5"><span class="payment-amount">৳ {{ number_format($project->realized_overhead, 0) }}</span></p>
+                <p class="text-slate-500 text-xs mt-0.5">of <span class="payment-amount">৳ {{ number_format($project->overhead, 0) }}</span></p>
                 <p class="mt-2 pt-2 border-t border-slate-700/50">
                     <span class="inline-block px-3 py-1.5 rounded-md text-base font-medium border whitespace-nowrap {{ $payoutBadgeClass($payoutStatus('overhead')) }}">{{ \App\Models\ProjectPayout::statusLabel($payoutStatus('overhead')) }}</span>
                 </p>
             </div>
             <div role="button" tabindex="0" title="Click to edit payout" @click="payoutType = 'sales'; payoutModal = true" @keydown.enter="payoutType = 'sales'; payoutModal = true" class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-4 cursor-pointer hover:border-slate-600 transition group max-md:shrink-0 max-md:min-w-[200px] max-md:snap-start">
                 <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">Sales</p>
-                <p class="text-lg font-bold text-white mt-0.5">৳ {{ number_format($project->realized_sales, 0) }}</p>
-                <p class="text-slate-500 text-xs mt-0.5">of ৳ {{ number_format($project->sales, 0) }}</p>
+                <p class="text-lg font-bold text-white mt-0.5"><span class="payment-amount">৳ {{ number_format($project->realized_sales, 0) }}</span></p>
+                <p class="text-slate-500 text-xs mt-0.5">of <span class="payment-amount">৳ {{ number_format($project->sales, 0) }}</span></p>
                 <p class="mt-2 pt-2 border-t border-slate-700/50">
                     <span class="inline-block px-3 py-1.5 rounded-md text-base font-medium border whitespace-nowrap {{ $payoutBadgeClass($payoutStatus('sales')) }}">{{ \App\Models\ProjectPayout::statusLabel($payoutStatus('sales')) }}</span>
                 </p>
             </div>
             <div role="button" tabindex="0" title="Click to edit payout" @click="payoutType = 'developer'; payoutModal = true" @keydown.enter="payoutType = 'developer'; payoutModal = true" class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-4 cursor-pointer hover:border-slate-600 transition group max-md:shrink-0 max-md:min-w-[200px] max-md:snap-start">
                 <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">Developer</p>
-                <p class="text-lg font-bold text-white mt-0.5">৳ {{ number_format($project->realized_developer, 0) }}</p>
-                <p class="text-slate-500 text-xs mt-0.5">of ৳ {{ number_format($project->developer, 0) }}</p>
+                <p class="text-lg font-bold text-white mt-0.5"><span class="payment-amount">৳ {{ number_format($project->realized_developer, 0) }}</span></p>
+                <p class="text-slate-500 text-xs mt-0.5">of <span class="payment-amount">৳ {{ number_format($project->developer, 0) }}</span></p>
                 <p class="mt-2 pt-2 border-t border-slate-700/50">
                     <span class="inline-block px-3 py-1.5 rounded-md text-base font-medium border whitespace-nowrap {{ $payoutBadgeClass($payoutStatus('developer')) }}">{{ \App\Models\ProjectPayout::statusLabel($payoutStatus('developer')) }}</span>
                 </p>
@@ -165,11 +165,11 @@
             @else
             <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-4 max-md:shrink-0 max-md:min-w-[200px] max-md:snap-start">
                 <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">Total Paid</p>
-                <p class="text-lg font-bold text-emerald-400 mt-0.5">৳ {{ number_format($project->total_paid, 0) }}</p>
+                <p class="text-lg font-bold text-emerald-400 mt-0.5"><span class="payment-amount">৳ {{ number_format($project->total_paid, 0) }}</span></p>
             </div>
             <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-4 max-md:shrink-0 max-md:min-w-[200px] max-md:snap-start">
                 <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">Due</p>
-                <p class="text-lg font-bold {{ $project->due > 0 ? 'text-amber-400' : 'text-emerald-400' }} mt-0.5">৳ {{ number_format($project->due, 0) }}</p>
+                <p class="text-lg font-bold {{ $project->due > 0 ? 'text-amber-400' : 'text-emerald-400' }} mt-0.5"><span class="payment-amount">৳ {{ number_format($project->due, 0) }}</span></p>
             </div>
             @endif
         </div>
@@ -228,8 +228,8 @@
             <div class="flex shrink-0 md:self-stretch">
                 <div role="button" tabindex="0" title="Click to edit payout" @click="payoutType = 'profit'; payoutModal = true" @keydown.enter="payoutType = 'profit'; payoutModal = true" class="h-full bg-slate-800/80 backdrop-blur border border-emerald-500/30 rounded-2xl p-4 shadow-[0_0_20px_-5px_rgba(16,185,129,0.2)] min-w-[180px] text-right cursor-pointer hover:border-emerald-500/50 transition group flex flex-col justify-between">
                     <p class="text-emerald-400/90 text-lg font-semibold uppercase tracking-wide">Profit</p>
-                    <p class="text-4xl font-bold text-emerald-400 mt-0.5">৳ {{ number_format($project->realized_profit, 0) }}</p>
-                    <p class="text-slate-500 text-lg mt-0.5">of ৳ {{ number_format($project->profit, 0) }}</p>
+                    <p class="text-4xl font-bold text-emerald-400 mt-0.5"><span class="payment-amount">৳ {{ number_format($project->realized_profit, 0) }}</span></p>
+                    <p class="text-slate-500 text-lg mt-0.5">of <span class="payment-amount">৳ {{ number_format($project->profit, 0) }}</span></p>
                     <p class="mt-2 pt-2 border-t border-slate-700/50">
                         <span class="inline-block px-3 py-1.5 rounded-md text-base font-medium border whitespace-nowrap {{ $payoutBadgeClass($payoutStatus('profit')) }}">{{ \App\Models\ProjectPayout::statusLabel($payoutStatus('profit')) }}</span>
                     </p>
@@ -238,19 +238,19 @@
             @endif
         </div>
         @if(!($isClient ?? false))
-        <p class="text-slate-500 text-xs mt-1">Amounts above fill as completed payments are received ({{ number_format($project->realized_ratio * 100, 0) }}% realized).</p>
+        <p class="text-slate-500 text-xs mt-1">Amounts above fill as completed payments are received (<span class="payment-amount">{{ number_format($project->realized_ratio * 100, 0) }}%</span> realized).</p>
         @endif
 
         {{-- Payments progress (below payment data) – animates on load --}}
         <div class="rounded-2xl bg-slate-800/60 border border-slate-700/50 p-4 shadow-inner">
             <div class="flex items-center justify-between mb-2.5">
                 <span class="text-sm font-semibold text-slate-300 uppercase tracking-wide">Payments progress</span>
-                <span class="text-sm font-medium text-emerald-400 tabular-nums">{{ $paymentsPercent }}%</span>
+                <span class="payment-amount text-sm font-medium text-emerald-400 tabular-nums">{{ $paymentsPercent }}%</span>
             </div>
             <div class="relative w-full overflow-hidden rounded-full border border-slate-600/50 bg-slate-700/90" style="height: 13px;">
                 <div class="progress-fill-payments absolute top-0 left-0 bottom-0 rounded-full"></div>
             </div>
-            <p class="text-slate-500 text-xs mt-1.5">৳ {{ number_format($project->total_paid, 0) }} / ৳ {{ number_format($project->contract_amount, 0) }} received</p>
+            <p class="text-slate-500 text-xs mt-1.5"><span class="payment-amount">৳ {{ number_format($project->total_paid, 0) }}</span> / <span class="payment-amount">৳ {{ number_format($project->contract_amount, 0) }}</span> received</p>
         </div>
 
         {{-- Tabs --}}
@@ -287,7 +287,7 @@
                     @forelse($project->payments as $payment)
                         <li class="flex items-center justify-between py-2 border-b border-slate-700/30 last:border-0 max-md:flex-col max-md:items-stretch max-md:gap-2 max-md:pb-4">
                             <div class="min-w-0">
-                                <span class="text-white font-medium">৳ {{ number_format($payment->amount, 0) }}</span>
+                                <span class="payment-amount text-white font-medium">৳ {{ number_format($payment->amount, 0) }}</span>
                                 @if($payment->payment_type)
                                 <span class="px-2 py-0.5 rounded text-xs font-medium bg-indigo-500/20 text-indigo-400 ml-2">{{ ucfirst($payment->payment_type) }}</span>
                                 @endif
@@ -361,11 +361,11 @@
                 </ul>
                 <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between text-sm">
                     <span class="text-slate-400">Total paid</span>
-                    <span class="font-semibold text-white">৳ {{ number_format($project->total_paid, 0) }}</span>
+                    <span class="payment-amount font-semibold text-white">৳ {{ number_format($project->total_paid, 0) }}</span>
                 </div>
                 <div class="mt-1 flex justify-between text-sm">
                     <span class="text-slate-400">Due</span>
-                    <span class="font-semibold {{ $project->due > 0 ? 'text-amber-400' : 'text-emerald-400' }}">৳ {{ number_format($project->due, 0) }}</span>
+                    <span class="payment-amount font-semibold {{ $project->due > 0 ? 'text-amber-400' : 'text-emerald-400' }}">৳ {{ number_format($project->due, 0) }}</span>
                 </div>
             </div>
 
@@ -381,7 +381,7 @@
                     @forelse($project->expenses as $expense)
                         <li class="flex items-center justify-between gap-3 py-2 border-b border-slate-700/30 last:border-0 max-md:flex-col max-md:items-stretch max-md:gap-2 max-md:pb-4">
                             <div class="min-w-0 flex-1">
-                                <span class="text-white font-medium">৳ {{ number_format($expense->amount, 0) }}</span>
+                                <span class="payment-amount text-white font-medium">৳ {{ number_format($expense->amount, 0) }}</span>
                                 @if($expense->note)<span class="text-slate-500 text-sm ml-2">— {{ Str::limit($expense->note, 30) }}</span>@endif
                             </div>
                             @if(!($isClient ?? false))
@@ -412,7 +412,7 @@
                 </ul>
                 <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between text-sm">
                     <span class="text-slate-400">Total expense</span>
-                    <span class="font-semibold text-white">৳ {{ number_format(($isClient ?? false) ? $project->public_expense_total : $project->expense_total, 0) }}</span>
+                    <span class="payment-amount font-semibold text-white">৳ {{ number_format(($isClient ?? false) ? $project->public_expense_total : $project->expense_total, 0) }}</span>
                 </div>
             </div>
 
@@ -905,7 +905,7 @@
                                     </div>
                                 </div>
                                 <div class="min-w-0 flex-1 pb-1 border-b border-slate-700/30 last:border-0">
-                                    <p class="text-slate-200 text-sm">{{ $activity->description }}</p>
+                                    <p class="text-slate-200 text-sm">@if(in_array($activity->action_type, ['payment_created', 'payment_marked_paid', 'expense_created', 'invoice_generated']))<span class="payment-amount">{{ $activity->description }}</span>@else{{ $activity->description }}@endif</p>
                                     <p class="text-slate-500 text-xs mt-1">{{ $activity->actor_name }} · {{ $activity->created_at->format('M j, Y g:i A') }}</p>
                                 </div>
                             </li>

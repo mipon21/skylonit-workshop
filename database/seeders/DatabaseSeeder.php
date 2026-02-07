@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             ProjectNoteSeeder::class,
             ProjectActivitySeeder::class,
             ContractSeeder::class,
+            SyncLogSeeder::class,
         ]);
     }
 }
