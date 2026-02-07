@@ -3,8 +3,10 @@
 namespace App\Observers;
 
 use App\Jobs\SyncPaymentToSheetJob;
+use App\Models\ClientNotification;
 use App\Models\Payment;
 use App\Models\ProjectActivity;
+use App\Observers\ProjectActivityObserver;
 use App\Services\InvoiceService;
 
 class PaymentObserver
@@ -16,12 +18,21 @@ class PaymentObserver
     public function created(Payment $payment): void
     {
         $amount = number_format($payment->amount, 0);
-        ProjectActivity::log(
+        $activity = ProjectActivity::log(
             $payment->project_id,
             'payment_created',
             "Payment ৳{$amount} created",
             ProjectActivity::VISIBILITY_CLIENT
         );
+        $projectName = $payment->project?->project_name ?? 'your project';
+        ProjectActivityObserver::createNotificationsForProjectClients($payment->project_id, [
+            'activity_id' => $activity->id,
+            'type' => ClientNotification::TYPE_PAYMENT,
+            'title' => 'Payment created',
+            'message' => "Payment ৳{$amount} is due for {$projectName}.",
+            'payment_id' => $payment->id,
+            'link' => $payment->payment_link ?: null,
+        ]);
     }
 
     public function saved(Payment $payment): void
@@ -29,14 +40,38 @@ class PaymentObserver
         // Sync to Google Sheets
         SyncPaymentToSheetJob::dispatch($payment);
 
+        // When a payment link is generated (DUE payment), notify project clients so the popup shows
+        if ($payment->wasChanged('payment_link') && $payment->payment_link && $payment->payment_status === Payment::PAYMENT_STATUS_DUE) {
+            $amount = number_format($payment->amount, 0);
+            $projectName = $payment->project?->project_name ?? 'your project';
+            ProjectActivityObserver::createNotificationsForProjectClients($payment->project_id, [
+                'type' => ClientNotification::TYPE_PAYMENT,
+                'title' => 'Payment link ready',
+                'message' => "You can now pay ৳{$amount} for {$projectName}. Use the Pay Now button below.",
+                'payment_id' => $payment->id,
+                'link' => $payment->payment_link,
+            ]);
+        }
+
         if ($payment->wasChanged('payment_status') && $payment->payment_status === Payment::PAYMENT_STATUS_PAID) {
             $amount = number_format($payment->amount, 0);
-            ProjectActivity::log(
+            $activity = ProjectActivity::log(
                 $payment->project_id,
                 'payment_marked_paid',
                 "Payment ৳{$amount} marked as PAID",
                 ProjectActivity::VISIBILITY_CLIENT
             );
+            $projectName = $payment->project?->project_name ?? 'your project';
+            ProjectActivityObserver::createNotificationsForProjectClients($payment->project_id, [
+                'activity_id' => $activity->id,
+                'type' => ClientNotification::TYPE_PAYMENT,
+                'title' => 'Payment received',
+                'message' => "Payment ৳{$amount} has been marked as PAID for {$projectName}.",
+                'payment_id' => $payment->id,
+                'link' => $payment->relationLoaded('invoice') && $payment->invoice
+                    ? route('invoices.view', $payment->invoice)
+                    : null,
+            ]);
         }
 
         // Generate invoice only when payment is PAID and no invoice yet

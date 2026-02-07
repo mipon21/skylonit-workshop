@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BugController;
+use App\Http\Controllers\ClientNotificationController;
 use App\Http\Controllers\CalendarNoteController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ContractController;
@@ -56,6 +57,10 @@ Route::middleware(['auth'])->group(function () {
 
     // Client payments list (requires auth)
     Route::get('/client/payments', [ClientPaymentController::class, 'index'])->name('client.payments.index');
+
+    // Client notifications (popups) – for client users only; used by app layout JS
+    Route::get('/client/notifications/unread', [ClientNotificationController::class, 'unread'])->name('client.notifications.unread');
+    Route::patch('/client/notifications/{client_notification}/read', [ClientNotificationController::class, 'markRead'])->name('client.notifications.mark-read');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             DocumentSeeder::class,
             ProjectNoteSeeder::class,
             ProjectActivitySeeder::class,
+            ClientNotificationSeeder::class,
             ContractSeeder::class,
             SyncLogSeeder::class,
         ]);

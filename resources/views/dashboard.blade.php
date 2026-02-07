@@ -104,7 +104,7 @@
                     <li class="flex items-center justify-between gap-3 py-2 border-b border-slate-700/30 last:border-0">
                         <div class="min-w-0">
                             <p class="text-white font-medium text-sm">{{ $notif->title }}</p>
-                            @if($notif->body)<p class="text-slate-400 text-xs mt-0.5">{{ $notif->body }}</p>@endif
+                            @if($notif->message)<p class="text-slate-400 text-xs mt-0.5">{{ $notif->message }}</p>@endif
                             <p class="text-slate-500 text-xs mt-0.5">{{ $notif->created_at->diffForHumans() }}</p>
                         </div>
                         @if($notif->link)

@@ -85,9 +85,11 @@ class ContractController extends Controller
         if ($client) {
             ClientNotification::create([
                 'client_id' => $client->id,
-                'type' => 'contract_uploaded',
+                'project_id' => $project->id,
+                'type' => ClientNotification::TYPE_NORMAL,
                 'title' => 'Contract ready for signature',
-                'body' => 'A contract has been uploaded for project: ' . $project->project_name,
+                'message' => 'A contract has been uploaded for project: ' . $project->project_name,
+                'is_read' => false,
                 'link' => route('projects.show', $project) . '#contracts',
             ]);
         }
@@ -236,9 +238,11 @@ class ContractController extends Controller
         if ($client) {
             ClientNotification::create([
                 'client_id' => $client->id,
-                'type' => 'contract_signed',
+                'project_id' => $project->id,
+                'type' => ClientNotification::TYPE_NORMAL,
                 'title' => 'Contract signed',
-                'body' => 'You signed the contract for project: ' . $project->project_name,
+                'message' => 'You signed the contract for project: ' . $project->project_name,
+                'is_read' => false,
                 'link' => route('projects.show', $project) . '#contracts',
             ]);
         }

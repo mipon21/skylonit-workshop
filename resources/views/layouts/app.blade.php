@@ -183,5 +183,177 @@
             </main>
         </div>
     </div>
+
+    {{-- Client notification popups: server-rendered + polling for new ones (no refresh) --}}
+    @auth
+    @if(Auth::user()->isClient() && Auth::user()->client)
+    @php
+        $clientUnread = \App\Models\ClientNotification::getLatestUnreadForPopups(Auth::user()->client->id);
+        $clientUnread->load(['project:id,project_name', 'payment:id,amount,payment_link,payment_status', 'payment.invoice:id', 'invoice:id']);
+    @endphp
+    <div id="client-notification-popups" class="fixed inset-0 z-[100]" aria-live="polite" style="pointer-events: none">
+        {{-- Invisible backdrop: allows clicks to pass through to page so scrolling works; cards sit above and have pointer-events-auto --}}
+        <div class="fixed inset-0 z-0" style="pointer-events: none" aria-hidden="true"></div>
+        @foreach($clientUnread as $index => $n)
+        <div class="client-notification-card pointer-events-auto {{ $index > 0 ? 'hidden' : '' }}"
+             data-notification-id="{{ $n->id }}"
+             data-type="{{ $n->type }}"
+             @if($n->type !== 'payment')
+             style="position:fixed;bottom:1.5rem;right:1.5rem;max-width:24rem;width:100%;z-index:102;"
+             @else
+             style="position:fixed;inset:0;z-index:101;display:{{ $index > 0 ? 'none' : 'flex' }};align-items:center;justify-content:center;padding:1rem;background:rgba(0,0,0,0.7);"
+             @endif>
+            @if($n->type !== 'payment')
+            <div class="bg-slate-800 border border-slate-600 rounded-xl shadow-xl p-4 flex gap-3">
+                <div class="flex-1 min-w-0">
+                    <p class="font-semibold text-white text-sm">{{ $n->title }}</p>
+                    <p class="text-slate-400 text-xs mt-0.5 line-clamp-2">{{ $n->message }}</p>
+                </div>
+                <button type="button" data-dismiss-notification-id="{{ $n->id }}" onclick="window.clientNotificationDismiss({{ $n->id }})" class="text-slate-400 hover:text-white p-1 rounded shrink-0" aria-label="Close">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            @else
+            <div class="bg-slate-800 border border-slate-600 rounded-2xl shadow-2xl max-w-md w-full p-6" style="pointer-events:auto">
+                <div class="flex justify-between items-start mb-4">
+                    <h2 class="text-lg font-semibold text-white">{{ $n->title }}</h2>
+                    <button type="button" data-dismiss-notification-id="{{ $n->id }}" onclick="window.clientNotificationDismiss({{ $n->id }})" class="text-slate-400 hover:text-white p-1 rounded" aria-label="Close">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+                <p class="text-slate-300 text-sm mb-4">{{ $n->message }}</p>
+                @if($n->project)<p class="text-slate-400 text-sm mb-1"><span class="text-slate-500">Project:</span> {{ $n->project->project_name }}</p>@endif
+                @if($n->payment)<p class="text-cyan-400 font-semibold text-lg mb-4">৳{{ number_format($n->payment->amount, 0) }}</p>@endif
+                @php $showUrl = $n->invoice ? route('invoices.view', $n->invoice) : route('client.payments.index'); @endphp
+                <div class="flex flex-wrap gap-3 mt-4">
+                    <a href="{{ $showUrl }}" data-dismiss-notification-id="{{ $n->id }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium bg-sky-500/20 text-sky-400 border border-sky-500/40 hover:bg-sky-500/30 transition">{{ $n->invoice ? 'View Invoice' : 'Show' }}</a>
+                    @if($n->payment && $n->payment->payment_status === 'DUE' && $n->payment->payment_link)<a href="{{ $n->payment->payment_link }}" target="_blank" rel="noopener noreferrer" data-dismiss-notification-id="{{ $n->id }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold bg-cyan-500 text-white hover:bg-cyan-400 transition">Pay Now</a>@endif
+                    <button type="button" data-dismiss-notification-id="{{ $n->id }}" onclick="window.clientNotificationDismiss({{ $n->id }})" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium bg-slate-700 text-slate-300 hover:bg-slate-600 transition">Close</button>
+                </div>
+            </div>
+            @endif
+        </div>
+        @endforeach
+    </div>
+    <script>
+    (function() {
+        var csrf = document.querySelector('meta[name="csrf-token"]') && document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        var markReadUrlPattern = @json(route('client.notifications.mark-read', ['client_notification' => '__ID__']));
+        var unreadUrl = @json(route('client.notifications.unread'));
+        var shownIds = new Set();
+        function getContainer() { return document.getElementById('client-notification-popups'); }
+        function updateContainerPointerEvents() {
+            var cont = getContainer();
+            if (!cont) return;
+            // When no cards visible, container stays non-interactive so page can scroll
+            var hasVisible = cont.querySelector('.client-notification-card:not(.hidden)');
+            cont.style.pointerEvents = hasVisible ? 'auto' : 'none';
+        }
+        var container = getContainer();
+        if (container) {
+            container.querySelectorAll('.client-notification-card').forEach(function(el) { shownIds.add(Number(el.getAttribute('data-notification-id'))); });
+            updateContainerPointerEvents();
+        }
+        function esc(s) { if (!s) return ''; var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+        function buildCard(n, isHidden) {
+            var type = n.type || 'normal';
+            var id = n.id;
+            var displayStyle = type === 'payment' ? 'flex' : 'block';
+            if (isHidden) displayStyle = 'none';
+            var wrapperStyle = type !== 'payment'
+                ? 'position:fixed;bottom:1.5rem;right:1.5rem;max-width:24rem;width:100%;z-index:102;'
+                : 'position:fixed;inset:0;z-index:101;display:' + displayStyle + ';align-items:center;justify-content:center;padding:1rem;background:rgba(0,0,0,0.7);';
+            function escUrl(u) { if (!u) return ''; return String(u).replace(/&/g, '&amp;').replace(/"/g, '&quot;'); }
+            var showUrl = n.show_url || n.invoice_view_url || '';
+            var showLabel = n.invoice_view_url ? 'View Invoice' : 'Show';
+            var payBtn = (n.payment_link && n.payment_status === 'DUE') ? '<a href="' + escUrl(n.payment_link) + '" target="_blank" rel="noopener noreferrer" data-dismiss-notification-id="' + id + '" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold bg-cyan-500 text-white hover:bg-cyan-400 transition">Pay Now</a>' : '';
+            var inner = type !== 'payment'
+                ? '<div class="bg-slate-800 border border-slate-600 rounded-xl shadow-xl p-4 flex gap-3"><div class="flex-1 min-w-0"><p class="font-semibold text-white text-sm">' + esc(n.title) + '</p><p class="text-slate-400 text-xs mt-0.5 line-clamp-2">' + esc(n.message) + '</p></div><button type="button" data-dismiss-notification-id="' + id + '" class="text-slate-400 hover:text-white p-1 rounded shrink-0" aria-label="Close"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button></div>'
+                : '<div class="bg-slate-800 border border-slate-600 rounded-2xl shadow-2xl max-w-md w-full p-6"><div class="flex justify-between items-start mb-4"><h2 class="text-lg font-semibold text-white">' + esc(n.title) + '</h2><button type="button" data-dismiss-notification-id="' + id + '" class="text-slate-400 hover:text-white p-1 rounded" aria-label="Close"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button></div><p class="text-slate-300 text-sm mb-4">' + esc(n.message) + '</p>' + (n.project_name ? '<p class="text-slate-400 text-sm mb-1"><span class="text-slate-500">Project:</span> ' + esc(n.project_name) + '</p>' : '') + (n.amount != null ? '<p class="text-cyan-400 font-semibold text-lg mb-4">৳' + esc(String(Math.round(Number(n.amount)))) + '</p>' : '') + '<div class="flex flex-wrap gap-3 mt-4"><a href="' + escUrl(showUrl) + '" data-dismiss-notification-id="' + id + '" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium bg-sky-500/20 text-sky-400 border border-sky-500/40 hover:bg-sky-500/30 transition">' + esc(showLabel) + '</a>' + payBtn + '<button type="button" data-dismiss-notification-id="' + id + '" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium bg-slate-700 text-slate-300 hover:bg-slate-600 transition">Close</button></div></div>';
+            var div = document.createElement('div');
+            div.className = 'client-notification-card pointer-events-auto' + (isHidden ? ' hidden' : '');
+            div.setAttribute('data-notification-id', id);
+            div.setAttribute('data-type', type);
+            div.style.cssText = wrapperStyle;
+            div.innerHTML = inner;
+            return div;
+        }
+        window.clientNotificationDismiss = function(id) {
+            if (id == null || id === '') return;
+            var idStr = String(id);
+            var cont = getContainer();
+            if (!cont) return;
+            var card = cont.querySelector('.client-notification-card[data-notification-id="' + idStr + '"]');
+            if (!card) card = cont.querySelector('.client-notification-card:not(.hidden)');
+            if (card) {
+                card.classList.add('hidden');
+                card.style.setProperty('display', 'none');
+                card.style.setProperty('visibility', 'hidden');
+                var cards = cont.querySelectorAll('.client-notification-card');
+                for (var i = 0; i < cards.length; i++) {
+                    if (cards[i] === card && cards[i + 1]) {
+                        cards[i + 1].classList.remove('hidden');
+                        cards[i + 1].style.removeProperty('visibility');
+                        cards[i + 1].style.setProperty('display', cards[i + 1].getAttribute('data-type') === 'payment' ? 'flex' : 'block');
+                        break;
+                    }
+                }
+                updateContainerPointerEvents();
+            }
+            if (id && csrf && markReadUrlPattern) {
+                var u = String(markReadUrlPattern).replace('__ID__', idStr);
+                fetch(u, { method: 'PATCH', headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json', 'Content-Type': 'application/json' }, credentials: 'same-origin' }).catch(function(){});
+            }
+        };
+        function pollUnread() {
+            var cont = getContainer();
+            if (!unreadUrl || !cont) return;
+            fetch(unreadUrl, { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    var list = data.notifications || [];
+                    var hasVisible = cont.querySelector('.client-notification-card:not(.hidden)');
+                    list.forEach(function(n) {
+                        if (shownIds.has(n.id)) return;
+                        shownIds.add(n.id);
+                        var isHidden = !!hasVisible;
+                        if (!hasVisible) hasVisible = true;
+                        var card = buildCard(n, isHidden);
+                        cont.appendChild(card);
+                        updateContainerPointerEvents();
+                        if (n.type !== 'payment' && !isHidden) {
+                            setTimeout(function() { window.clientNotificationDismiss(n.id); }, 3000);
+                        }
+                    });
+                })
+                .catch(function() {});
+        }
+        function setupContainerClick() {
+            var cont = getContainer();
+            if (!cont || cont._notificationClickBound) return;
+            cont._notificationClickBound = true;
+            cont.addEventListener('click', function(e) {
+                var btn = e.target.closest ? e.target.closest('[data-dismiss-notification-id]') : null;
+                if (!btn) return;
+                var bid = btn.getAttribute('data-dismiss-notification-id');
+                if (!bid) return;
+                e.preventDefault();
+                e.stopPropagation();
+                window.clientNotificationDismiss(bid);
+                if (btn.tagName === 'A' && btn.href) {
+                    if (btn.target === '_blank') window.open(btn.href, '_blank');
+                    else window.location.href = btn.href;
+                }
+            }, false);
+        }
+        setupContainerClick();
+        setInterval(pollUnread, 3000);
+        setTimeout(pollUnread, 800);
+        var firstSmall = document.querySelector('.client-notification-card:not([data-type="payment"]):not(.hidden)');
+        if (firstSmall) setTimeout(function() { window.clientNotificationDismiss(firstSmall.getAttribute('data-notification-id')); }, 3000);
+    })();
+    </script>
+    @endif
+    @endauth
 </body>
 </html>
