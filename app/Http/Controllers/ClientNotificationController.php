@@ -20,8 +20,11 @@ class ClientNotificationController extends Controller
             return response()->json(['notifications' => []]);
         }
 
-        $notifications = ClientNotification::getLatestUnreadForPopups($user->client->id);
+        $clientId = $user->client->id;
+        $notifications = ClientNotification::getLatestUnreadForPopups($clientId);
         $notifications->load(['project:id,project_name', 'payment:id,amount,payment_link,payment_status', 'payment.invoice:id,payment_id,invoice_number', 'invoice:id,invoice_number']);
+
+        $unreadCount = ClientNotification::where('client_id', $clientId)->where('is_read', false)->count();
 
         $list = $notifications->map(function (ClientNotification $n) {
             $item = [
@@ -52,7 +55,10 @@ class ClientNotificationController extends Controller
             return $item;
         });
 
-        return response()->json(['notifications' => $list->values()]);
+        return response()->json([
+            'notifications' => $list->values(),
+            'unread_count' => $unreadCount,
+        ]);
     }
 
     /**

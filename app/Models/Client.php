@@ -55,4 +55,9 @@ class Client extends Model
     {
         return $this->hasMany(ClientNotification::class)->orderByDesc('created_at');
     }
+
+    public function devices(): HasMany
+    {
+        return $this->hasMany(ClientDevice::class);
+    }
 }

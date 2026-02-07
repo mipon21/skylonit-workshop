@@ -133,6 +133,12 @@
                 <button type="button" @click="sidebarOpen = true" class="p-2 rounded-lg hover:bg-slate-800/80 text-slate-300 hover:text-white transition md:hidden" aria-label="Open menu">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
+                @if(Auth::user()->isClient())
+                <a href="{{ route('dashboard') }}" id="client-notification-bell" class="md:hidden flex items-center justify-center relative p-2 rounded-lg hover:bg-slate-800/80 text-slate-300 hover:text-white transition" aria-label="Notifications">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                    <span id="client-notification-badge" class="absolute -top-0.5 -right-0.5 min-w-[1.25rem] h-5 px-1 flex items-center justify-center rounded-full bg-sky-500 text-white text-xs font-semibold {{ ($clientUnreadCount ?? 0) > 0 ? '' : 'hidden' }}" data-count="{{ $clientUnreadCount ?? 0 }}">{{ ($clientUnreadCount ?? 0) > 99 ? '99+' : ($clientUnreadCount ?? 0) }}</span>
+                </a>
+                @endif
                 @if((request()->routeIs('projects.*') || request()->routeIs('dashboard')) && Auth::user()->isAdmin())
                 <div x-data="{
                     paymentBlur: (function(){ try { return JSON.parse(localStorage.getItem('paymentBlur') || 'false'); } catch(e) { return false; } })(),
@@ -304,6 +310,33 @@
                 var u = String(markReadUrlPattern).replace('__ID__', idStr);
                 fetch(u, { method: 'PATCH', headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json', 'Content-Type': 'application/json' }, credentials: 'same-origin' }).catch(function(){});
             }
+            var badge = document.getElementById('client-notification-badge');
+            if (badge) {
+                var c = Math.max(0, parseInt(badge.getAttribute('data-count') || '0', 10) - 1);
+                badge.setAttribute('data-count', c);
+                badge.textContent = c > 99 ? '99+' : String(c);
+                badge.classList.toggle('hidden', c <= 0);
+            }
+        };
+        window.clientNotificationAddFromPush = function(n) {
+            var cont = getContainer();
+            if (!cont || !n || shownIds.has(n.id)) return;
+            shownIds.add(n.id);
+            var hasVisible = cont.querySelector('.client-notification-card:not(.hidden)');
+            var isHidden = !!hasVisible;
+            var card = buildCard(n, isHidden);
+            cont.appendChild(card);
+            updateContainerPointerEvents();
+            var badge = document.getElementById('client-notification-badge');
+            if (badge) {
+                var c = parseInt(badge.getAttribute('data-count') || '0', 10) + 1;
+                badge.setAttribute('data-count', c);
+                badge.textContent = c > 99 ? '99+' : String(c);
+                badge.classList.remove('hidden');
+            }
+            if (n.type !== 'payment' && !isHidden) {
+                setTimeout(function() { window.clientNotificationDismiss(n.id); }, 3000);
+            }
         };
         function pollUnread() {
             var cont = getContainer();
@@ -312,6 +345,13 @@
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
                     var list = data.notifications || [];
+                    var unreadCount = typeof data.unread_count === 'number' ? data.unread_count : 0;
+                    var badge = document.getElementById('client-notification-badge');
+                    if (badge) {
+                        badge.textContent = unreadCount > 99 ? '99+' : String(unreadCount);
+                        badge.setAttribute('data-count', unreadCount);
+                        badge.classList.toggle('hidden', unreadCount <= 0);
+                    }
                     var hasVisible = cont.querySelector('.client-notification-card:not(.hidden)');
                     list.forEach(function(n) {
                         if (shownIds.has(n.id)) return;
@@ -355,5 +395,27 @@
     </script>
     @endif
     @endauth
+
+    @if(Auth::check() && Auth::user()->isClient() && config('fcm.public.api_key'))
+    @php
+        $fcmPublic = config('fcm.public');
+        $firebaseConfig = [
+            'apiKey' => $fcmPublic['api_key'] ?? null,
+            'authDomain' => $fcmPublic['auth_domain'] ?? null,
+            'projectId' => $fcmPublic['project_id'] ?? null,
+            'storageBucket' => $fcmPublic['storage_bucket'] ?? null,
+            'messagingSenderId' => $fcmPublic['messaging_sender_id'] ?? null,
+            'appId' => $fcmPublic['app_id'] ?? null,
+        ];
+    @endphp
+    <script>
+        window.clientFcmConfig = {
+            firebase: @json(array_filter($firebaseConfig)),
+            registerUrl: @json(route('client.devices.register')),
+            vapidKey: @json(config('fcm.vapid_key'))
+        };
+    </script>
+    @vite(['resources/js/client-fcm.js'])
+    @endif
 </body>
 </html>

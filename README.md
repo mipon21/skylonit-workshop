@@ -96,6 +96,14 @@ ERP is the source of truth. Revenue fields are never synced from Sheet to ERP.
 5. Create tabs: **Projects**, **Payments**, **Expenses**, **Documents**, **Tasks**, **Bugs**, **Notes**. Use the first row as header; columns are filled by the app (see `config/google_sheets.php` and `App\Services\GoogleSheetsService`).
 6. For cron: `* * * * * cd /path-to-app && php artisan schedule:run >> /dev/null 2>&1`
 
+## Push notifications (FCM) — optional
+
+Client portal users (logged-in clients, not guests) can receive **browser/mobile push notifications** in addition to in-app popups and polling.
+
+- **Setup:** See [docs/FIREBASE_SETUP.md](docs/FIREBASE_SETUP.md) for Firebase project, Server Key, Web app config, and VAPID key.
+- **Verification:** See [docs/FIREBASE_VERIFICATION.md](docs/FIREBASE_VERIFICATION.md) for a full checklist of backend/frontend wiring.
+- **Requires:** HTTPS, `public/firebase-messaging-sw.js` at site root, and `.env` FCM/Firebase variables. If not configured, the app runs normally without push.
+
 ## SMTP and email notifications
 
 All notification content comes from **admin-editable email templates**. No subject/body is hardcoded.

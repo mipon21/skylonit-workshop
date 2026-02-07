@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BugController;
+use App\Http\Controllers\ClientDeviceController;
 use App\Http\Controllers\ClientNotificationController;
 use App\Http\Controllers\CalendarNoteController;
 use App\Http\Controllers\ClientController;
@@ -61,6 +62,10 @@ Route::middleware(['auth'])->group(function () {
     // Client notifications (popups) – for client users only; used by app layout JS
     Route::get('/client/notifications/unread', [ClientNotificationController::class, 'unread'])->name('client.notifications.unread');
     Route::patch('/client/notifications/{client_notification}/read', [ClientNotificationController::class, 'markRead'])->name('client.notifications.mark-read');
+
+    // Client FCM device registration (push notifications)
+    Route::post('/client/devices/register', [ClientDeviceController::class, 'register'])->name('client.devices.register');
+    Route::post('/client/devices/unregister', [ClientDeviceController::class, 'unregister'])->name('client.devices.unregister');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

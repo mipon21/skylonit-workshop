@@ -15,6 +15,7 @@ use App\Models\ProjectNote;
 use App\Models\Setting;
 use App\Models\Task;
 use App\Observers\BugObserver;
+use App\Observers\ClientNotificationObserver;
 use App\Observers\DocumentObserver;
 use App\Observers\ExpenseObserver;
 use App\Observers\InvoiceObserver;
@@ -67,6 +68,7 @@ class AppServiceProvider extends ServiceProvider
         ProjectNote::observe(ProjectNoteObserver::class);
         ProjectLink::observe(ProjectLinkObserver::class);
         Invoice::observe(InvoiceObserver::class);
+        ClientNotification::observe(ClientNotificationObserver::class);
 
         View::composer('*', function ($view) {
             $name = $view->getName();
@@ -108,7 +110,11 @@ class AppServiceProvider extends ServiceProvider
                     return $item;
                 })->values()->all();
             }
+            $unreadCount = $user && $user->isClient() && $user->client
+                ? \App\Models\ClientNotification::where('client_id', $user->client->id)->where('is_read', false)->count()
+                : 0;
             $view->with('clientUnreadNotifications', $initialUnread);
+            $view->with('clientUnreadCount', $unreadCount);
         });
     }
 }
