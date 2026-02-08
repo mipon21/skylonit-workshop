@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Invoice;
 use App\Models\Project;
+use App\Services\InvoiceService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
@@ -48,13 +49,12 @@ class InvoiceController extends Controller
             }
         }
 
-        // Check if file exists
-        if (!$invoice->file_path || !Storage::exists($invoice->file_path)) {
-            abort(404, 'Invoice file not found.');
+        // Regenerate PDF if missing (e.g. after storage:clear-uploads)
+        if (!$invoice->file_path || !Storage::disk('local')->exists($invoice->file_path)) {
+            $invoice = app(InvoiceService::class)->regenerateInvoice($invoice);
         }
 
-        // Get file contents
-        $fileContents = Storage::get($invoice->file_path);
+        $fileContents = Storage::disk('local')->get($invoice->file_path);
         $filename = sprintf('Invoice_%s.pdf', $invoice->invoice_number);
 
         return response($fileContents, 200)
@@ -77,13 +77,12 @@ class InvoiceController extends Controller
             }
         }
 
-        // Check if file exists
-        if (!$invoice->file_path || !Storage::exists($invoice->file_path)) {
-            abort(404, 'Invoice file not found.');
+        // Regenerate PDF if missing (e.g. after storage:clear-uploads)
+        if (!$invoice->file_path || !Storage::disk('local')->exists($invoice->file_path)) {
+            $invoice = app(InvoiceService::class)->regenerateInvoice($invoice);
         }
 
-        // Get file contents
-        $fileContents = Storage::get($invoice->file_path);
+        $fileContents = Storage::disk('local')->get($invoice->file_path);
 
         return response($fileContents, 200)
             ->header('Content-Type', 'application/pdf')

@@ -1,13 +1,46 @@
 {
+  "_index.esm-CFXC_DqH.js": {
+    "file": "assets/index.esm-CFXC_DqH.js",
+    "name": "index.esm"
+  },
+  "node_modules/firebase/app/dist/esm/index.esm.js": {
+    "file": "assets/index.esm-DKHA59Fb.js",
+    "name": "index.esm",
+    "src": "node_modules/firebase/app/dist/esm/index.esm.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_index.esm-CFXC_DqH.js"
+    ]
+  },
+  "node_modules/firebase/messaging/dist/esm/index.esm.js": {
+    "file": "assets/index.esm-CTYWRQZv.js",
+    "name": "index.esm",
+    "src": "node_modules/firebase/messaging/dist/esm/index.esm.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_index.esm-CFXC_DqH.js"
+    ]
+  },
   "resources/css/app.css": {
-    "file": "assets/app-DRO312lp.css",
+    "file": "assets/app-md9hceEQ.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-DNg7CCpm.js",
+    "file": "assets/app-DZsh_GI5.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true
+  },
+  "resources/js/client-fcm.js": {
+    "file": "assets/client-fcm-Dom254zJ.js",
+    "name": "client-fcm",
+    "src": "resources/js/client-fcm.js",
+    "isEntry": true,
+    "dynamicImports": [
+      "node_modules/firebase/messaging/dist/esm/index.esm.js",
+      "node_modules/firebase/app/dist/esm/index.esm.js",
+      "node_modules/firebase/app/dist/esm/index.esm.js"
+    ]
   }
 }
