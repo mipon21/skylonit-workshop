@@ -43,7 +43,7 @@ class ProjectLinkController extends Controller
             'link_type' => ['required', 'in:url,apk'],
             'label' => ['required', 'string', 'max:255'],
             'url' => ['nullable', 'string', 'max:2048'],
-            'apk_file' => ['nullable', 'file', 'max:102400'], // 100MB, accept .apk
+            'apk_file' => ['nullable', 'file', 'max:512000'], // 500MB, accept .apk
             'login_username' => ['nullable', 'string', 'max:255'],
             'login_password' => ['nullable', 'string', 'max:255'],
             'visibility' => ['required', 'in:admin_only,client,guest,all'],
@@ -92,7 +92,7 @@ class ProjectLinkController extends Controller
             'link_type' => ['required', 'in:url,apk'],
             'label' => ['required', 'string', 'max:255'],
             'url' => ['nullable', 'string', 'max:2048'],
-            'apk_file' => ['nullable', 'file', 'max:102400'],
+            'apk_file' => ['nullable', 'file', 'max:512000'],
             'login_username' => ['nullable', 'string', 'max:255'],
             'login_password' => ['nullable', 'string', 'max:255'],
             'visibility' => ['required', 'in:admin_only,client,guest,all'],

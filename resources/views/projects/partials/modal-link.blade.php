@@ -39,7 +39,7 @@
                         <div>
                             <label class="block text-sm font-medium text-slate-400 mb-1">APK file *</label>
                             <input type="file" name="apk_file" accept=".apk" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 file:mr-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-slate-700 file:text-slate-200 text-sm">
-                            <p class="text-slate-500 text-xs mt-1">Max 100MB.</p>
+                            <p class="text-slate-500 text-xs mt-1">Max 500MB.</p>
                             @error('apk_file')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
                         </div>
                     </template>
