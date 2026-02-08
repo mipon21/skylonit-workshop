@@ -16,12 +16,14 @@ class Bug extends Model
         'description',
         'severity',
         'status',
+        'status_updated_at',
         'attachment_path',
         'is_public',
     ];
 
     protected $casts = [
         'is_public' => 'boolean',
+        'status_updated_at' => 'datetime',
     ];
 
     public function project(): BelongsTo

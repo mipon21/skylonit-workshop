@@ -7,7 +7,7 @@
             <h1 class="text-2xl font-semibold text-white mt-1">Edit Testimonial</h1>
         </div>
         <div class="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-6">
-            <form action="{{ route('testimonials.update', $testimonial) }}" method="POST" class="space-y-4">
+            <form action="{{ route('testimonials.update', $testimonial) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
                 @csrf
                 @method('PUT')
                 <div>
@@ -21,8 +21,23 @@
                     @error('feedback')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
                 </div>
                 <div>
-                    <label for="photo" class="block text-sm font-medium text-slate-400 mb-1">Photo URL (optional)</label>
-                    <input type="text" name="photo" id="photo" value="{{ old('photo', $testimonial->photo) }}" placeholder="e.g. /images/testimonials/photo.jpg" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+                    <label for="photo" class="block text-sm font-medium text-slate-400 mb-1">Photo (optional)</label>
+                    @php
+                        $currentPhotoPath = old('photo', $testimonial->photo);
+                        $currentPhotoUrl = $currentPhotoPath ? (str_starts_with($currentPhotoPath, 'http') ? $currentPhotoPath : asset($currentPhotoPath)) : null;
+                    @endphp
+                    @if($currentPhotoUrl)
+                        <div class="mb-3 flex items-center gap-4">
+                            <img src="{{ $currentPhotoUrl }}" alt="Current photo" class="w-16 h-16 rounded-full object-cover border border-slate-600" onerror="this.style.display='none'">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="hidden" name="remove_photo" value="0">
+                                <input type="checkbox" name="remove_photo" value="1" {{ old('remove_photo') ? 'checked' : '' }} class="rounded border-slate-600 bg-slate-900 text-red-500 focus:ring-red-500">
+                                <span class="text-sm text-slate-400">Remove current photo</span>
+                            </label>
+                        </div>
+                    @endif
+                    <input type="file" name="photo" id="photo" accept="image/jpeg,image/png,image/gif,image/webp" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-slate-700 file:text-slate-200 file:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+                    <p class="text-slate-500 text-xs mt-1">Upload client photo (JPG, PNG, GIF, WebP). Max 2 MB.</p>
                     @error('photo')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
                 </div>
                 <div>

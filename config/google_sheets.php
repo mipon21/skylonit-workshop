@@ -59,5 +59,9 @@ return [
         'sales_paid' => 35,
         'developer_paid' => 36,
         'profit_paid' => 37,
+        'sales_percentage' => 38,
+        'developer_percentage' => 39,
+        'sales_commission_enabled' => 40,
+        'developer_sales_mode' => 41,
     ],
 ];

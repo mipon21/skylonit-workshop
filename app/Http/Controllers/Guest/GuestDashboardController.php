@@ -3,10 +3,8 @@
 namespace App\Http\Controllers\Guest;
 
 use App\Http\Controllers\Controller;
-use App\Models\Bug;
 use App\Models\HotOffer;
 use App\Models\Project;
-use App\Models\Task;
 use App\Models\Testimonial;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -28,12 +26,6 @@ class GuestDashboardController extends Controller
 
         $totalPublicProjects = count($publicProjectIds);
         $runningPublicProjects = Project::where('is_public', true)->whereIn('status', ['Pending', 'Running'])->count();
-        $openPublicTasks = Task::where('is_public', true)->where('status', '!=', 'done')
-            ->whereIn('project_id', $publicProjectIds)
-            ->count();
-        $openPublicBugs = Bug::where('is_public', true)->whereIn('status', ['open', 'in_progress'])
-            ->whereIn('project_id', $publicProjectIds)
-            ->count();
 
         $featuredProjects = Project::where('is_public', true)
             ->where('is_featured', true)
@@ -47,8 +39,6 @@ class GuestDashboardController extends Controller
         return view('guest.dashboard', compact(
             'totalPublicProjects',
             'runningPublicProjects',
-            'openPublicTasks',
-            'openPublicBugs',
             'featuredProjects',
             'hotOffers',
             'testimonials'

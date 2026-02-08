@@ -21,6 +21,9 @@ class TaskController extends Controller
             'is_public' => ['nullable', 'boolean'],
         ]);
         $validated['is_public'] = $request->boolean('is_public', true);
+        if (in_array($validated['status'] ?? 'todo', ['doing', 'done'], true)) {
+            $validated['status_updated_at'] = now();
+        }
         $project->tasks()->create($validated);
         return redirect()->route('projects.show', $project)->withFragment('tasks')->with('success', 'Task added.');
     }
@@ -40,12 +43,16 @@ class TaskController extends Controller
             'send_email' => ['nullable', 'boolean'],
         ]);
         $oldStatus = $task->status;
+        $newStatus = $validated['status'] ?? $oldStatus;
+        if ($newStatus !== $oldStatus && in_array($newStatus, ['doing', 'done'], true)) {
+            $validated['status_updated_at'] = now();
+        }
         unset($validated['send_email']);
         if (array_key_exists('is_public', $validated)) {
             $validated['is_public'] = $request->boolean('is_public');
         }
         $task->update($validated);
-        $newStatus = $task->fresh()->status;
+        $newStatus = $task->fresh()->status ?? $newStatus;
         event(new TaskStatusUpdated($task->fresh(), $request->boolean('send_email'), $oldStatus, $newStatus));
 
         return redirect()->route('projects.show', $project)->withFragment('tasks')->with('success', 'Task updated.');

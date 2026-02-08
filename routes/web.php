@@ -18,6 +18,8 @@ use App\Http\Controllers\Guest\GuestLinkController;
 use App\Http\Controllers\Guest\GuestProjectController;
 use App\Http\Controllers\Guest\LeadController as GuestLeadController;
 use App\Http\Controllers\HotOfferController;
+use App\Http\Controllers\InternalExpenseController;
+use App\Http\Controllers\InvestmentController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\PaymentController;
@@ -76,7 +78,28 @@ Route::middleware(['auth'])->group(function () {
     // Admin-only routes
     Route::middleware('admin')->group(function () {
         Route::get('/revenue', [RevenueController::class, 'index'])->name('revenue.index');
+        Route::get('finance/investors', [InvestmentController::class, 'index'])->name('investments.index');
+        Route::get('finance/investors/create', [InvestmentController::class, 'create'])->name('investments.create');
+        Route::post('finance/investors', [InvestmentController::class, 'store'])->name('investments.store');
+        Route::get('finance/investors/profit-pool', [InvestmentController::class, 'profitPool'])->name('investments.profit-pool');
+        Route::post('finance/investors/run-distribution', [InvestmentController::class, 'runDistribution'])->name('investments.run-distribution');
+        Route::get('finance/investors/{investment}', [InvestmentController::class, 'show'])->name('investments.show');
+        Route::get('finance/investors/{investment}/edit', [InvestmentController::class, 'edit'])->name('investments.edit');
+        Route::put('finance/investors/{investment}', [InvestmentController::class, 'update'])->name('investments.update');
+        Route::delete('finance/investors/{investment}', [InvestmentController::class, 'destroy'])->name('investments.destroy');
+        Route::get('finance/internal-expenses', [InternalExpenseController::class, 'index'])->name('internal-expenses.index');
+        Route::get('finance/internal-expenses/create', [InternalExpenseController::class, 'create'])->name('internal-expenses.create');
+        Route::post('finance/internal-expenses', [InternalExpenseController::class, 'store'])->name('internal-expenses.store');
+        Route::get('finance/internal-expenses/ledger', [InternalExpenseController::class, 'ledger'])->name('internal-expenses.ledger');
+        Route::get('finance/internal-expenses/{internal_expense}/edit', [InternalExpenseController::class, 'edit'])->name('internal-expenses.edit');
+        Route::put('finance/internal-expenses/{internal_expense}', [InternalExpenseController::class, 'update'])->name('internal-expenses.update');
+        Route::delete('finance/internal-expenses/{internal_expense}', [InternalExpenseController::class, 'destroy'])->name('internal-expenses.destroy');
+        Route::get('finance/internal-expenses/report/overhead', [InternalExpenseController::class, 'reportOverhead'])->name('internal-expenses.report.overhead');
+        Route::get('finance/internal-expenses/report/investment', [InternalExpenseController::class, 'reportInvestment'])->name('internal-expenses.report.investment');
         Route::get('/marketing/leads', [LeadController::class, 'index'])->name('leads.index');
+        Route::get('/marketing/leads/export', [LeadController::class, 'export'])->name('leads.export');
+        Route::get('/marketing/leads/export/xlsx', [LeadController::class, 'exportExcel'])->name('leads.export.xlsx');
+        Route::patch('/marketing/leads/{lead}', [LeadController::class, 'update'])->name('leads.update');
         Route::resource('marketing/hot-offers', HotOfferController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])->names([
             'index' => 'hot-offers.index',
             'create' => 'hot-offers.create',
@@ -95,7 +118,7 @@ Route::middleware(['auth'])->group(function () {
         ]);
         Route::resource('clients', ClientController::class);
 
-        Route::get('projects/create', [ProjectController::class, 'create'])->name('projects.create');
+        Route::get('dashboard/projects/create', [ProjectController::class, 'create'])->name('projects.create');
         Route::post('projects', [ProjectController::class, 'store'])->name('projects.store');
         Route::get('projects/{project}/edit', [ProjectController::class, 'edit'])->name('projects.edit');
         Route::put('projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
@@ -158,6 +181,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('projects/{project}/documents/{document}/view', [DocumentController::class, 'view'])->name('projects.documents.view');
     Route::get('projects/{project}/documents/{document}/download', [DocumentController::class, 'download'])->name('projects.documents.download');
     Route::delete('projects/{project}/documents/{document}', [DocumentController::class, 'destroy'])->name('projects.documents.destroy');
+
+    // Project link APK download (admin or project client when link is visible to client)
+    Route::get('projects/{project}/links/{project_link}/download', [ProjectLinkController::class, 'download'])->name('projects.links.download');
 
     Route::get('projects/{project}/contracts/{contract}/view', [ContractController::class, 'view'])->name('projects.contracts.view');
     Route::get('projects/{project}/contracts/{contract}/download', [ContractController::class, 'download'])->name('projects.contracts.download');

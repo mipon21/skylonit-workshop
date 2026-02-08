@@ -33,10 +33,36 @@ class ClientPaymentController extends Controller
                 ->with('info', 'This page is for client accounts only. If you just completed a payment as a guest, it was successful — log in with your client account to view your payments and invoice.');
         }
 
-        $payments = Payment::whereHas('project', fn ($q) => $q->forClient($client->id))
-            ->with('project')
-            ->orderByDesc('created_at')
-            ->paginate(20);
+        $query = Payment::whereHas('project', fn ($q) => $q->forClient($client->id))
+            ->with('project.client', 'invoice')
+            ->orderByDesc('created_at');
+
+        $search = $request->input('search');
+        if ($search && is_string($search)) {
+            $term = trim($search);
+            if ($term !== '') {
+                $query->where(function ($q) use ($term) {
+                    $q->whereHas('project', function ($p) use ($term) {
+                        $p->where('project_code', 'like', '%' . $term . '%')
+                            ->orWhere('project_name', 'like', '%' . $term . '%')
+                            ->orWhereHas('client', fn ($c) => $c->where('name', 'like', '%' . $term . '%'));
+                    })->orWhereHas('invoice', fn ($i) => $i->where('invoice_number', 'like', '%' . $term . '%'));
+                });
+            }
+        }
+
+        $statusFilter = $request->input('status');
+        if ($statusFilter === 'due') {
+            $query->where('payment_status', Payment::PAYMENT_STATUS_DUE);
+        } elseif ($statusFilter === 'paid') {
+            $query->where('payment_status', Payment::PAYMENT_STATUS_PAID);
+        }
+
+        $payments = $query->paginate(20)->withQueryString();
+
+        if ($request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+            return view('client-payments.partials.list', compact('payments'));
+        }
 
         return view('client-payments.index', compact('payments'));
     }

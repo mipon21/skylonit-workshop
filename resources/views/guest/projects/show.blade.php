@@ -14,6 +14,14 @@
             <span class="px-4 py-2.5 rounded-xl border border-slate-600 text-slate-400 text-sm">{{ $project->status }}</span>
         </div>
 
+        @if($project->guest_description)
+        <div class="bg-slate-800/60 backdrop-blur border border-slate-700/50 rounded-2xl overflow-hidden flex flex-col" style="height: 10rem;">
+            <div class="p-5 overflow-y-auto flex-1 min-h-0 [scrollbar-width:thin] [scrollbar-color:rgba(100,116,139,0.6)_transparent]">
+                <p class="text-slate-300 text-sm leading-relaxed whitespace-pre-wrap pr-2">{{ $project->guest_description }}</p>
+            </div>
+        </div>
+        @endif
+
         {{-- Top cards: name, status, start, delivery only --}}
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 max-md:grid-cols-2 max-md:gap-3">
             <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-4">
@@ -56,6 +64,7 @@
                             @foreach($project->tasks->where('status', 'todo') as $task)
                                 <div class="bg-slate-800/80 border border-slate-700/50 rounded-xl p-3">
                                     <p class="font-medium text-white text-sm">{{ $task->title }}</p>
+                                    @if($task->description)<p class="text-slate-500 text-xs mt-1 line-clamp-2">{{ Str::limit($task->description, 120) }}</p>@endif
                                     @if($task->due_date)<p class="text-slate-500 text-xs mt-0.5">{{ $task->due_date->format('M j, Y') }}</p>@endif
                                 </div>
                             @endforeach
@@ -70,6 +79,7 @@
                             @foreach($project->tasks->where('status', 'doing') as $task)
                                 <div class="bg-slate-800/80 border border-slate-700/50 rounded-xl p-3">
                                     <p class="font-medium text-white text-sm">{{ $task->title }}</p>
+                                    @if($task->description)<p class="text-slate-500 text-xs mt-1 line-clamp-2">{{ Str::limit($task->description, 120) }}</p>@endif
                                     @if($task->due_date)<p class="text-slate-500 text-xs mt-0.5">{{ $task->due_date->format('M j, Y') }}</p>@endif
                                 </div>
                             @endforeach
@@ -84,6 +94,7 @@
                             @foreach($project->tasks->where('status', 'done') as $task)
                                 <div class="bg-slate-800/80 border border-slate-700/50 rounded-xl p-3">
                                     <p class="font-medium text-white text-sm">{{ $task->title }}</p>
+                                    @if($task->description)<p class="text-slate-500 text-xs mt-1 line-clamp-2">{{ Str::limit($task->description, 120) }}</p>@endif
                                     @if($task->due_date)<p class="text-slate-500 text-xs mt-0.5">{{ $task->due_date->format('M j, Y') }}</p>@endif
                                 </div>
                             @endforeach

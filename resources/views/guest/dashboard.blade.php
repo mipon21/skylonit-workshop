@@ -1,7 +1,5 @@
 <x-guest-portal-layout title="Dashboard">
     <style>
-.guest-cta-ready-section { margin-top: 40px; }
-@media (max-width: 767px) { .guest-cta-ready-section { margin-top: 30px; } }
 .guest-hero-subtext { margin-bottom: 36px; }
 @media (max-width: 767px) { .guest-hero-subtext { margin-bottom: 32px; } }
 @media (max-width: 767px) {
@@ -10,9 +8,6 @@
 }
 @media (max-width: 767px) {
   .guest-hero-buttons .guest-btn-mobile { display: flex; width: 100%; justify-content: center; align-items: center; text-align: center; }
-}
-@media (max-width: 767px) {
-  .guest-cta-ready-section a[href*="contact"] { display: flex; justify-content: center; align-items: center; text-align: center; }
 }
 @media (max-width: 767px) {
   .guest-hot-offer-cta { display: flex !important; justify-content: center; align-items: center; text-align: center; }
@@ -51,7 +46,7 @@
 
     {{-- Stats (animated counters) – clear gap below hero so buttons stay visible --}}
     <section class="mb-12 max-md:mb-10 mt-2" x-data="guestStats()">
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 max-md:gap-3">
+        <div class="grid grid-cols-2 gap-4 max-md:gap-3">
             <a href="{{ route('guest.projects.index') }}" class="block bg-slate-800/60 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg hover:shadow-xl hover:border-slate-600/50 transition-all duration-300 hover:-translate-y-0.5 max-md:p-4 cursor-pointer">
                 <div class="flex items-center gap-3 mb-2">
                     <div class="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center">
@@ -72,26 +67,6 @@
                 <p class="text-2xl font-bold text-white tabular-nums" x-text="runningPublicProjects">0</p>
                 <p class="text-slate-500 text-xs mt-0.5">Pending + Running</p>
             </a>
-            <div class="bg-slate-800/60 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg hover:shadow-xl hover:border-slate-600/50 transition-all duration-300 hover:-translate-y-0.5 max-md:p-4">
-                <div class="flex items-center gap-3 mb-2">
-                    <div class="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
-                        <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-                    </div>
-                    <span class="text-slate-400 text-sm font-medium">Open Tasks</span>
-                </div>
-                <p class="text-2xl font-bold text-white tabular-nums" x-text="openPublicTasks">0</p>
-                <p class="text-slate-500 text-xs mt-0.5">To do + Doing</p>
-            </div>
-            <div class="bg-slate-800/60 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg hover:shadow-xl hover:border-slate-600/50 transition-all duration-300 hover:-translate-y-0.5 max-md:p-4 col-span-2 lg:col-span-1">
-                <div class="flex items-center gap-3 mb-2">
-                    <div class="w-10 h-10 rounded-xl bg-rose-500/20 flex items-center justify-center">
-                        <svg class="w-5 h-5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                    </div>
-                    <span class="text-slate-400 text-sm font-medium">Open Bugs</span>
-                </div>
-                <p class="text-2xl font-bold text-white tabular-nums" x-text="openPublicBugs">0</p>
-                <p class="text-slate-500 text-xs mt-0.5">Open + In progress</p>
-            </div>
         </div>
     </section>
 
@@ -228,18 +203,24 @@
     </section>
     @endif
 
-    {{-- CTA strip (Ready to start? – stacked vertically): 40px desktop, 30px mobile --}}
-    <section class="guest-cta-ready-section rounded-2xl overflow-hidden bg-slate-800/50 border border-slate-700/50 p-6 max-md:p-4">
-        <div class="flex flex-wrap items-center justify-between gap-4 max-md:flex-col max-md:text-center">
-            <div>
-                <h2 class="text-lg font-semibold text-white">Ready to start?</h2>
-                <p class="text-slate-400 text-sm mt-0.5">Tell us about your project and we’ll get back to you.</p>
+    {{-- Start Project card at bottom – CTA to contact --}}
+    <section class="mb-8 max-md:mb-6">
+        <a href="{{ route('guest.contact') }}" class="block rounded-2xl overflow-hidden bg-gradient-to-br from-cyan-900/40 via-slate-800/80 to-sky-900/40 border border-slate-700/50 hover:border-cyan-500/40 shadow-lg hover:shadow-cyan-500/10 transition-all duration-300 hover:-translate-y-0.5 group">
+            <div class="relative px-6 py-8 max-md:px-4 max-md:py-6 text-center">
+                <div class="absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_50%_50%,rgba(6,182,212,0.15),transparent)]"></div>
+                <div class="relative flex flex-col items-center gap-3">
+                    <div class="w-12 h-12 rounded-xl bg-cyan-500/20 flex items-center justify-center group-hover:bg-cyan-500/30 transition">
+                        <svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    </div>
+                    <h2 class="text-xl font-semibold text-white">Start a Project</h2>
+                    <p class="text-slate-400 text-sm max-w-md">Have an idea? Get in touch and we’ll help you build it—from concept to launch.</p>
+                    <span class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-white bg-gradient-to-r from-cyan-500 to-sky-500 group-hover:from-cyan-400 group-hover:to-sky-400 transition-all">
+                        Start Project
+                        <svg class="w-4 h-4 group-hover:translate-x-0.5 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                    </span>
+                </div>
             </div>
-            <a href="{{ route('guest.contact') }}" class="guest-cta-ready-btn inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-cyan-500 to-sky-500 hover:from-cyan-400 hover:to-sky-400 shadow-lg shadow-cyan-500/30 ring-2 ring-cyan-400/40 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-500/40 hover:-translate-y-0.5 hover:ring-cyan-400/60 max-md:w-full max-md:px-5 max-md:py-2.5">
-                <svg class="w-5 h-5 max-md:w-4 max-md:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                Start Project
-            </a>
-        </div>
+        </a>
     </section>
 
     <script>
@@ -247,16 +228,12 @@
             Alpine.data('guestStats', function () {
                 const totalPublicProjects = {{ $totalPublicProjects }};
                 const runningPublicProjects = {{ $runningPublicProjects }};
-                const openPublicTasks = {{ $openPublicTasks }};
-                const openPublicBugs = {{ $openPublicBugs }};
                 const duration = 1200;
                 const steps = 30;
                 const interval = duration / steps;
                 return {
                     totalPublicProjects: 0,
                     runningPublicProjects: 0,
-                    openPublicTasks: 0,
-                    openPublicBugs: 0,
                     init() {
                         const anim = (key, end) => {
                             let step = 0;
@@ -269,8 +246,6 @@
                         };
                         anim('totalPublicProjects', totalPublicProjects);
                         anim('runningPublicProjects', runningPublicProjects);
-                        anim('openPublicTasks', openPublicTasks);
-                        anim('openPublicBugs', openPublicBugs);
                     }
                 };
             });

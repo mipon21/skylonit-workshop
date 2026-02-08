@@ -3,8 +3,14 @@
      :class="{ 'ring-1 ring-sky-500/30': expandedTaskId == {{ $task->id }} }">
     <button type="button" @click="expandedTaskId = expandedTaskId == {{ $task->id }} ? null : {{ $task->id }}" class="w-full text-left p-3">
         <p class="font-medium text-white text-sm">{{ $task->title }}</p>
+        <p class="text-slate-500 text-xs mt-1">Added {{ $task->created_at->format('d M Y, h:i A') }}</p>
+        @if($task->status === 'doing' && ($task->status_updated_at ?? $task->updated_at))
+            <p class="text-amber-400/90 text-xs mt-0.5">Doing since {{ ($task->status_updated_at ?? $task->updated_at)->format('d M Y, h:i A') }}</p>
+        @elseif($task->status === 'done' && ($task->status_updated_at ?? $task->updated_at))
+            <p class="text-emerald-400/90 text-xs mt-0.5">Done at {{ ($task->status_updated_at ?? $task->updated_at)->format('d M Y, h:i A') }}</p>
+        @endif
         @if($task->due_date)
-            <p class="text-slate-500 text-xs mt-1">Due {{ $task->due_date->format('M d, Y') }}</p>
+            <p class="text-slate-500 text-xs mt-0.5">Due {{ $task->due_date->format('M d, Y') }}</p>
         @endif
         <div class="flex flex-wrap items-center justify-between gap-2 mt-2">
             <span @class([

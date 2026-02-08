@@ -335,6 +335,10 @@ class GoogleSheetsService
             $salesPayout?->status ?? '',
             $developerPayout?->status ?? '',
             $profitPayout?->status ?? '',
+            $project->sales_percentage ?? 25,
+            $project->developer_percentage ?? 40,
+            $project->sales_commission_enabled ? '1' : '0',
+            $project->is_developer_sales_mode ? '1' : '0',
         ];
 
         $existing = $this->findProjectRowIndexByErpId($project->id);

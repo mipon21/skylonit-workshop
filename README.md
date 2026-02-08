@@ -121,7 +121,7 @@ For queued mail, set `QUEUE_CONNECTION=database` (or `redis`), run `php artisan 
 
 **Admin → Email Templates** (sidebar): list templates, edit subject/body (HTML), enable/disable per template. Placeholders (e.g. `{{client_name}}`, `{{payment_link}}`) are replaced when sending.
 
-**Per-action toggle:** On Create Client, Create Project, Create Payment, Upload Document, Create Expense, Create Note, Create Link, Bug status update, and Task status update, a checkbox **"Send Email Notification?"** (default unchecked) controls whether a template-based email is queued. Email is sent only when the toggle is ON and the corresponding template is enabled. **Payment success** (gateway or cash) sends automatically (no toggle), with invoice PDF attached when available.
+**Per-action toggle:** On Create Client, Create Project, Create Payment, Upload Document, Create Expense, Create Note, Create Link, Bug status update, and Task status update, a checkbox **"Send Email Notification?"** (default checked) controls whether a template-based email is queued. Email is sent only when the toggle is ON and the corresponding template is enabled. **Payment success** (gateway or cash) sends automatically (no toggle), with invoice PDF attached when available.
 
 **Logo:** The app logo (Profile → logo upload, or `APP_LOGO`) is shown at the top of every template-based email.
 

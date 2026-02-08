@@ -58,11 +58,16 @@ class Project extends Model
         'delivery_date',
         'status',
         'exclude_from_overhead_profit',
+        'developer_sales_mode',
+        'sales_commission_enabled',
+        'sales_percentage',
+        'developer_percentage',
         'is_public',
         'is_featured',
         'short_description',
         'featured_image_path',
         'tech_stack',
+        'guest_description',
     ];
 
     protected $casts = [
@@ -70,9 +75,22 @@ class Project extends Model
         'contract_date' => 'date',
         'delivery_date' => 'date',
         'exclude_from_overhead_profit' => 'boolean',
+        'developer_sales_mode' => 'boolean',
+        'sales_commission_enabled' => 'boolean',
+        'sales_percentage' => 'float',
+        'developer_percentage' => 'float',
         'is_public' => 'boolean',
         'is_featured' => 'boolean',
     ];
+
+    /** Sales Commission Applicable: default true for all projects (including when null/legacy). */
+    public function getSalesCommissionEnabledAttribute($value): bool
+    {
+        if ($value === null) {
+            return true;
+        }
+        return (bool) $value;
+    }
 
     /** Display ID e.g. SLN-000033 for use in UI. */
     public function getFormattedIdAttribute(): string
@@ -245,46 +263,47 @@ class Project extends Model
         return $this->net_base < 0;
     }
 
-    /** When true: no Overhead/Profit; only Developer 75% and Sales 25% of (contract − expenses). */
+    /** Distribution service for Base-based calculations and override hierarchy. */
+    protected function distributionService(): \App\Services\ProjectDistributionService
+    {
+        return app(\App\Services\ProjectDistributionService::class);
+    }
+
+    /** Overhead: 20% of Base when standard mode; 0 when Developer–Sales (75/25) mode. */
     public function getOverheadAttribute(): float
     {
-        if ($this->exclude_from_overhead_profit ?? false) {
-            return 0.0;
-        }
-        return round(max(0, $this->net_base) * config('revenue.overhead'), 2);
+        $breakdown = $this->distributionService()->getBreakdown($this);
+        return $breakdown['overhead'];
     }
 
+    /** Sales: from breakdown (Base-based; 0 if sales commission disabled in standard mode). */
     public function getSalesAttribute(): float
     {
-        $base = max(0, $this->net_base);
-        if ($this->exclude_from_overhead_profit ?? false) {
-            // 25% of (total − expense)
-            return round($base * 0.25, 2);
-        }
-        $afterOverhead = $base - $this->overhead;
-        return round($afterOverhead * config('revenue.sales'), 2);
+        $breakdown = $this->distributionService()->getBreakdown($this);
+        return $breakdown['sales'];
     }
 
+    /** Developer: from breakdown (Base-based). */
     public function getDeveloperAttribute(): float
     {
-        $base = max(0, $this->net_base);
-        if ($this->exclude_from_overhead_profit ?? false) {
-            // 75% of (total − expense)
-            return round($base * 0.75, 2);
-        }
-        return round($base * config('revenue.developer'), 2);
+        $breakdown = $this->distributionService()->getBreakdown($this);
+        return $breakdown['developer'];
     }
 
-    /** Profit = remainder. Zero when net_base < 0 or when exclude_from_overhead_profit. */
+    /** Profit = remainder. Zero when net_base < 0 or when Developer–Sales mode. */
     public function getProfitAttribute(): float
     {
-        if ($this->net_base < 0 || ($this->exclude_from_overhead_profit ?? false)) {
+        if ($this->net_base < 0) {
             return 0.0;
         }
-        return round(
-            $this->net_base - $this->overhead - $this->sales - $this->developer,
-            2
-        );
+        $breakdown = $this->distributionService()->getBreakdown($this);
+        return $breakdown['profit'];
+    }
+
+    /** Whether this project uses Developer–Sales (75/25) mode (contributes 0 to profit pool). */
+    public function getIsDeveloperSalesModeAttribute(): bool
+    {
+        return $this->distributionService()->isDeveloperSalesMode($this);
     }
 
     /** Only PAID (payment_status) or legacy completed (status) payments count toward total paid. */

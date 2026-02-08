@@ -3,15 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Models\Project;
+use App\Services\FundBalanceService;
 use Illuminate\View\View;
 
 class RevenueController extends Controller
 {
-    public function index(): View
+    public function index(FundBalanceService $fundBalance): View
     {
         $projects = Project::with(['client', 'projectPayouts'])
             ->orderByDesc('created_at')
             ->get();
+
+        $overheadBalance = $fundBalance->getOverheadBalance();
+        $profitBalance = $fundBalance->getProfitPoolBalance();
 
         $projectsData = $projects->map(function (Project $p) {
             return [
@@ -36,6 +40,6 @@ class RevenueController extends Controller
             ];
         })->values()->toArray();
 
-        return view('revenue.index', compact('projects', 'projectsData'));
+        return view('revenue.index', compact('projects', 'projectsData', 'overheadBalance', 'profitBalance'));
     }
 }

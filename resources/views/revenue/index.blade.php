@@ -101,6 +101,24 @@
     </script>
 
     <div class="space-y-6" x-data="revenuePage()">
+        {{-- After internal expenses: current overhead & profit available (from Finance → Internal Expenses) --}}
+        <div class="rounded-xl bg-slate-800/80 border border-slate-700/50 p-4 flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <p class="text-slate-400 text-sm font-medium">After internal expenses</p>
+                <p class="text-slate-500 text-xs mt-0.5">Amount left for overhead and profit from <a href="{{ route('internal-expenses.index') }}" class="text-sky-400 hover:text-sky-300">Finance → Internal Expenses</a></p>
+            </div>
+            <div class="flex flex-wrap items-center gap-6">
+                <div class="text-center">
+                    <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">Current Overhead</p>
+                    <p class="text-lg font-bold text-white mt-0.5">৳ {{ number_format($overheadBalance, 0) }}</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-slate-400 text-xs font-medium uppercase tracking-wide">Current Profit</p>
+                    <p class="text-lg font-bold text-emerald-400 mt-0.5">৳ {{ number_format($profitBalance, 0) }}</p>
+                </div>
+            </div>
+        </div>
+
         {{-- KPI Cards: 4 columns × 3 rows --}}
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 max-md:grid-cols-1 max-md:gap-2">
             {{-- Row 1 --}}
@@ -156,26 +174,28 @@
             </div>
         </div>
 
-        {{-- Search + Date filter --}}
-        <div class="flex flex-wrap items-center gap-4 max-md:flex-col max-md:w-full max-md:gap-3">
-            <div class="flex-1 min-w-[200px] max-md:w-full max-md:min-w-0">
-                <label for="revenue-search" class="sr-only">Search projects</label>
-                <input type="text" id="revenue-search" x-model="searchText" placeholder="Search by project name, code, client, ID…" class="w-full rounded-xl bg-slate-800 border border-slate-600 text-white px-4 py-2.5 text-sm placeholder-slate-500 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
-            </div>
-            <div class="flex flex-wrap items-center gap-2">
-                <span class="text-slate-400 text-sm">Period:</span>
-                <button type="button" @click="dateFilter = 'all'" :class="dateFilter === 'all' ? 'bg-sky-500/30 text-sky-300 border-sky-500' : 'bg-slate-800 text-slate-400 border-slate-600 hover:text-white'" class="px-3 py-1.5 rounded-lg border text-sm font-medium transition">All</button>
-                <button type="button" @click="dateFilter = 'today'" :class="dateFilter === 'today' ? 'bg-sky-500/30 text-sky-300 border-sky-500' : 'bg-slate-800 text-slate-400 border-slate-600 hover:text-white'" class="px-3 py-1.5 rounded-lg border text-sm font-medium transition">Today</button>
-                <button type="button" @click="dateFilter = 'month'" :class="dateFilter === 'month' ? 'bg-sky-500/30 text-sky-300 border-sky-500' : 'bg-slate-800 text-slate-400 border-slate-600 hover:text-white'" class="px-3 py-1.5 rounded-lg border text-sm font-medium transition">This Month</button>
-                <button type="button" @click="dateFilter = 'year'" :class="dateFilter === 'year' ? 'bg-sky-500/30 text-sky-300 border-sky-500' : 'bg-slate-800 text-slate-400 border-slate-600 hover:text-white'" class="px-3 py-1.5 rounded-lg border text-sm font-medium transition">This Year</button>
-                <button type="button" @click="dateFilter = 'custom'" :class="dateFilter === 'custom' ? 'bg-sky-500/30 text-sky-300 border-sky-500' : 'bg-slate-800 text-slate-400 border-slate-600 hover:text-white'" class="px-3 py-1.5 rounded-lg border text-sm font-medium transition">Custom</button>
-                <template x-if="dateFilter === 'custom'">
-                    <div class="flex items-center gap-2">
-                        <input type="date" x-model="customFrom" class="rounded-lg bg-slate-800 border border-slate-600 text-white text-sm px-2.5 py-1.5 focus:ring-1 focus:ring-sky-500">
-                        <span class="text-slate-500">to</span>
-                        <input type="date" x-model="customTo" class="rounded-lg bg-slate-800 border border-slate-600 text-white text-sm px-2.5 py-1.5 focus:ring-1 focus:ring-sky-500">
-                    </div>
-                </template>
+        {{-- Search + Date filter (sticky when scrolling) --}}
+        <div class="sticky top-0 z-10 -mx-1 px-1 pt-1 pb-3 -mt-1 bg-slate-900/95 backdrop-blur-sm border-b border-slate-700/50 rounded-b-xl shadow-lg">
+            <div class="flex flex-wrap items-center gap-4 max-md:flex-col max-md:w-full max-md:gap-3">
+                <div class="flex-1 min-w-[200px] max-md:w-full max-md:min-w-0">
+                    <label for="revenue-search" class="sr-only">Search projects</label>
+                    <input type="text" id="revenue-search" x-model="searchText" placeholder="Search by project name, code, client, ID…" class="w-full rounded-xl bg-slate-800 border border-slate-600 text-white px-4 py-2.5 text-sm placeholder-slate-500 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-slate-400 text-sm">Period:</span>
+                    <button type="button" @click="dateFilter = 'all'" :class="dateFilter === 'all' ? 'bg-sky-500/30 text-sky-300 border-sky-500' : 'bg-slate-800 text-slate-400 border-slate-600 hover:text-white'" class="px-3 py-1.5 rounded-lg border text-sm font-medium transition">All</button>
+                    <button type="button" @click="dateFilter = 'today'" :class="dateFilter === 'today' ? 'bg-sky-500/30 text-sky-300 border-sky-500' : 'bg-slate-800 text-slate-400 border-slate-600 hover:text-white'" class="px-3 py-1.5 rounded-lg border text-sm font-medium transition">Today</button>
+                    <button type="button" @click="dateFilter = 'month'" :class="dateFilter === 'month' ? 'bg-sky-500/30 text-sky-300 border-sky-500' : 'bg-slate-800 text-slate-400 border-slate-600 hover:text-white'" class="px-3 py-1.5 rounded-lg border text-sm font-medium transition">This Month</button>
+                    <button type="button" @click="dateFilter = 'year'" :class="dateFilter === 'year' ? 'bg-sky-500/30 text-sky-300 border-sky-500' : 'bg-slate-800 text-slate-400 border-slate-600 hover:text-white'" class="px-3 py-1.5 rounded-lg border text-sm font-medium transition">This Year</button>
+                    <button type="button" @click="dateFilter = 'custom'" :class="dateFilter === 'custom' ? 'bg-sky-500/30 text-sky-300 border-sky-500' : 'bg-slate-800 text-slate-400 border-slate-600 hover:text-white'" class="px-3 py-1.5 rounded-lg border text-sm font-medium transition">Custom</button>
+                    <template x-if="dateFilter === 'custom'">
+                        <div class="flex items-center gap-2">
+                            <input type="date" x-model="customFrom" class="rounded-lg bg-slate-800 border border-slate-600 text-white text-sm px-2.5 py-1.5 focus:ring-1 focus:ring-sky-500">
+                            <span class="text-slate-500">to</span>
+                            <input type="date" x-model="customTo" class="rounded-lg bg-slate-800 border border-slate-600 text-white text-sm px-2.5 py-1.5 focus:ring-1 focus:ring-sky-500">
+                        </div>
+                    </template>
+                </div>
             </div>
         </div>
 

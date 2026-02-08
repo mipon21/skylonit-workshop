@@ -60,11 +60,11 @@
         <aside class="guest-layout-sidebar w-64 shrink-0 bg-slate-900/95 border-r border-slate-700/50 flex flex-col max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-40 max-md:transition-transform max-md:duration-200 max-md:ease-out max-md:-translate-x-full"
                :class="sidebarOpen && 'max-md:translate-x-0'">
             <div class="p-5 border-b border-slate-700/50">
-                <a href="{{ route('guest.dashboard') }}" class="flex items-center gap-2" @click="sidebarOpen = false">
+                <a href="{{ route('guest.dashboard') }}" class="flex items-center gap-2.5" @click="sidebarOpen = false">
                     @if(!empty($appLogoUrl))
-                        <img src="{{ $appLogoUrl }}" alt="{{ config('app.name') }}" class="h-8 w-auto max-w-full object-contain object-left">
+                        <img src="{{ $appLogoUrl }}" alt="{{ config('app.name') }}" class="h-10 w-auto max-w-full object-contain object-left">
                     @else
-                        <span class="text-xl font-bold bg-gradient-to-r from-cyan-400 to-sky-500 bg-clip-text text-transparent">{{ config('app.name') }}</span>
+                        <span class="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-sky-500 bg-clip-text text-transparent">{{ config('app.name') }}</span>
                     @endif
                 </a>
             </div>
@@ -115,8 +115,8 @@
 
     {{-- Floating buttons: wrapper with inline critical styles so they always show (no overflow/z-index issues) --}}
     <div id="guest-floating-ctas" style="position:fixed;bottom:0;right:0;z-index:2147483647;pointer-events:none;display:flex;flex-direction:column;align-items:flex-end;gap:12px;padding:20px;padding-bottom:24px;">
-        {{-- Start Project – above WhatsApp (hidden on Contact page) --}}
-        @unless(request()->routeIs('guest.contact'))
+        {{-- Start Project – above WhatsApp (hidden on Contact page and on Dashboard) --}}
+        @unless(request()->routeIs('guest.contact') || request()->routeIs('guest.dashboard'))
         <a href="{{ route('guest.contact') }}" aria-label="Start Project" style="pointer-events:auto;display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:9999px;font-weight:600;color:#fff;text-decoration:none;background:linear-gradient(to right,#06b6d4,#0ea5e9);box-shadow:0 10px 40px -10px rgba(6,182,212,0.5);"
            class="guest-floating-start hover:opacity-95 transition max-md:px-4 max-md:py-3">
             <svg class="w-5 h-5 max-md:w-4 max-md:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>

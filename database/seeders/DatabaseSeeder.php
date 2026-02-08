@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
             ClientNotificationSeeder::class,
             ContractSeeder::class,
             SyncLogSeeder::class,
+            InvestmentSeeder::class,
         ]);
     }
 }

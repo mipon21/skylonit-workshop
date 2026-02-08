@@ -165,8 +165,27 @@
             <div class="flex min-h-full items-center justify-center p-4 max-md:p-0 max-md:items-stretch">
                 <div x-show="open" x-transition class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="open = false"></div>
                 <div x-show="open" x-transition class="relative w-full max-w-lg bg-slate-800 border border-slate-700 rounded-2xl shadow-xl max-h-[90vh] overflow-y-auto max-md:max-w-none max-md:max-h-full max-md:rounded-none max-md:border-0">
-                    <div class="p-6">
-                        <h2 class="text-lg font-semibold text-white mb-4">New Project</h2>
+                    <div class="p-6" x-data="{
+                        distributionSettingsOpen: false,
+                        contractAmount: {{ json_encode((float) old('contract_amount', 0)) }},
+                        expenseTotal: 0,
+                        developerSalesMode: {{ old('developer_sales_mode', false) ? 'true' : 'false' }},
+                        salesCommissionEnabled: {{ old('sales_commission_enabled', true) ? 'true' : 'false' }},
+                        salesPercentage: {{ json_encode((float) old('sales_percentage', 25)) }},
+                        developerPercentage: {{ json_encode((float) old('developer_percentage', 40)) }},
+                        get base() { return Math.max(0, (parseFloat(this.contractAmount) || 0) - (parseFloat(this.expenseTotal) || 0)); },
+                        get overheadAmount() { return this.developerSalesMode ? 0 : Math.round(this.base * 0.2 * 100) / 100; },
+                        get salesAmount() { if (this.developerSalesMode) return Math.round(this.base * 0.25 * 100) / 100; return this.salesCommissionEnabled ? Math.round(this.base * (parseFloat(this.salesPercentage) || 0) / 100 * 100) / 100 : 0; },
+                        get developerAmount() { if (this.developerSalesMode) return Math.round(this.base * 0.75 * 100) / 100; return Math.round(this.base * (parseFloat(this.developerPercentage) || 0) / 100 * 100) / 100; },
+                        get profitAmount() { if (this.developerSalesMode) return 0; return Math.max(0, Math.round((this.base - this.overheadAmount - this.salesAmount - this.developerAmount) * 100) / 100); },
+                        formatNum(n) { const x = Number(n); return isNaN(x) ? '0' : x.toLocaleString('en-BD', { maximumFractionDigits: 0 }); }
+                    }">
+                        <div class="flex items-center gap-2 mb-4">
+                            <h2 class="text-lg font-semibold text-white">New Project</h2>
+                            <button type="button" @click="distributionSettingsOpen = !distributionSettingsOpen" class="p-1.5 rounded-lg text-slate-400 hover:text-sky-400 hover:bg-slate-700/50 transition" title="Distribution settings">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            </button>
+                        </div>
                         <form action="{{ route('projects.store') }}" method="POST">
                             @csrf
                             <div class="space-y-4">
@@ -201,7 +220,7 @@
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-slate-400 mb-1">Contract amount (৳) *</label>
-                                    <input type="number" name="contract_amount" value="{{ old('contract_amount') }}" step="0.01" min="0" required class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+                                    <input type="number" name="contract_amount" value="{{ old('contract_amount') }}" step="0.01" min="0" required x-model.number="contractAmount" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
                                     @error('contract_amount')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
                                 </div>
                                 <div class="grid grid-cols-2 gap-4">
@@ -223,9 +242,61 @@
                                         <option value="On Hold" {{ old('status') === 'On Hold' ? 'selected' : '' }}>On Hold</option>
                                     </select>
                                 </div>
+
+                                {{-- Distribution Settings: hidden by default, toggled by gear icon --}}
+                                <div x-show="distributionSettingsOpen" class="pt-4 mt-4 border-t-2 border-slate-600/70 rounded-xl bg-slate-800/40 p-4 -mx-1">
+                                    <h3 class="text-base font-semibold text-slate-200 mb-1">Distribution Settings</h3>
+                                    <p class="text-slate-500 text-xs mb-3">Configure how Base (Contract − Expenses) is split: Overhead, Sales, Developer, Profit.</p>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <label class="flex items-center gap-2 cursor-pointer">
+                                            <input type="hidden" name="developer_sales_mode" value="0">
+                                            <input type="checkbox" name="developer_sales_mode" value="1" x-model="developerSalesMode" {{ old('developer_sales_mode', false) ? 'checked' : '' }} class="rounded border-slate-600 bg-slate-900 text-sky-500 focus:ring-sky-500">
+                                            <span class="text-sm font-medium text-slate-400">Developer–Sales (75/25)</span>
+                                        </label>
+                                        <label class="flex items-center gap-2 cursor-pointer" :class="{ 'opacity-50 pointer-events-none': developerSalesMode }">
+                                            <input type="hidden" name="sales_commission_enabled" value="0">
+                                            <input type="checkbox" name="sales_commission_enabled" value="1" x-model="salesCommissionEnabled" {{ old('sales_commission_enabled', true) ? 'checked' : '' }} class="rounded border-slate-600 bg-slate-900 text-sky-500 focus:ring-sky-500">
+                                            <span class="text-sm font-medium text-slate-400">Sales Commission Applicable</span>
+                                        </label>
+                                    </div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3" :class="{ 'opacity-50 pointer-events-none': developerSalesMode }">
+                                        <div>
+                                            <label class="block text-sm font-medium text-slate-400 mb-1">Sales %</label>
+                                            <input type="number" name="sales_percentage" min="0" max="100" step="0.01" x-model.number="salesPercentage" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-slate-400 mb-1">Developer %</label>
+                                            <input type="number" name="developer_percentage" min="0" max="100" step="0.01" x-model.number="developerPercentage" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+                                        </div>
+                                    </div>
+                                    <div class="mt-3 p-3 rounded-lg bg-slate-900/80 border border-slate-700/50 text-sm">
+                                        <p class="text-slate-400 mb-1.5">Preview (Base = Contract amount)</p>
+                                        <template x-if="developerSalesMode">
+                                            <div class="space-y-1 text-xs">
+                                                <p class="flex justify-between"><span class="text-slate-500">Base</span><span class="text-white" x-text="'৳ ' + formatNum(base)"></span></p>
+                                                <p class="flex justify-between"><span class="text-slate-500">Developer (75%)</span><span class="text-white" x-text="'৳ ' + formatNum(developerAmount)"></span></p>
+                                                <p class="flex justify-between"><span class="text-slate-500">Sales (25%)</span><span class="text-white" x-text="'৳ ' + formatNum(salesAmount)"></span></p>
+                                            </div>
+                                        </template>
+                                        <template x-if="!developerSalesMode">
+                                            <div class="space-y-1 text-xs">
+                                                <p class="flex justify-between"><span class="text-slate-500">Base</span><span class="text-white" x-text="'৳ ' + formatNum(base)"></span></p>
+                                                <p class="flex justify-between"><span class="text-slate-500">Overhead (20%)</span><span class="text-white" x-text="'৳ ' + formatNum(overheadAmount)"></span></p>
+                                                <p class="flex justify-between"><span class="text-slate-500">Sales</span><span class="text-white" x-text="'৳ ' + formatNum(salesAmount)"></span></p>
+                                                <p class="flex justify-between"><span class="text-slate-500">Developer</span><span class="text-white" x-text="'৳ ' + formatNum(developerAmount)"></span></p>
+                                                <p class="flex justify-between"><span class="text-slate-500">Profit</span><span class="text-emerald-400" x-text="'৳ ' + formatNum(profitAmount)"></span></p>
+                                            </div>
+                                        </template>
+                                    </div>
+                                    @error('sales_percentage')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
+                                    @error('developer_percentage')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
+                                    @error('distribution')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
+                                    <input type="hidden" name="exclude_from_overhead_profit" :value="developerSalesMode ? '1' : '0'">
+                                </div>
+
                                 <div class="pt-2 border-t border-slate-700/50">
                                     <label class="flex items-center gap-2 cursor-pointer">
-                                        <input type="checkbox" name="send_email" value="1" {{ old('send_email') ? 'checked' : '' }} class="rounded border-slate-600 bg-slate-900 text-sky-500 focus:ring-sky-500">
+                                        <input type="checkbox" name="send_email" value="1" {{ old('send_email', true) ? 'checked' : '' }} class="rounded border-slate-600 bg-slate-900 text-sky-500 focus:ring-sky-500">
                                         <span class="text-sm font-medium text-slate-400">Send Email Notification?</span>
                                     </label>
                                     <p class="text-slate-500 text-xs mt-1">Notify client about the new project (if template is enabled).</p>

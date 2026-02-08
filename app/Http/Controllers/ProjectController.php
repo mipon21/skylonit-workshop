@@ -6,9 +6,11 @@ use App\Events\ProjectCreated;
 use App\Jobs\SendTemplateMailJob;
 use App\Models\Client;
 use App\Models\Project;
+use App\Services\ProjectDistributionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class ProjectController extends Controller
@@ -66,7 +68,7 @@ class ProjectController extends Controller
         return view('projects.create', compact('clients', 'nextProjectCode'));
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, ProjectDistributionService $distribution): RedirectResponse
     {
         $validated = $request->validate([
             'client_id' => ['required', 'exists:clients,id'],
@@ -78,11 +80,29 @@ class ProjectController extends Controller
             'delivery_date' => ['nullable', 'date'],
             'status' => ['required', 'in:Pending,Running,Complete,On Hold'],
             'exclude_from_overhead_profit' => ['nullable', 'boolean'],
+            'developer_sales_mode' => ['nullable', 'boolean'],
+            'sales_commission_enabled' => ['nullable', 'boolean'],
+            'sales_percentage' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'developer_percentage' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'guest_description' => ['nullable', 'string', 'max:10000'],
             'send_email' => ['nullable', 'boolean'],
         ]);
+
+        $devSalesMode = $request->boolean('developer_sales_mode');
+        $salesPct = $request->has('sales_percentage') ? (float) $request->input('sales_percentage') : null;
+        $devPct = $request->has('developer_percentage') ? (float) $request->input('developer_percentage') : null;
+        $validationErrors = $distribution->validateDistribution($devSalesMode, $salesPct, $devPct);
+        if (! empty($validationErrors)) {
+            return redirect()->back()->withInput($request->input())->withErrors($validationErrors);
+        }
+
         $validated['exclude_from_overhead_profit'] = $request->boolean('exclude_from_overhead_profit');
+        $validated['developer_sales_mode'] = $devSalesMode;
+        $validated['sales_commission_enabled'] = $request->boolean('sales_commission_enabled');
+        $validated['sales_percentage'] = $salesPct ?? ProjectDistributionService::DEFAULT_SALES_PERCENT;
+        $validated['developer_percentage'] = $devPct ?? ProjectDistributionService::DEFAULT_DEVELOPER_PERCENT;
         $validated['project_code'] = Project::generateNextProjectCode();
-        $validated['is_public'] = true; // New projects are public (guest viewable) by default
+        $validated['is_public'] = true;
         $project = Project::create($validated);
         event(new ProjectCreated($project, $request->boolean('send_email')));
         return redirect()->route('projects.index')->with('success', 'Project created.');
@@ -181,7 +201,7 @@ class ProjectController extends Controller
         return view('projects.edit', compact('project', 'clients'));
     }
 
-    public function update(Request $request, Project $project): RedirectResponse
+    public function update(Request $request, Project $project, ProjectDistributionService $distribution): RedirectResponse
     {
         $validated = $request->validate([
             'client_id' => ['required', 'exists:clients,id'],
@@ -193,16 +213,46 @@ class ProjectController extends Controller
             'delivery_date' => ['nullable', 'date'],
             'status' => ['required', 'in:Pending,Running,Complete,On Hold'],
             'exclude_from_overhead_profit' => ['nullable', 'boolean'],
+            'developer_sales_mode' => ['nullable', 'boolean'],
+            'sales_commission_enabled' => ['nullable', 'boolean'],
+            'sales_percentage' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'developer_percentage' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'is_public' => ['nullable', 'boolean'],
             'is_featured' => ['nullable', 'boolean'],
             'short_description' => ['nullable', 'string', 'max:500'],
-            'featured_image_path' => ['nullable', 'string', 'max:500'],
+            'featured_image' => ['nullable', 'image', 'mimes:jpeg,png,gif,webp', 'max:2048'],
+            'remove_featured_image' => ['nullable', 'boolean'],
             'tech_stack' => ['nullable', 'string', 'max:255'],
+            'guest_description' => ['nullable', 'string', 'max:10000'],
         ]);
+
+        $validated['featured_image_path'] = $project->featured_image_path;
+        if ($request->boolean('remove_featured_image')) {
+            $this->deleteFeaturedImageIfExists($project->featured_image_path);
+            $validated['featured_image_path'] = null;
+        }
+        if ($request->hasFile('featured_image')) {
+            $this->deleteFeaturedImageIfExists($project->featured_image_path);
+            $path = $request->file('featured_image')->store('featured-projects', 'public');
+            $validated['featured_image_path'] = 'storage/' . $path;
+        }
+
+        $devSalesMode = $request->boolean('developer_sales_mode');
+        $salesPct = $request->has('sales_percentage') ? (float) $request->input('sales_percentage') : null;
+        $devPct = $request->has('developer_percentage') ? (float) $request->input('developer_percentage') : null;
+        $validationErrors = $distribution->validateDistribution($devSalesMode, $salesPct, $devPct);
+        if (! empty($validationErrors)) {
+            return redirect()->back()->withInput($request->input())->withErrors($validationErrors);
+        }
+
         $validated['exclude_from_overhead_profit'] = $request->boolean('exclude_from_overhead_profit');
+        $validated['developer_sales_mode'] = $devSalesMode;
+        $validated['sales_commission_enabled'] = $request->boolean('sales_commission_enabled');
+        $validated['sales_percentage'] = $salesPct ?? $project->sales_percentage ?? ProjectDistributionService::DEFAULT_SALES_PERCENT;
+        $validated['developer_percentage'] = $devPct ?? $project->developer_percentage ?? ProjectDistributionService::DEFAULT_DEVELOPER_PERCENT;
         $validated['is_public'] = $request->boolean('is_public');
         $validated['is_featured'] = $request->boolean('is_featured');
-        unset($validated['project_code']); // Project code is not editable; keep existing value
+        unset($validated['project_code']);
         $project->update($validated);
         return redirect()->route('projects.show', $project)->with('success', 'Project updated.');
     }
@@ -218,7 +268,19 @@ class ProjectController extends Controller
 
     public function destroy(Project $project): RedirectResponse
     {
+        $this->deleteFeaturedImageIfExists($project->featured_image_path);
         $project->delete();
         return redirect()->route('projects.index')->with('success', 'Project deleted.');
+    }
+
+    private function deleteFeaturedImageIfExists(?string $path): void
+    {
+        if (! $path || str_starts_with($path, 'http')) {
+            return;
+        }
+        $storagePath = preg_replace('#^storage/#', '', $path);
+        if ($storagePath && Storage::disk('public')->exists($storagePath)) {
+            Storage::disk('public')->delete($storagePath);
+        }
     }
 }

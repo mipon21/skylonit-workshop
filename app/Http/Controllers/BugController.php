@@ -42,6 +42,9 @@ class BugController extends Controller
         }
         unset($validated['attachment']);
         $validated['is_public'] = $request->boolean('is_public', true);
+        if (in_array($validated['status'] ?? 'open', ['in_progress', 'resolved'], true)) {
+            $validated['status_updated_at'] = now();
+        }
 
         $bug = $project->bugs()->create($validated);
         $bug->setRelation('project', $project);
@@ -111,6 +114,10 @@ class BugController extends Controller
         ]);
 
         $oldStatus = $bug->status;
+        $newStatus = $validated['status'] ?? $oldStatus;
+        if ($newStatus !== $oldStatus && in_array($newStatus, ['in_progress', 'resolved'], true)) {
+            $validated['status_updated_at'] = now();
+        }
 
         if ($request->boolean('remove_attachment') || $request->hasFile('attachment')) {
             if ($bug->attachment_path) {
@@ -127,7 +134,7 @@ class BugController extends Controller
         }
 
         $bug->update($validated);
-        $newStatus = $bug->fresh()->status;
+        $newStatus = $bug->fresh()->status ?? $newStatus;
         event(new BugStatusUpdated($bug->fresh(), $request->boolean('send_email'), $oldStatus, $newStatus));
 
         return redirect()->route('projects.show', $project)->withFragment('bugs')->with('success', 'Bug updated.');

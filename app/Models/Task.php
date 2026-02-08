@@ -15,6 +15,7 @@ class Task extends Model
         'title',
         'description',
         'status',
+        'status_updated_at',
         'priority',
         'due_date',
         'is_public',
@@ -23,6 +24,7 @@ class Task extends Model
     protected $casts = [
         'due_date' => 'date',
         'is_public' => 'boolean',
+        'status_updated_at' => 'datetime',
     ];
 
     public function project(): BelongsTo

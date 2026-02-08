@@ -13,7 +13,7 @@
                     </div>
                     <div class="pt-2 border-t border-slate-700/50">
                         <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="send_email" value="1" {{ old('send_email') ? 'checked' : '' }} class="rounded border-slate-600 bg-slate-900 text-sky-500 focus:ring-sky-500">
+                            <input type="checkbox" name="send_email" value="1" {{ old('send_email', true) ? 'checked' : '' }} class="rounded border-slate-600 bg-slate-900 text-sky-500 focus:ring-sky-500">
                             <span class="text-sm font-medium text-slate-400">Send email to client with contract link?</span>
                         </label>
                     </div>

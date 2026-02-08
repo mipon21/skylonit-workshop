@@ -33,37 +33,112 @@
         </select>
         @error('project_type')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
     </div>
-    <div>
-        <label class="block text-sm font-medium text-slate-400 mb-1">Contract amount (৳) *</label>
-        <input type="number" name="contract_amount" value="{{ old('contract_amount', $project?->contract_amount) }}" step="0.01" min="0" required class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
-        @error('contract_amount')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
-    </div>
-    <div class="grid grid-cols-2 gap-4">
+    {{-- Financial + Distribution: one Alpine scope for live preview. Base = Contract − Expenses. --}}
+    <div class="space-y-4" x-data="{
+        distributionSettingsOpen: false,
+        contractAmount: {{ json_encode((float) old('contract_amount', $project?->contract_amount ?? 0)) }},
+        expenseTotal: {{ json_encode((float) ($project?->expense_total ?? 0)) }},
+        developerSalesMode: {{ old('developer_sales_mode', $project?->developer_sales_mode ?? false) ? 'true' : 'false' }},
+        salesCommissionEnabled: {{ old('sales_commission_enabled', $project?->sales_commission_enabled ?? true) ? 'true' : 'false' }},
+        salesPercentage: {{ json_encode((float) old('sales_percentage', $project?->sales_percentage ?? 25)) }},
+        developerPercentage: {{ json_encode((float) old('developer_percentage', $project?->developer_percentage ?? 40)) }},
+        get base() { return Math.max(0, (parseFloat(this.contractAmount) || 0) - (parseFloat(this.expenseTotal) || 0)); },
+        get overheadAmount() { return this.developerSalesMode ? 0 : Math.round(this.base * 0.2 * 100) / 100; },
+        get salesAmount() {
+            if (this.developerSalesMode) return Math.round(this.base * 0.25 * 100) / 100;
+            return this.salesCommissionEnabled ? Math.round(this.base * (parseFloat(this.salesPercentage) || 0) / 100 * 100) / 100 : 0;
+        },
+        get developerAmount() {
+            if (this.developerSalesMode) return Math.round(this.base * 0.75 * 100) / 100;
+            return Math.round(this.base * (parseFloat(this.developerPercentage) || 0) / 100 * 100) / 100;
+        },
+        get profitAmount() {
+            if (this.developerSalesMode) return 0;
+            return Math.max(0, Math.round((this.base - this.overheadAmount - this.salesAmount - this.developerAmount) * 100) / 100);
+        },
+        formatNum(n) { const x = Number(n); return isNaN(x) ? '0' : x.toLocaleString('en-BD', { maximumFractionDigits: 0 }); }
+    }" @toggle-distribution.window="distributionSettingsOpen = !distributionSettingsOpen">
         <div>
-            <label class="block text-sm font-medium text-slate-400 mb-1">Contract date</label>
-            <input type="date" name="contract_date" value="{{ old('contract_date', $project?->contract_date?->format('Y-m-d')) }}" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+            <label class="block text-sm font-medium text-slate-400 mb-1">Contract amount (৳) *</label>
+            <input type="number" name="contract_amount" step="0.01" min="0" required x-model.number="contractAmount" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+            @error('contract_amount')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-slate-400 mb-1">Contract date</label>
+                <input type="date" name="contract_date" value="{{ old('contract_date', $project?->contract_date?->format('Y-m-d')) }}" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-400 mb-1">Delivery date</label>
+                <input type="date" name="delivery_date" value="{{ old('delivery_date', $project?->delivery_date?->format('Y-m-d')) }}" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+            </div>
         </div>
         <div>
-            <label class="block text-sm font-medium text-slate-400 mb-1">Delivery date</label>
-            <input type="date" name="delivery_date" value="{{ old('delivery_date', $project?->delivery_date?->format('Y-m-d')) }}" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+            <label class="block text-sm font-medium text-slate-400 mb-1">Status</label>
+            <select name="status" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+                <option value="Pending" {{ old('status', $project?->status ?? 'Pending') === 'Pending' ? 'selected' : '' }}>Pending</option>
+                <option value="Running" {{ old('status', $project?->status) === 'Running' ? 'selected' : '' }}>Running</option>
+                <option value="Complete" {{ old('status', $project?->status) === 'Complete' ? 'selected' : '' }}>Complete</option>
+                <option value="On Hold" {{ old('status', $project?->status) === 'On Hold' ? 'selected' : '' }}>On Hold</option>
+            </select>
         </div>
-    </div>
-    <div>
-        <label class="block text-sm font-medium text-slate-400 mb-1">Status</label>
-        <select name="status" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
-            <option value="Pending" {{ old('status', $project?->status ?? 'Pending') === 'Pending' ? 'selected' : '' }}>Pending</option>
-            <option value="Running" {{ old('status', $project?->status) === 'Running' ? 'selected' : '' }}>Running</option>
-            <option value="Complete" {{ old('status', $project?->status) === 'Complete' ? 'selected' : '' }}>Complete</option>
-            <option value="On Hold" {{ old('status', $project?->status) === 'On Hold' ? 'selected' : '' }}>On Hold</option>
-        </select>
-    </div>
-    <div class="pt-2 border-t border-slate-700/50">
-        <label class="flex items-center gap-2 cursor-pointer">
-            <input type="hidden" name="exclude_from_overhead_profit" value="0">
-            <input type="checkbox" name="exclude_from_overhead_profit" value="1" {{ old('exclude_from_overhead_profit', $project?->exclude_from_overhead_profit ?? false) ? 'checked' : '' }} class="rounded border-slate-600 bg-slate-900 text-sky-500 focus:ring-sky-500">
-            <span class="text-sm font-medium text-slate-400">Developer &amp; Sales only (exclude from Overhead &amp; Profit)</span>
-        </label>
-        <p class="text-slate-500 text-xs mt-1">When enabled, expense is deducted from the contract amount first, then 75% Developer and 25% Sales; Overhead and Profit are ৳0 and not counted in totals.</p>
+
+        {{-- Distribution Settings: only visible when opened via gear beside "Add Project" or "Edit Project". --}}
+        <div x-show="distributionSettingsOpen" x-cloak class="pt-4 mt-4 border-t-2 border-slate-600/70 rounded-xl bg-slate-800/40 p-4 -mx-1">
+            <h3 class="text-base font-semibold text-slate-200 mb-1">Distribution Settings</h3>
+            <p class="text-slate-500 text-xs mb-3">Configure how Base (Contract − Expenses) is split: Overhead, Sales, Developer, Profit.</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="hidden" name="developer_sales_mode" value="0">
+                    <input type="checkbox" name="developer_sales_mode" value="1" x-model="developerSalesMode" class="rounded border-slate-600 bg-slate-900 text-sky-500 focus:ring-sky-500"
+                        {{ old('developer_sales_mode', $project?->developer_sales_mode ?? false) ? 'checked' : '' }}>
+                    <span class="text-sm font-medium text-slate-400">Developer–Sales (75/25)</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer" :class="{ 'opacity-50 pointer-events-none': developerSalesMode }">
+                    <input type="hidden" name="sales_commission_enabled" value="0">
+                    <input type="checkbox" name="sales_commission_enabled" value="1" x-model="salesCommissionEnabled" class="rounded border-slate-600 bg-slate-900 text-sky-500 focus:ring-sky-500"
+                        {{ old('sales_commission_enabled', $project?->sales_commission_enabled ?? true) ? 'checked' : '' }}>
+                    <span class="text-sm font-medium text-slate-400">Sales Commission Applicable</span>
+                </label>
+            </div>
+            <p class="text-slate-500 text-xs mt-1">When Developer–Sales (75/25) is ON, Developer = 75% and Sales = 25% of Base; Overhead and Profit are ৳0. When OFF, Overhead is fixed at 20% of Base.</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3" :class="{ 'opacity-50 pointer-events-none': developerSalesMode }">
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Sales %</label>
+                    <input type="number" name="sales_percentage" min="0" max="100" step="0.01" x-model.number="salesPercentage" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Developer %</label>
+                    <input type="number" name="developer_percentage" min="0" max="100" step="0.01" x-model.number="developerPercentage" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+                </div>
+            </div>
+            <p class="text-slate-500 text-xs mt-1">Sales + Developer + 20% Overhead must not exceed 100%. Unused margin flows to Profit.</p>
+            @error('sales_percentage')<p class="text-red-400 text-xs">{{ $message }}</p>@enderror
+            @error('developer_percentage')<p class="text-red-400 text-xs">{{ $message }}</p>@enderror
+            @error('distribution')<p class="text-red-400 text-xs">{{ $message }}</p>@enderror
+
+            <div class="mt-4 p-4 rounded-xl bg-slate-900/80 border border-slate-700/50">
+                <h4 class="text-sm font-medium text-slate-400 mb-3">Preview (Base = Contract − Expenses)</h4>
+                <template x-if="developerSalesMode">
+                    <div class="space-y-1.5 text-sm">
+                        <p class="flex justify-between"><span class="text-slate-400">Base Amount</span><span class="text-white font-medium" x-text="'৳ ' + formatNum(base)"></span></p>
+                        <p class="flex justify-between"><span class="text-slate-400">Developer (75%)</span><span class="text-white font-medium" x-text="'৳ ' + formatNum(developerAmount)"></span></p>
+                        <p class="flex justify-between"><span class="text-slate-400">Sales (25%)</span><span class="text-white font-medium" x-text="'৳ ' + formatNum(salesAmount)"></span></p>
+                    </div>
+                </template>
+                <template x-if="!developerSalesMode">
+                    <div class="space-y-1.5 text-sm">
+                        <p class="flex justify-between"><span class="text-slate-400">Base Amount</span><span class="text-white font-medium" x-text="'৳ ' + formatNum(base)"></span></p>
+                        <p class="flex justify-between"><span class="text-slate-400">Overhead (20%)</span><span class="text-white font-medium" x-text="'৳ ' + formatNum(overheadAmount)"></span></p>
+                        <p class="flex justify-between"><span class="text-slate-400">Sales</span><span class="text-white font-medium" x-text="'৳ ' + formatNum(salesAmount)"></span></p>
+                        <p class="flex justify-between"><span class="text-slate-400">Developer</span><span class="text-white font-medium" x-text="'৳ ' + formatNum(developerAmount)"></span></p>
+                        <p class="flex justify-between"><span class="text-slate-400">Profit</span><span class="text-emerald-400 font-medium" x-text="'৳ ' + formatNum(profitAmount)"></span></p>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <input type="hidden" name="exclude_from_overhead_profit" :value="developerSalesMode ? '1' : '0'">
     </div>
     @if($project)
     <div class="pt-2 border-t border-slate-700/50">
@@ -88,20 +163,47 @@
         @error('short_description')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
     </div>
     <div>
-        <label class="block text-sm font-medium text-slate-400 mb-1">Featured image path (guest)</label>
-        <input type="text" name="featured_image_path" value="{{ old('featured_image_path', $project->featured_image_path) }}" placeholder="e.g. /images/projects/example.jpg or URL" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
-        @error('featured_image_path')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
+        <label class="block text-sm font-medium text-slate-400 mb-1">Featured image (guest dashboard)</label>
+        @php
+            $currentFeaturedPath = old('featured_image_path', $project->featured_image_path);
+            $currentFeaturedUrl = $currentFeaturedPath ? (str_starts_with($currentFeaturedPath, 'http') ? $currentFeaturedPath : asset($currentFeaturedPath)) : null;
+        @endphp
+        @if($currentFeaturedUrl)
+            <div class="mb-3 flex items-center gap-4">
+                <img src="{{ $currentFeaturedUrl }}" alt="Current featured" class="w-24 h-24 rounded-xl object-cover border border-slate-600" onerror="this.style.display='none'">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="hidden" name="remove_featured_image" value="0">
+                    <input type="checkbox" name="remove_featured_image" value="1" {{ old('remove_featured_image') ? 'checked' : '' }} class="rounded border-slate-600 bg-slate-900 text-red-500 focus:ring-red-500">
+                    <span class="text-sm text-slate-400">Remove current image</span>
+                </label>
+            </div>
+        @endif
+        <input type="file" name="featured_image" accept="image/jpeg,image/png,image/gif,image/webp" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-slate-700 file:text-slate-200 file:text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+        <p class="text-slate-500 text-xs mt-1">Upload an image (JPG, PNG, GIF, WebP). Used on the guest portal dashboard featured carousel. Max 2 MB.</p>
+        @error('featured_image')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
     </div>
     <div>
         <label class="block text-sm font-medium text-slate-400 mb-1">Tech stack (guest chips, comma-separated)</label>
         <input type="text" name="tech_stack" value="{{ old('tech_stack', $project->tech_stack) }}" placeholder="e.g. Laravel, Vue, Tailwind" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
         @error('tech_stack')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
     </div>
+    <div>
+        <label class="block text-sm font-medium text-slate-400 mb-1">Description (guest portal project page)</label>
+        <textarea name="guest_description" rows="4" placeholder="Optional. Shown only on the public guest portal project details page." class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">{{ old('guest_description', $project->guest_description) }}</textarea>
+        <p class="text-slate-500 text-xs mt-1">Not shown on admin or client portal—only on the guest (public) project page.</p>
+        @error('guest_description')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
+    </div>
     @endif
     @if(!$project)
     <div class="pt-2 border-t border-slate-700/50">
+        <label class="block text-sm font-medium text-slate-400 mb-1">Description (guest portal project page)</label>
+        <textarea name="guest_description" rows="4" placeholder="Optional. Shown only on the public guest portal project details page." class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">{{ old('guest_description') }}</textarea>
+        <p class="text-slate-500 text-xs mt-1">Not shown on admin or client portal—only on the guest (public) project page.</p>
+        @error('guest_description')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
+    </div>
+    <div class="pt-2 border-t border-slate-700/50">
         <label class="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" name="send_email" value="1" {{ old('send_email') ? 'checked' : '' }} class="rounded border-slate-600 bg-slate-900 text-sky-500 focus:ring-sky-500">
+            <input type="checkbox" name="send_email" value="1" {{ old('send_email', true) ? 'checked' : '' }} class="rounded border-slate-600 bg-slate-900 text-sky-500 focus:ring-sky-500">
             <span class="text-sm font-medium text-slate-400">Send Email Notification?</span>
         </label>
         <p class="text-slate-500 text-xs mt-1">Default: unchecked. Notify client about the new project (if template is enabled).</p>

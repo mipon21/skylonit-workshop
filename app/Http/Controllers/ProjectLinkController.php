@@ -7,8 +7,10 @@ use App\Models\Project;
 use App\Models\ProjectLink;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ProjectLinkController extends Controller
 {
@@ -70,7 +72,7 @@ class ProjectLinkController extends Controller
             $validated['file_name'] = self::safeDownloadFileName($file->getClientOriginalName(), $ext);
             $validated['url'] = '#';
         } else {
-            if (empty($validated['url'])) {
+            if (empty($validated['url'] ?? null)) {
                 return redirect()->back()->withInput()->withErrors(['url' => 'URL is required for link type.']);
             }
         }
@@ -118,9 +120,9 @@ class ProjectLinkController extends Controller
                 $validated['file_path'] = $path;
                 $validated['file_name'] = self::safeDownloadFileName($file->getClientOriginalName(), $ext);
             }
-            $validated['url'] = $validated['url'] ?: '#';
+            $validated['url'] = $validated['url'] ?? '#';
         } else {
-            if (empty($validated['url'])) {
+            if (empty($validated['url'] ?? null)) {
                 return redirect()->back()->withInput()->withErrors(['url' => 'URL is required for link type.']);
             }
             $validated['file_path'] = null;
@@ -141,6 +143,42 @@ class ProjectLinkController extends Controller
         $base = preg_replace('/[^a-zA-Z0-9_\-\.]/', '_', $base) ?: 'download';
         $base = trim($base, '._');
         return strlen($base) > 200 ? substr($base, 0, 200) . '.' . $ext : $base . '.' . $ext;
+    }
+
+    /**
+     * Download APK for this project link (auth: admin or project client with visibility).
+     */
+    public function download(Project $project, ProjectLink $project_link): BinaryFileResponse
+    {
+        if ($project_link->project_id !== $project->id) {
+            abort(404);
+        }
+        if (! $project_link->isApk() || ! $project_link->file_path) {
+            abort(404);
+        }
+        $user = Auth::user();
+        if (! $user->isAdmin()) {
+            if (! $user->isClient() || ! $user->client) {
+                abort(404);
+            }
+            $hasAccess = $project->client_id === $user->client->id
+                || $project->additionalClients()->where('clients.id', $user->client->id)->exists();
+            if (! $hasAccess || ! $project_link->visible_to_client) {
+                abort(404);
+            }
+        }
+        $path = storage_path('app/' . $project_link->file_path);
+        if (! is_file($path)) {
+            abort(404);
+        }
+        $downloadName = $project_link->file_name ?? basename($project_link->file_path);
+        $ext = strtolower(pathinfo($downloadName, PATHINFO_EXTENSION));
+        $mime = $ext === 'aab'
+            ? 'application/x-authorware-bin'
+            : 'application/vnd.android.package-archive';
+        return response()->download($path, $downloadName, [
+            'Content-Type' => $mime,
+        ]);
     }
 
     public function destroy(Project $project, ProjectLink $project_link): RedirectResponse

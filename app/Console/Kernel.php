@@ -13,6 +13,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         $schedule->command('sync:google-sheets')->everyFiveMinutes();
+        $schedule->command('profit:distribute --last-month')->monthlyOn(1, '02:00');
     }
 
     /**

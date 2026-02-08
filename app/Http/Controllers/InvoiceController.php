@@ -19,7 +19,7 @@ class InvoiceController extends Controller
     {
         $user = $request->user();
 
-        $query = Invoice::with(['project', 'payment'])->orderBy('invoice_date', 'desc');
+        $query = Invoice::with(['project.client', 'payment'])->orderBy('invoice_date', 'desc');
 
         if ($user->isClient()) {
             $client = $user->client;
@@ -29,7 +29,26 @@ class InvoiceController extends Controller
             $query->whereHas('project', fn ($q) => $q->forClient($client->id));
         }
 
-        $invoices = $query->paginate(20);
+        $search = $request->input('search');
+        if ($search && is_string($search)) {
+            $term = trim($search);
+            if ($term !== '') {
+                $query->where(function ($q) use ($term) {
+                    $q->where('invoice_number', 'like', '%' . $term . '%')
+                        ->orWhereHas('project', function ($p) use ($term) {
+                            $p->where('project_code', 'like', '%' . $term . '%')
+                                ->orWhere('project_name', 'like', '%' . $term . '%')
+                                ->orWhereHas('client', fn ($c) => $c->where('name', 'like', '%' . $term . '%'));
+                        });
+                });
+            }
+        }
+
+        $invoices = $query->paginate(20)->withQueryString();
+
+        if ($request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+            return view('invoices.partials.list', compact('invoices'));
+        }
 
         return view('invoices.index', compact('invoices'));
     }

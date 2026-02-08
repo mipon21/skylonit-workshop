@@ -32,11 +32,16 @@
                     @if($project->project_type)
                         <span class="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-600/80 text-slate-300 border border-slate-500/50">{{ $project->project_type }}</span>
                     @endif
-                    @if(!($isClient ?? false) && $project->exclude_from_overhead_profit)
+                    @if(!($isClient ?? false) && $project->is_developer_sales_mode)
                         <span class="px-2.5 py-1 rounded-lg text-xs font-medium bg-amber-500/20 text-amber-400 border border-amber-500/40" title="Developer 75% &amp; Sales 25% only; no Overhead/Profit">Dev &amp; Sales only</span>
                     @endif
                 </div>
-                <p class="text-slate-400 text-sm mt-0.5">{{ $project->client->name }} @if($project->project_code)· {{ $project->project_code }}@endif</p>
+                <p class="text-slate-400 text-sm mt-0.5">
+                    {{ $project->client->name }}
+                    @if($project->project_code)· {{ $project->project_code }}@endif
+                    @if($project->contract_date)· Contract: {{ $project->contract_date->format('M j, Y') }}@endif
+                    @if($project->delivery_date)· Delivery: {{ $project->delivery_date->format('M j, Y') }}@endif
+                </p>
             </div>
             <div class="flex gap-2 items-center max-md:flex-wrap max-md:gap-2">
                 @if(!($isClient ?? false))
@@ -90,8 +95,8 @@
 
         {{-- Revenue pipeline: admin sees full; client sees Contract, Expenses, Total Paid, Due only --}}
         @if(!($isClient ?? false))
-        @if($project->exclude_from_overhead_profit)
-            <div class="mb-4 px-4 py-3 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400/90 text-sm flex items-center gap-2">
+        @if($project->is_developer_sales_mode)
+            <div class="payment-amount mb-4 px-4 py-3 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400/90 text-sm flex items-center gap-2">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 This project is <strong>Developer &amp; Sales only</strong>: contract amount minus expenses, then 75% Developer and 25% Sales. Overhead and Profit are ৳0 and not included in Loss/Profit totals.
             </div>
@@ -687,6 +692,12 @@
                              :class="{ 'ring-1 ring-sky-500/30': expandedBugId == {{ $bug->id }} }">
                             <button type="button" @click="expandedBugId = expandedBugId == {{ $bug->id }} ? null : {{ $bug->id }}" class="w-full text-left p-4">
                                 <p class="font-medium text-white">{{ $bug->title }}</p>
+                                <p class="text-slate-500 text-xs mt-1">Reported {{ $bug->created_at->format('d M Y, h:i A') }}</p>
+                                @if($bug->status === 'in_progress' && ($bug->status_updated_at ?? $bug->updated_at))
+                                    <p class="text-amber-400/90 text-xs mt-0.5">In progress since {{ ($bug->status_updated_at ?? $bug->updated_at)->format('d M Y, h:i A') }}</p>
+                                @elseif($bug->status === 'resolved' && ($bug->status_updated_at ?? $bug->updated_at))
+                                    <p class="text-emerald-400/90 text-xs mt-0.5">Resolved at {{ ($bug->status_updated_at ?? $bug->updated_at)->format('d M Y, h:i A') }}</p>
+                                @endif
                                 @if($bug->description)<p class="text-slate-500 text-sm mt-1 line-clamp-2">{{ Str::limit($bug->description, 80) }}</p>@endif
                                 <div class="flex flex-wrap gap-2 mt-2 items-center">
                                     <span @class([
@@ -760,7 +771,7 @@
                                 <p class="font-semibold text-white">{{ $note->title }}</p>
                                 <p class="text-slate-500 text-xs mt-1">{{ $note->created_at->format('M d, Y') }}</p>
                                 <p class="text-slate-400 text-sm mt-2 line-clamp-2">{{ Str::limit(strip_tags($note->body), 120) ?: 'No content' }}</p>
-                                <span class="inline-flex items-center gap-1 mt-2 px-2 py-0.5 rounded text-xs {{ $note->visibility === 'client' ? 'bg-sky-500/20 text-sky-400' : 'bg-slate-600/50 text-slate-400' }}">{{ ucfirst($note->visibility) }}</span>
+                                <span class="inline-flex items-center gap-1 mt-2 px-2 py-0.5 rounded text-xs {{ $note->visibility === 'client' ? 'bg-sky-500/20 text-sky-400' : 'bg-slate-600/50 text-slate-400' }}" title="{{ $note->visibility === 'client' ? 'Visible to client' : 'Admin only' }}">{{ $note->visibility === 'client' ? 'Public' : 'Private' }}</span>
                             </button>
                             <div x-show="expandedNoteId == {{ $note->id }}" x-transition class="px-4 pb-4">
                                 <div class="pt-2 border-t border-slate-700/50 text-slate-300 text-sm whitespace-pre-wrap">{{ $note->body ?: '—' }}</div>
@@ -816,7 +827,7 @@
                             <div class="min-w-0 flex-1">
                                 <p class="font-medium text-white">{{ $link->label }}</p>
                                 @if($link->isApk() && $link->file_path)
-                                    <a href="{{ route('guest.links.download', $link) }}" class="inline-flex items-center gap-1.5 mt-1 text-sky-400 hover:text-sky-300 text-sm">Download APK</a>
+                                    <a href="{{ route('projects.links.download', [$project, $link]) }}" class="inline-flex items-center gap-1.5 mt-1 text-sky-400 hover:text-sky-300 text-sm">Download APK</a>
                                 @else
                                     <a href="{{ $link->url }}" target="_blank" rel="noopener noreferrer" class="text-sky-400 hover:text-sky-300 text-sm mt-1 break-all">{{ $link->url }}</a>
                                 @endif
