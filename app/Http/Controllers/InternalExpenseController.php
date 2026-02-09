@@ -31,11 +31,12 @@ class InternalExpenseController extends Controller
     public function create(FundBalanceService $fundBalance): View
     {
         $overheadBalance = $fundBalance->getOverheadBalance();
+        $profitBalance = $fundBalance->getProfitPoolBalance();
         $investmentBalances = $fundBalance->getAllInvestmentBalances();
         $investments = Investment::orderBy('investor_name')->get();
 
         return view('internal-expenses.create', compact(
-            'overheadBalance', 'investmentBalances', 'investments'
+            'overheadBalance', 'profitBalance', 'investmentBalances', 'investments'
         ));
     }
 
@@ -46,7 +47,7 @@ class InternalExpenseController extends Controller
             'description' => 'nullable|string|max:5000',
             'amount' => 'required|numeric|min:0.01',
             'expense_date' => 'required|date',
-            'funded_from' => 'required|in:overhead,investment',
+            'funded_from' => 'required|in:overhead,profit,investment',
             'investment_id' => 'required_if:funded_from,investment|nullable|exists:investments,id',
         ], [
             'investment_id.required_if' => 'Please select an investment when funding from Investor Capital.',
@@ -54,7 +55,7 @@ class InternalExpenseController extends Controller
 
         $amount = (float) $valid['amount'];
         $fundedFrom = $valid['funded_from'];
-        $investmentId = isset($valid['investment_id']) ? (int) $valid['investment_id'] : null;
+        $investmentId = $fundedFrom === 'investment' && isset($valid['investment_id']) ? (int) $valid['investment_id'] : null;
 
         if (!$fundBalance->canFundFrom($fundedFrom, $amount, $investmentId)) {
             $fundLabel = InternalExpense::fundedFromLabel($fundedFrom);
@@ -84,12 +85,13 @@ class InternalExpenseController extends Controller
     public function edit(InternalExpense $internal_expense, FundBalanceService $fundBalance): View
     {
         $overheadBalance = $fundBalance->getOverheadBalance();
+        $profitBalance = $fundBalance->getProfitPoolBalance();
         $investmentBalances = $fundBalance->getAllInvestmentBalances();
         $investments = Investment::orderBy('investor_name')->get();
         $expense = $internal_expense;
 
         return view('internal-expenses.edit', compact(
-            'expense', 'overheadBalance', 'investmentBalances', 'investments'
+            'expense', 'overheadBalance', 'profitBalance', 'investmentBalances', 'investments'
         ));
     }
 
@@ -100,7 +102,7 @@ class InternalExpenseController extends Controller
             'description' => 'nullable|string|max:5000',
             'amount' => 'required|numeric|min:0.01',
             'expense_date' => 'required|date',
-            'funded_from' => 'required|in:overhead,investment',
+            'funded_from' => 'required|in:overhead,profit,investment',
             'investment_id' => 'required_if:funded_from,investment|nullable|exists:investments,id',
         ], [
             'investment_id.required_if' => 'Please select an investment when funding from Investor Capital.',
@@ -108,7 +110,7 @@ class InternalExpenseController extends Controller
 
         $amount = (float) $valid['amount'];
         $fundedFrom = $valid['funded_from'];
-        $investmentId = isset($valid['investment_id']) ? (int) $valid['investment_id'] : null;
+        $investmentId = $fundedFrom === 'investment' && isset($valid['investment_id']) ? (int) $valid['investment_id'] : null;
         $oldAmount = $internal_expense->amount;
         $oldFund = $internal_expense->funded_from;
         $oldInvId = $internal_expense->investment_id;

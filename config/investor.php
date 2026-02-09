@@ -8,8 +8,19 @@ return [
     | Founder keeps this % of profit; the remainder is the investor pool (40%).
     | Only the investor pool is shared among active investors (by risk tier).
     */
-    'founder_percent' => 60,
-    'investor_pool_percent' => 40,
+    'founder_percent' => 5,
+    'investor_pool_percent' => 95,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Partner pool split: Shareholders vs Investors (of the 40% partner pool)
+    |--------------------------------------------------------------------------
+    | When both shareholders and investors exist, this split applies.
+    | partner_shareholders_percent + partner_investors_percent must equal 100.
+    | If only shareholders exist → 100% to shareholders. If only investors → 100% to investors.
+    */
+    'partner_shareholders_percent' => 50,
+    'partner_investors_percent' => 50,
 
     /*
     |--------------------------------------------------------------------------

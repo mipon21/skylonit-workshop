@@ -13,6 +13,7 @@
                     <h3 class="text-sm font-medium text-slate-400 mb-1">Current fund balances</h3>
                     <ul class="space-y-2 text-sm">
                         <li class="flex justify-between"><span class="text-slate-400">Overhead</span><span class="text-white font-medium">৳{{ number_format($overheadBalance, 0) }}</span></li>
+                        <li class="flex justify-between"><span class="text-slate-400">Profit pool</span><span class="text-sky-400 font-medium">৳{{ number_format($profitBalance ?? 0, 0) }}</span></li>
                         @foreach($investments as $inv)
                             @php $bal = $investmentBalances[$inv->id] ?? 0; @endphp
                             @if($bal > 0 || $expense->investment_id == $inv->id)
@@ -53,6 +54,11 @@
                                 <input type="radio" name="funded_from" value="overhead" {{ old('funded_from', $expense->funded_from) === 'overhead' ? 'checked' : '' }} class="rounded border-slate-600 bg-slate-800 text-sky-500 focus:ring-sky-500">
                                 <span class="text-slate-300">Overhead</span>
                                 <span class="text-slate-500 text-sm">(balance: ৳{{ number_format($overheadBalance, 0) }})</span>
+                            </label>
+                            <label class="flex items-center gap-3 p-3 rounded-xl border border-slate-600 hover:bg-slate-800/50 cursor-pointer">
+                                <input type="radio" name="funded_from" value="profit" {{ old('funded_from', $expense->funded_from) === 'profit' ? 'checked' : '' }} class="rounded border-slate-600 bg-slate-800 text-sky-500 focus:ring-sky-500">
+                                <span class="text-slate-300">Profit pool</span>
+                                <span class="text-slate-500 text-sm">(balance: ৳{{ number_format($profitBalance ?? 0, 0) }})</span>
                             </label>
                             <label class="flex items-center gap-3 p-3 rounded-xl border border-slate-600 hover:bg-slate-800/50 cursor-pointer">
                                 <input type="radio" name="funded_from" value="investment" {{ old('funded_from', $expense->funded_from) === 'investment' ? 'checked' : '' }} class="rounded border-slate-600 bg-slate-800 text-sky-500 focus:ring-sky-500">

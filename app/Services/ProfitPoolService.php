@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Investment;
 use App\Models\Payment;
 use App\Models\ProfitDistribution;
+use App\Models\Setting;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -63,42 +64,69 @@ class ProfitPoolService
     }
 
     /**
-     * Run profit distribution for a given month: aggregate profit pool, pay active investors (capped), record rows, exit if cap reached.
+     * Run profit distribution for a given month.
+     * - Owner: 60% (fixed)
+     * - Partner pool: 40%
+     * - Shareholder pool = partner_pool × partner_shareholders_percent; split by share_percent (weighted)
+     * - Investor pool = partner_pool × partner_investors_percent; split by profit_share_percent, capped, exit at cap
      */
     public function runDistributionForMonth(int $year, int $month): array
     {
         $period = sprintf('%04d-%02d', $year, $month);
         $profitPool = $this->getProfitPoolForMonth($year, $month);
 
-        $activeInvestors = Investment::where('status', Investment::STATUS_ACTIVE)->get();
-        $results = [];
+        $shareholders = Investment::getShareholders();
+        $activeInvestors = Investment::getActiveInvestors();
 
         $founderPercent = config('investor.founder_percent', 60) / 100;
-        $investorPoolPercent = config('investor.investor_pool_percent', 40) / 100;
-        $founderShareBase = round($profitPool * $founderPercent, 2);
-        $investorPoolTotal = round($profitPool * $investorPoolPercent, 2);
+        $partnerPoolPercent = config('investor.investor_pool_percent', 40) / 100;
+        $partnerPoolTotal = round($profitPool * $partnerPoolPercent, 2);
 
-        DB::transaction(function () use ($period, $profitPool, $activeInvestors, $founderShareBase, $investorPoolTotal, &$results) {
-            $totalInvestorShare = 0.0;
-            $payouts = [];
-            $sumWeights = $activeInvestors->sum('profit_share_percent');
-            $sumWeights = $sumWeights > 0 ? $sumWeights : 1;
+        $partnerShareholdersPercent = (float) (Setting::get('investor_partner_shareholders_percent') ?? config('investor.partner_shareholders_percent', 50)) / 100;
+        $partnerInvestorsPercent = (float) (Setting::get('investor_partner_investors_percent') ?? config('investor.partner_investors_percent', 50)) / 100;
 
-            foreach ($activeInvestors as $investor) {
-                $weight = $investor->profit_share_percent / $sumWeights;
-                $rawPayout = round($investorPoolTotal * $weight, 2);
-                $remainingCap = max(0, $investor->return_cap_amount - $investor->returned_amount);
-                $actualPayout = round(min($rawPayout, $remainingCap), 2);
-                $totalInvestorShare += $actualPayout;
-                $payouts[] = ['investor' => $investor, 'actualPayout' => $actualPayout];
+        if ($shareholders->isEmpty()) {
+            $shareholderPool = 0.0;
+            $investorPool = $partnerPoolTotal;
+        } elseif ($activeInvestors->isEmpty()) {
+            $shareholderPool = $partnerPoolTotal;
+            $investorPool = 0.0;
+        } else {
+            $shareholderPool = round($partnerPoolTotal * $partnerShareholdersPercent, 2);
+            $investorPool = round($partnerPoolTotal * $partnerInvestorsPercent, 2);
+        }
+
+        $results = [];
+        $payouts = [];
+
+        DB::transaction(function () use ($period, $profitPool, $shareholders, $activeInvestors, $shareholderPool, $investorPool, &$results, &$payouts) {
+            $totalPartnerShare = 0.0;
+
+            foreach ($shareholders as $sh) {
+                $sharePercent = max(0, (float) ($sh->share_percent ?? 0));
+                $amount = round($shareholderPool * ($sharePercent / 100), 2);
+                $totalPartnerShare += $amount;
+                $payouts[] = ['partner' => $sh, 'actualPayout' => $amount];
             }
 
-            $founderShareTotal = round($profitPool - $totalInvestorShare, 2);
+            $sumInvestorWeights = $activeInvestors->sum('profit_share_percent');
+            $sumInvestorWeights = $sumInvestorWeights > 0 ? $sumInvestorWeights : 1;
 
-            foreach ($payouts as ['investor' => $investor, 'actualPayout' => $actualPayout]) {
+            foreach ($activeInvestors as $inv) {
+                $weight = $inv->profit_share_percent / $sumInvestorWeights;
+                $rawPayout = round($investorPool * $weight, 2);
+                $remainingCap = max(0, $inv->return_cap_amount - $inv->returned_amount);
+                $actualPayout = round(min($rawPayout, $remainingCap), 2);
+                $totalPartnerShare += $actualPayout;
+                $payouts[] = ['partner' => $inv, 'actualPayout' => $actualPayout];
+            }
+
+            $founderShareTotal = round($profitPool - $totalPartnerShare, 2);
+
+            foreach ($payouts as ['partner' => $partner, 'actualPayout' => $actualPayout]) {
                 ProfitDistribution::updateOrCreate(
                     [
-                        'investor_id' => $investor->id,
+                        'investor_id' => $partner->id,
                         'period' => $period,
                     ],
                     [
@@ -108,27 +136,30 @@ class ProfitPoolService
                     ]
                 );
 
-                $investor->increment('returned_amount', $actualPayout);
-                $investor->refresh();
+                $partner->increment('returned_amount', $actualPayout);
+                $partner->refresh();
 
-                if ($investor->returned_amount >= $investor->return_cap_amount) {
-                    $investor->update([
+                $exited = false;
+                if ($partner->category === Investment::CATEGORY_INVESTOR
+                    && $partner->returned_amount >= $partner->return_cap_amount) {
+                    $partner->update([
                         'status' => Investment::STATUS_EXITED,
                         'profit_share_percent' => 0,
                     ]);
+                    $exited = true;
                 }
 
                 $results['distributions'][] = [
-                    'investor_id' => $investor->id,
-                    'investor_name' => $investor->investor_name,
+                    'investor_id' => $partner->id,
+                    'investor_name' => $partner->investor_name,
                     'payout' => $actualPayout,
-                    'exited' => $investor->status === Investment::STATUS_EXITED,
+                    'exited' => $exited,
                 ];
             }
 
             $results['period'] = $period;
             $results['profit_pool'] = $profitPool;
-            $results['total_investor_share'] = $totalInvestorShare;
+            $results['total_investor_share'] = $totalPartnerShare;
             $results['founder_share'] = $founderShareTotal;
         });
 

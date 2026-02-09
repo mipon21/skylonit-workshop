@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Investment;
+use App\Models\Setting;
 use App\Services\ProfitPoolService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,8 +14,9 @@ class InvestmentController extends Controller
     public function index(): View
     {
         $investments = Investment::orderByDesc('invested_at')->get();
+        $shareholderTotalError = Investment::validateShareholderTotal();
 
-        return view('investments.index', compact('investments'));
+        return view('investments.index', compact('investments', 'shareholderTotalError'));
     }
 
     public function create(): View
@@ -24,40 +26,70 @@ class InvestmentController extends Controller
             'medium' => ['share_percent' => 30, 'cap_multiplier' => 2.5],
             'high' => ['share_percent' => 40, 'cap_multiplier' => 3],
         ];
-        return view('investments.create', compact('riskTiers'));
+        $shareholderTotalError = Investment::validateShareholderTotal();
+        return view('investments.create', compact('riskTiers', 'shareholderTotalError'));
     }
 
     public function store(Request $request): RedirectResponse
     {
         $valid = $request->validate([
+            'category' => 'required|in:investor,shareholder',
             'investor_name' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0',
             'invested_at' => 'required|date',
-            'risk_level' => 'required|in:low,medium,high',
+            'risk_level' => 'required_if:category,investor|nullable|in:low,medium,high',
+            'share_percent' => 'required_if:category,shareholder|nullable|numeric|min:0.01|max:100',
             'notes' => 'nullable|string|max:2000',
+        ], [
+            'share_percent.required_if' => 'Share percent is required for shareholders.',
         ]);
 
-        $tiers = config('investor.risk_tiers');
-        $risk = $valid['risk_level'];
-        $sharePercent = $tiers[$risk]['share_percent'] ?? 25;
-        $capMultiplier = $tiers[$risk]['cap_multiplier'] ?? 2;
+        $category = $valid['category'];
         $amount = (float) $valid['amount'];
-        $returnCapAmount = round($amount * $capMultiplier, 2);
 
-        Investment::create([
-            'investor_name' => $valid['investor_name'],
-            'amount' => $amount,
-            'invested_at' => $valid['invested_at'],
-            'risk_level' => $risk,
-            'profit_share_percent' => $sharePercent,
-            'return_cap_multiplier' => $capMultiplier,
-            'return_cap_amount' => $returnCapAmount,
-            'returned_amount' => 0,
-            'status' => Investment::STATUS_ACTIVE,
-            'notes' => $valid['notes'] ?? null,
-        ]);
+        if ($category === Investment::CATEGORY_SHAREHOLDER) {
+            $sharePercent = (float) $valid['share_percent'];
+            $err = Investment::validateShareholderTotalForSave(null, $sharePercent);
+            if ($err !== null) {
+                return redirect()->back()->withInput()->withErrors(['share_percent' => $err]);
+            }
+            Investment::create([
+                'category' => $category,
+                'share_percent' => $sharePercent,
+                'investor_name' => $valid['investor_name'],
+                'amount' => $amount,
+                'invested_at' => $valid['invested_at'],
+                'risk_level' => 'medium',
+                'profit_share_percent' => 0,
+                'return_cap_multiplier' => 0,
+                'return_cap_amount' => 999999999.99,
+                'returned_amount' => 0,
+                'status' => Investment::STATUS_ACTIVE,
+                'notes' => $valid['notes'] ?? null,
+            ]);
+        } else {
+            $tiers = config('investor.risk_tiers');
+            $risk = $valid['risk_level'];
+            $profitSharePercent = $tiers[$risk]['share_percent'] ?? 25;
+            $capMultiplier = $tiers[$risk]['cap_multiplier'] ?? 2;
+            $returnCapAmount = round($amount * $capMultiplier, 2);
+            Investment::create([
+                'category' => $category,
+                'share_percent' => null,
+                'investor_name' => $valid['investor_name'],
+                'amount' => $amount,
+                'invested_at' => $valid['invested_at'],
+                'risk_level' => $risk,
+                'profit_share_percent' => $profitSharePercent,
+                'return_cap_multiplier' => $capMultiplier,
+                'return_cap_amount' => $returnCapAmount,
+                'returned_amount' => 0,
+                'status' => Investment::STATUS_ACTIVE,
+                'notes' => $valid['notes'] ?? null,
+            ]);
+        }
 
-        return redirect()->route('investments.index')->with('success', 'Investor added.');
+        return redirect()->route('investments.index')->with('success', Investment::categoryLabel($category) . ' added.');
     }
 
     public function show(Investment $investment): View
@@ -73,7 +105,8 @@ class InvestmentController extends Controller
                 ->with('error', 'Exited investments cannot be edited.');
         }
         $riskTiers = config('investor.risk_tiers', []);
-        return view('investments.edit', compact('investment', 'riskTiers'));
+        $shareholderTotalError = Investment::validateShareholderTotal();
+        return view('investments.edit', compact('investment', 'riskTiers', 'shareholderTotalError'));
     }
 
     public function update(Request $request, Investment $investment): RedirectResponse
@@ -82,17 +115,36 @@ class InvestmentController extends Controller
             return redirect()->route('investments.show', $investment)->with('error', 'Exited investments cannot be edited.');
         }
 
-        $valid = $request->validate([
+        $rules = [
             'investor_name' => 'required|string|max:255',
             'notes' => 'nullable|string|max:2000',
+        ];
+        if ($investment->category === Investment::CATEGORY_SHAREHOLDER) {
+            $rules['share_percent'] = 'required|numeric|min:0.01|max:100';
+        }
+        $valid = $request->validate($rules, [
+            'share_percent.required' => 'Share percent is required for shareholders.',
         ]);
 
-        $investment->update([
-            'investor_name' => $valid['investor_name'],
-            'notes' => $valid['notes'] ?? null,
-        ]);
+        if ($investment->category === Investment::CATEGORY_SHAREHOLDER) {
+            $sharePercent = (float) $valid['share_percent'];
+            $err = Investment::validateShareholderTotalForSave($investment->id, $sharePercent);
+            if ($err !== null) {
+                return redirect()->back()->withInput()->withErrors(['share_percent' => $err]);
+            }
+            $investment->update([
+                'investor_name' => $valid['investor_name'],
+                'share_percent' => $sharePercent,
+                'notes' => $valid['notes'] ?? null,
+            ]);
+        } else {
+            $investment->update([
+                'investor_name' => $valid['investor_name'],
+                'notes' => $valid['notes'] ?? null,
+            ]);
+        }
 
-        return redirect()->route('investments.show', $investment)->with('success', 'Investor updated.');
+        return redirect()->route('investments.show', $investment)->with('success', 'Updated.');
     }
 
     public function destroy(Investment $investment): RedirectResponse
@@ -108,11 +160,13 @@ class InvestmentController extends Controller
         $investorPoolPercent = config('investor.investor_pool_percent', 40) / 100;
 
         $ownerShareFromPool = round($totalPool * $founderPercent, 2);
-        $leftForInvestorsPool = round($totalPool * $investorPoolPercent, 2);
+        $leftForPartnersPool = round($totalPool * $investorPoolPercent, 2);
 
         $investments = Investment::all();
-        $totalReturnedToInvestors = $investments->sum('returned_amount');
-        $founderRetained = round($totalPool - $totalReturnedToInvestors, 2);
+        $totalReturnedToInvestors = $investments->where('category', Investment::CATEGORY_INVESTOR)->sum('returned_amount');
+        $totalReturnedToShareholders = $investments->where('category', Investment::CATEGORY_SHAREHOLDER)->sum('returned_amount');
+        $totalReturnedToPartners = $totalReturnedToInvestors + $totalReturnedToShareholders;
+        $founderRetained = round($totalPool - $totalReturnedToPartners, 2);
 
         $byPeriod = \App\Models\ProfitDistribution::query()
             ->selectRaw('period, MAX(profit_pool_amount) as pool, SUM(investor_share_amount) as investor_share, MAX(founder_share_amount) as founder_share')
@@ -121,14 +175,46 @@ class InvestmentController extends Controller
             ->limit(24)
             ->get();
 
+        $partnerShareholdersPercent = (int) (Setting::get('investor_partner_shareholders_percent') ?? config('investor.partner_shareholders_percent', 50));
+        $partnerInvestorsPercent = (int) (Setting::get('investor_partner_investors_percent') ?? config('investor.partner_investors_percent', 50));
+
         return view('investments.profit-pool', [
             'totalPool' => $totalPool,
             'ownerShareFromPool' => $ownerShareFromPool,
-            'leftForInvestorsPool' => $leftForInvestorsPool,
+            'leftForInvestorsPool' => $leftForPartnersPool,
             'totalReturnedToInvestors' => $totalReturnedToInvestors,
+            'totalReturnedToShareholders' => $totalReturnedToShareholders,
+            'totalReturnedToPartners' => $totalReturnedToPartners,
             'founderRetained' => $founderRetained,
             'byPeriod' => $byPeriod,
+            'partnerShareholdersPercent' => $partnerShareholdersPercent,
+            'partnerInvestorsPercent' => $partnerInvestorsPercent,
         ]);
+    }
+
+    /**
+     * Update partner pool split (shareholder % vs investor % of the partner pool).
+     */
+    public function updatePartnerPoolSplit(Request $request): RedirectResponse
+    {
+        $valid = $request->validate([
+            'partner_shareholders_percent' => 'required|numeric|min:0|max:100',
+            'partner_investors_percent' => 'required|numeric|min:0|max:100',
+        ]);
+
+        $shareholders = (float) $valid['partner_shareholders_percent'];
+        $investors = (float) $valid['partner_investors_percent'];
+        $total = round($shareholders + $investors, 2);
+
+        if (abs($total - 100) > 0.01) {
+            return redirect()->route('investments.profit-pool')
+                ->with('error', "Shareholder % + Investor % must equal 100% (currently {$total}%).");
+        }
+
+        Setting::set('investor_partner_shareholders_percent', $shareholders);
+        Setting::set('investor_partner_investors_percent', $investors);
+
+        return redirect()->route('investments.profit-pool')->with('success', 'Partner pool split updated.');
     }
 
     /**

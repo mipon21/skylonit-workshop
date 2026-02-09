@@ -134,9 +134,11 @@ class FundBalanceService
     ): bool {
         $sameFund = $newFund === $oldFund && $newInvestmentId == $oldInvestmentId;
         if ($sameFund) {
-            $balance = $newFund === InternalExpense::FUNDED_OVERHEAD
-                ? $this->getOverheadBalance()
-                : $this->getInvestmentBalance((int) $newInvestmentId);
+            $balance = match ($newFund) {
+                InternalExpense::FUNDED_OVERHEAD => $this->getOverheadBalance(),
+                InternalExpense::FUNDED_PROFIT => $this->getProfitPoolBalance(),
+                default => $this->getInvestmentBalance((int) $newInvestmentId),
+            };
             return ($balance + $oldAmount) >= $newAmount;
         }
         return $this->canFundFrom($newFund, $newAmount, $newInvestmentId);

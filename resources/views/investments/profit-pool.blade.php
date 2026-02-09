@@ -9,12 +9,38 @@
             </div>
         </div>
 
-        <p class="text-slate-400 text-sm">Profit pool is the sum of project profits (15% share). You keep 60% as owner; 40% goes to investors (shared by risk tier, capped).</p>
+        <p class="text-slate-400 text-sm">Profit pool: {{ config('investor.founder_percent', 5) }}% chairman, {{ config('investor.investor_pool_percent', 95) }}% partner pool. Partner pool splits between shareholders (weighted by share %) and investors (capped, exit at cap). Shareholder total must be 100%.</p>
+
+        @if(session('success'))
+            <p class="text-emerald-400 text-sm bg-emerald-500/10 border border-emerald-500/30 rounded-xl px-4 py-3">{{ session('success') }}</p>
+        @endif
+        @if(session('error'))
+            <p class="text-red-400 text-sm bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3">{{ session('error') }}</p>
+        @endif
+
+        {{-- Partner pool split: shareholder % vs investor % (of the partner pool) --}}
+        <div class="bg-violet-500/10 border border-violet-500/30 rounded-2xl p-5">
+            <h2 class="text-lg font-medium text-violet-400 mb-2">Partner pool split (dynamic)</h2>
+            <p class="text-slate-400 text-sm mb-4">Of the {{ config('investor.investor_pool_percent', 95) }}% partner pool, how much goes to shareholders vs investors? Must total 100%. Change anytime—e.g. 100% shareholders now, 70/30 when you add investors later.</p>
+            <form action="{{ route('investments.partner-pool-split') }}" method="POST" class="flex flex-wrap items-end gap-4">
+                @csrf
+                <div>
+                    <label for="partner_shareholders_percent" class="block text-sm font-medium text-slate-400 mb-1">Shareholder pool (%)</label>
+                    <input type="number" name="partner_shareholders_percent" id="partner_shareholders_percent" value="{{ old('partner_shareholders_percent', $partnerShareholdersPercent ?? 50) }}" step="0.01" min="0" max="100" required class="rounded-xl bg-slate-800 border border-slate-600 text-white px-3 py-2 w-24 focus:ring-2 focus:ring-violet-500 focus:border-violet-500">
+                </div>
+                <div>
+                    <label for="partner_investors_percent" class="block text-sm font-medium text-slate-400 mb-1">Investor pool (%)</label>
+                    <input type="number" name="partner_investors_percent" id="partner_investors_percent" value="{{ old('partner_investors_percent', $partnerInvestorsPercent ?? 50) }}" step="0.01" min="0" max="100" required class="rounded-xl bg-slate-800 border border-slate-600 text-white px-3 py-2 w-24 focus:ring-2 focus:ring-violet-500 focus:border-violet-500">
+                </div>
+                <button type="submit" class="px-4 py-2.5 rounded-xl bg-violet-500 hover:bg-violet-600 text-white font-medium text-sm">Save split</button>
+            </form>
+            <p class="text-slate-500 text-xs mt-2">Current: {{ $partnerShareholdersPercent ?? 50 }}% shareholders → {{ number_format((config('investor.investor_pool_percent', 95) * ($partnerShareholdersPercent ?? 50) / 100), 1) }}% of total profit. {{ $partnerInvestorsPercent ?? 50 }}% investors → {{ number_format((config('investor.investor_pool_percent', 95) * ($partnerInvestorsPercent ?? 50) / 100), 1) }}% of total profit.</p>
+        </div>
 
         {{-- Run distribution: clear/settle investor share for a chosen period --}}
         <div class="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-5" x-data="{ periodType: 'monthly' }">
-            <h2 class="text-lg font-medium text-white mb-3">Run distribution (clear investor share)</h2>
-            <p class="text-slate-400 text-sm mb-4">Settle investor profit share for a single month or for every month in a year. This calculates the profit pool for the selected period(s), pays active investors (capped), and records the breakdown.</p>
+            <h2 class="text-lg font-medium text-white mb-3">Run distribution (settle partner share)</h2>
+            <p class="text-slate-400 text-sm mb-4">Settle partner profit share for a single month or for every month in a year. Pays active investors (capped) and shareholders (uncapped); records the breakdown.</p>
             <form action="{{ route('investments.run-distribution') }}" method="POST" class="flex flex-wrap items-end gap-4">
                 @csrf
                 <div class="flex flex-wrap gap-4">
@@ -62,27 +88,32 @@
 
             <div class="grid md:grid-cols-2 gap-4">
                 <div class="bg-sky-500/10 border border-sky-500/30 rounded-2xl p-5">
-                    <h3 class="text-sm font-medium text-sky-400 mb-1">Owner takes (60%)</h3>
+                    <h3 class="text-sm font-medium text-sky-400 mb-1">Company chairman minimal salary ({{ config('investor.founder_percent', 5) }}%)</h3>
                     <p class="text-2xl font-semibold text-sky-300">৳{{ number_format($ownerShareFromPool, 0) }}</p>
-                    <p class="text-xs text-slate-400 mt-1">Your share from the total profit pool above</p>
+                    <p class="text-xs text-slate-400 mt-1">Company chairman takes a minimal salary from the profit pool</p>
                 </div>
                 <div class="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-5">
-                    <h3 class="text-sm font-medium text-slate-400 mb-1">Left for investors (40%)</h3>
+                    <h3 class="text-sm font-medium text-slate-400 mb-1">Partner pool ({{ config('investor.investor_pool_percent', 95) }}%)</h3>
                     <p class="text-2xl font-semibold text-slate-300">৳{{ number_format($leftForInvestorsPool, 0) }}</p>
-                    <p class="text-xs text-slate-500 mt-1">From this amount investors are paid (capped by terms)</p>
+                    <p class="text-xs text-slate-500 mt-1">Split: shareholders (weighted) + investors (capped)</p>
                 </div>
             </div>
 
-            <div class="grid md:grid-cols-2 gap-4">
-                <div class="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-5">
-                    <h3 class="text-sm font-medium text-slate-400 mb-1">Returned to investors</h3>
-                    <p class="text-2xl font-semibold text-emerald-400">৳{{ number_format($totalReturnedToInvestors, 0) }}</p>
-                    <p class="text-xs text-slate-500 mt-1">Actually paid from the 40% pool (capped)</p>
+            <div class="grid md:grid-cols-3 gap-4">
+                <div class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-5">
+                    <h3 class="text-sm font-medium text-amber-400 mb-1">Investor share (temporary)</h3>
+                    <p class="text-2xl font-semibold text-amber-300">৳{{ number_format($totalReturnedToInvestors, 0) }}</p>
+                    <p class="text-xs text-slate-500 mt-1">Returned to investors (capped)</p>
                 </div>
-                <div class="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-5">
+                <div class="bg-violet-500/10 border border-violet-500/30 rounded-2xl p-5">
+                    <h3 class="text-sm font-medium text-violet-400 mb-1">Shareholder share (permanent)</h3>
+                    <p class="text-2xl font-semibold text-violet-300">৳{{ number_format($totalReturnedToShareholders ?? 0, 0) }}</p>
+                    <p class="text-xs text-slate-500 mt-1">Returned to shareholders (uncapped)</p>
+                </div>
+                <div class="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-5 md:col-span-1">
                     <h3 class="text-sm font-medium text-slate-400 mb-1">Owner actually gets</h3>
                     <p class="text-2xl font-semibold text-white">৳{{ number_format($founderRetained, 0) }}</p>
-                    <p class="text-xs text-slate-500 mt-1">60% of pool + any uncapped part of the 40%</p>
+                    <p class="text-xs text-slate-500 mt-1">{{ config('investor.founder_percent', 5) }}% of pool + any unclaimed part of the {{ config('investor.investor_pool_percent', 95) }}%</p>
                 </div>
             </div>
         </div>

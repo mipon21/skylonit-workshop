@@ -8,7 +8,7 @@
                 <h1 class="text-2xl font-semibold text-white">{{ $investment->investor_name }}</h1>
             </div>
             <div class="flex gap-2">
-                @if($investment->status === 'active')
+                @if($investment->category === 'shareholder' || $investment->status === 'active')
                     <a href="{{ route('investments.edit', $investment) }}" class="px-4 py-2.5 rounded-xl border border-slate-600 text-slate-300 hover:bg-slate-700 font-medium text-sm">Edit</a>
                 @endif
                 <form action="{{ route('investments.destroy', $investment) }}" method="POST" class="inline" onsubmit="return confirm('Remove this investor? Their payout history will be deleted.');">
@@ -23,14 +23,21 @@
             <div class="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-5">
                 <h2 class="text-sm font-medium text-slate-400 mb-3">Investment terms</h2>
                 <dl class="space-y-2 text-sm">
+                    <div class="flex justify-between"><dt class="text-slate-500">Category</dt><dd><span class="px-2 py-0.5 rounded text-xs font-medium {{ $investment->category === 'investor' ? 'bg-amber-500/20 text-amber-400' : 'bg-violet-500/20 text-violet-400' }}">{{ \App\Models\Investment::categoryLabel($investment->category) }}</span></dd></div>
                     <div class="flex justify-between"><dt class="text-slate-500">Amount</dt><dd class="text-white font-medium">৳{{ number_format($investment->amount, 0) }}</dd></div>
                     <div class="flex justify-between"><dt class="text-slate-500">Invested at</dt><dd class="text-slate-300">{{ $investment->invested_at->format('M j, Y') }}</dd></div>
+                    @if($investment->category === 'shareholder')
+                    <div class="flex justify-between"><dt class="text-slate-500">Share %</dt><dd class="text-slate-300">{{ number_format($investment->share_percent ?? 0, 1) }}%</dd></div>
+                    @else
                     <div class="flex justify-between"><dt class="text-slate-500">Risk</dt><dd><span class="px-2 py-0.5 rounded text-xs font-medium {{ $investment->risk_level === 'low' ? 'bg-emerald-500/20 text-emerald-400' : ($investment->risk_level === 'medium' ? 'bg-amber-500/20 text-amber-400' : 'bg-rose-500/20 text-rose-400') }}">{{ \App\Models\Investment::riskLabel($investment->risk_level) }}</span></dd></div>
                     <div class="flex justify-between"><dt class="text-slate-500">Profit share</dt><dd class="text-slate-300">{{ number_format($investment->profit_share_percent, 0) }}%</dd></div>
+                    @endif
+                    @if($investment->category === 'investor')
                     <div class="flex justify-between"><dt class="text-slate-500">Return cap</dt><dd class="text-slate-300">৳{{ number_format($investment->return_cap_amount, 0) }} ({{ $investment->return_cap_multiplier }}×)</dd></div>
-                    <div class="flex justify-between"><dt class="text-slate-500">Returned to date</dt><dd class="text-emerald-400 font-medium">৳{{ number_format($investment->returned_amount, 0) }}</dd></div>
                     <div class="flex justify-between"><dt class="text-slate-500">Remaining cap</dt><dd class="text-slate-300">৳{{ number_format($investment->remaining_cap, 0) }}</dd></div>
-                    <div class="flex justify-between"><dt class="text-slate-500">Status</dt><dd><span class="px-2 py-0.5 rounded text-xs font-medium {{ $investment->status === 'active' ? 'bg-sky-500/20 text-sky-400' : 'bg-slate-600 text-slate-400' }}">{{ \App\Models\Investment::statusLabel($investment->status) }}</span></dd></div>
+                    @endif
+                    <div class="flex justify-between"><dt class="text-slate-500">Returned to date</dt><dd class="text-emerald-400 font-medium">৳{{ number_format($investment->returned_amount, 0) }}</dd></div>
+                    <div class="flex justify-between"><dt class="text-slate-500">Status</dt><dd><span class="px-2 py-0.5 rounded text-xs font-medium {{ ($investment->category === 'shareholder' || $investment->status === 'active') ? 'bg-sky-500/20 text-sky-400' : 'bg-slate-600 text-slate-400' }}">{{ $investment->category === 'shareholder' ? 'Active' : \App\Models\Investment::statusLabel($investment->status) }}</span></dd></div>
                 </dl>
             </div>
             @if($investment->notes)

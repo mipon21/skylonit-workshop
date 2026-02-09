@@ -82,6 +82,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('finance/investors/create', [InvestmentController::class, 'create'])->name('investments.create');
         Route::post('finance/investors', [InvestmentController::class, 'store'])->name('investments.store');
         Route::get('finance/investors/profit-pool', [InvestmentController::class, 'profitPool'])->name('investments.profit-pool');
+        Route::post('finance/investors/partner-pool-split', [InvestmentController::class, 'updatePartnerPoolSplit'])->name('investments.partner-pool-split');
         Route::post('finance/investors/run-distribution', [InvestmentController::class, 'runDistribution'])->name('investments.run-distribution');
         Route::get('finance/investors/{investment}', [InvestmentController::class, 'show'])->name('investments.show');
         Route::get('finance/investors/{investment}/edit', [InvestmentController::class, 'edit'])->name('investments.edit');
