@@ -15,12 +15,14 @@ class ProjectLink extends Model
 
     /** Visibility: who can see this link. Admin always sees all. */
     public const VISIBILITY_ADMIN_ONLY = 'admin_only';
+    public const VISIBILITY_ADMIN_DEVELOPER = 'admin_developer'; // Admin + Developer only
     public const VISIBILITY_CLIENT = 'client';       // Admin + Client (no guest)
     public const VISIBILITY_GUEST = 'guest';        // Admin + Guest (no client)
     public const VISIBILITY_ALL = 'all';             // Admin + Client + Guest
 
     protected $fillable = [
         'project_id',
+        'created_by',
         'link_type',
         'label',
         'url',
@@ -30,18 +32,24 @@ class ProjectLink extends Model
         'login_password',
         'is_public',
         'visible_to_client',
+        'visible_to_developer',
     ];
 
     protected $casts = [
         'is_public' => 'boolean',
         'visible_to_client' => 'boolean',
+        'visible_to_developer' => 'boolean',
     ];
 
-    /** Current visibility slug from is_public + visible_to_client. */
+    /** Current visibility slug from is_public + visible_to_client + visible_to_developer. */
     public function getVisibilityAttribute(): string
     {
-        $client = (bool) ($this->visible_to_client ?? true);
+        $client = (bool) ($this->visible_to_client ?? false);
         $guest = (bool) ($this->is_public ?? false);
+        $developer = (bool) ($this->visible_to_developer ?? false);
+        if (! $client && ! $guest && $developer) {
+            return self::VISIBILITY_ADMIN_DEVELOPER;
+        }
         if (! $client && ! $guest) {
             return self::VISIBILITY_ADMIN_ONLY;
         }
@@ -58,6 +66,7 @@ class ProjectLink extends Model
     {
         return [
             self::VISIBILITY_ADMIN_ONLY => 'Admin only',
+            self::VISIBILITY_ADMIN_DEVELOPER => 'Admin & Developer only',
             self::VISIBILITY_CLIENT => 'Admin & Client (no guest)',
             self::VISIBILITY_GUEST => 'Admin & Guest (no client)',
             self::VISIBILITY_ALL => 'Everyone (Admin, Client & Guest)',
@@ -72,5 +81,10 @@ class ProjectLink extends Model
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

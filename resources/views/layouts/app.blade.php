@@ -84,16 +84,52 @@
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
                     Projects
                 </a>
+                @if((Auth::user()->isDeveloper() || Auth::user()->isSales()) && isset($sidebarPayouts) && $sidebarPayouts->isNotEmpty())
+                <div class="pt-2 pb-1" x-data="{ paymentsOpen: true }">
+                    <button type="button" @click="paymentsOpen = !paymentsOpen" class="flex items-center gap-3 w-full px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800/80 hover:text-white transition" @click.stop="sidebarOpen = false">
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        <span class="font-medium">Payments</span>
+                        <span class="ml-auto text-xs text-slate-500">{{ $sidebarPayouts->count() }}</span>
+                        <svg class="w-4 h-4 text-slate-500 transition-transform" :class="paymentsOpen && 'rotate-180'" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+                    </button>
+                    <div x-show="paymentsOpen" x-transition class="mt-0.5 space-y-0.5">
+                        @foreach($sidebarPayouts as $payout)
+                        <a href="{{ route('projects.show', $payout->project) }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 transition text-sm truncate group" @click="sidebarOpen = false">
+                            <span class="truncate flex-1 min-w-0" title="{{ $payout->project->project_name ?? '' }}">{{ $payout->project->project_name ?? '—' }}</span>
+                            <span @class([
+                                'shrink-0 px-1.5 py-0.5 rounded text-xs font-medium',
+                                'bg-amber-500/20 text-amber-400' => $payout->status === 'due',
+                                'bg-emerald-500/20 text-emerald-400' => $payout->status === 'paid',
+                                'bg-sky-500/20 text-sky-400' => $payout->status === 'upcoming',
+                                'bg-slate-500/20 text-slate-400' => in_array($payout->status, ['partial']),
+                            ])>{{ \App\Models\ProjectPayout::statusLabel($payout->status) }}</span>
+                        </a>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+                @if(Auth::user()->isAdmin())
+                <a href="{{ route('developers.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800/80 hover:text-white transition {{ request()->routeIs('developers.*') ? 'bg-sky-500/20 text-sky-400' : '' }}" @click="sidebarOpen = false">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                    Developers
+                </a>
+                <a href="{{ route('sales.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800/80 hover:text-white transition {{ request()->routeIs('sales.*') ? 'bg-sky-500/20 text-sky-400' : '' }}" @click="sidebarOpen = false">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                    Sales
+                </a>
+                @endif
                 @if(Auth::user()->isClient())
                 <a href="{{ route('client.payments.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800/80 hover:text-white transition {{ request()->routeIs('client.payments.*') ? 'bg-sky-500/20 text-sky-400' : '' }}" @click="sidebarOpen = false">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                     Payments
                 </a>
                 @endif
+                @if(Auth::user()->isAdmin() || Auth::user()->isClient())
                 <a href="{{ route('invoices.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800/80 hover:text-white transition {{ request()->routeIs('invoices.*') ? 'bg-sky-500/20 text-sky-400' : '' }}" @click="sidebarOpen = false">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     Invoices
                 </a>
+                @endif
                 @if(Auth::user()->isAdmin())
                 <a href="{{ route('revenue.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800/80 hover:text-white transition {{ request()->routeIs('revenue.*') ? 'bg-sky-500/20 text-sky-400' : '' }}" @click="sidebarOpen = false">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>

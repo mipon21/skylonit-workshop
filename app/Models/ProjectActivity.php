@@ -10,6 +10,8 @@ class ProjectActivity extends Model
 {
     public const VISIBILITY_INTERNAL = 'internal';
     public const VISIBILITY_CLIENT = 'client';
+    /** Visible to assigned developers and sales (e.g. payment marked paid, project assignment). */
+    public const VISIBILITY_DEVELOPER_SALES = 'developer_sales';
 
     protected $fillable = [
         'project_id',
@@ -29,11 +31,11 @@ class ProjectActivity extends Model
         return $this->belongsTo(User::class);
     }
 
-    /** Actor name for display: Admin / Client or user name. */
+    /** Actor for display: role only (Admin, Developer, Client, Sales) – no names. */
     public function getActorNameAttribute(): string
     {
         if ($this->user_id && $this->relationLoaded('user') && $this->user) {
-            return $this->user->role === 'client' ? 'Client' : ($this->user->name ?: 'Admin');
+            return ucfirst($this->user->role);
         }
         if ($this->user_id) {
             return 'Admin';

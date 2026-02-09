@@ -30,12 +30,16 @@ class RevenueController extends Controller
                 'net_base' => $p->net_base,
                 'overhead' => $p->overhead,
                 'realized_overhead' => $p->realized_overhead,
+                'paid_overhead' => $p->paid_overhead,
                 'sales' => $p->sales,
                 'realized_sales' => $p->realized_sales,
+                'paid_sales' => $p->paid_sales,
                 'developer' => $p->developer,
                 'realized_developer' => $p->realized_developer,
+                'paid_developer' => $p->paid_developer,
                 'profit' => $p->profit,
                 'realized_profit' => $p->realized_profit,
+                'paid_profit' => $p->paid_profit,
                 'due' => $p->due,
             ];
         })->values()->toArray();

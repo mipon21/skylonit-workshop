@@ -18,7 +18,7 @@ class FundBalanceService
 {
     public function getOverheadBalance(): float
     {
-        $inflow = Project::query()->get()->sum(fn ($p) => $p->realized_overhead);
+        $inflow = Project::query()->get()->sum(fn ($p) => $p->paid_overhead);
         $debits = InternalFundLedger::where('fund_type', InternalFundLedger::FUND_OVERHEAD)
             ->where('direction', InternalFundLedger::DIRECTION_DEBIT)
             ->sum('amount');

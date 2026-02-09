@@ -34,6 +34,7 @@ class EmailTemplateController extends Controller
     public function preview(EmailTemplate $email_template): View
     {
         $sampleData = [
+            'name' => 'Sample Developer',
             'client_name' => 'Sample Client',
             'client_email' => 'client@example.com',
             'project_name' => 'Sample Project',

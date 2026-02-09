@@ -16,14 +16,19 @@
                         <input type="file" name="file" required class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 file:mr-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-slate-700 file:text-slate-200 text-sm">
                         @error('file')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
                     </div>
-                    @if(!($isClient ?? false))
+                    @if(($isDeveloper ?? false) || ($isClient ?? false))
+                    <input type="hidden" name="send_email" value="1">
+                    <p class="text-slate-500 text-xs pt-2 border-t border-slate-700/50">Email notification will be sent to the client.</p>
+                    @else
                     <div class="pt-2 border-t border-slate-700/50">
                         <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="send_email" value="1" {{ old('send_email', true) ? 'checked' : '' }} class="rounded border-slate-600 bg-slate-900 text-sky-500 focus:ring-sky-500">
+                            <input type="checkbox" name="send_email" value="1" {{ old('send_email', false) ? 'checked' : '' }} class="rounded border-slate-600 bg-slate-900 text-sky-500 focus:ring-sky-500">
                             <span class="text-sm font-medium text-slate-400">Send Email Notification?</span>
                         </label>
-                        <p class="text-slate-500 text-xs mt-1">Only sent when visibility is client (public).</p>
+                        <p class="text-slate-500 text-xs mt-1">Only sent when visibility is public.</p>
                     </div>
+                    @endif
+                    @if(!($isClient ?? false) && !($isDeveloper ?? false))
                     <div class="flex items-center justify-between">
                         <span class="text-sm font-medium text-slate-400">Visibility</span>
                         <label class="js-visibility-toggle-label is-checked relative inline-flex items-center cursor-pointer gap-3 flex-shrink-0">

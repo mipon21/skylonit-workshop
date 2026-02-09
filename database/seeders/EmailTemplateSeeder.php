@@ -82,6 +82,66 @@ class EmailTemplateSeeder extends Seeder
                 'subject' => 'Contract signed – {{project_name}}',
                 'body' => "<p>Hello {{client_name}},</p>\n<p>This is to confirm that the contract for project <strong>{{project_name}}</strong> was signed on {{signed_at}}.</p>\n<p>The signed copy is attached to this email (if applicable).</p>",
             ],
+            [
+                'key' => 'project_assigned',
+                'name' => 'Developer/Sales assigned to project',
+                'subject' => 'You have been assigned to project: {{project_name}}',
+                'body' => "<p>Hello {{name}},</p>\n<p>You have been assigned to a project.</p>\n<p><strong>Project:</strong> {{project_name}}</p>\n<p><strong>Code:</strong> {{project_code}}</p>\n<p>Log in to view tasks, bugs, notes and links: <a href=\"{{login_url}}\">{{login_url}}</a></p>",
+            ],
+            [
+                'key' => 'internal_account_created',
+                'name' => 'Internal user (Developer/Sales) account created',
+                'subject' => 'Your account has been created – {{name}}',
+                'body' => "<p>Hello {{name}},</p>\n<p>Your account has been created.</p>\n<p><strong>Email:</strong> {{email}}</p>\n<p><strong>Password:</strong> {{password}}</p>\n<p>Log in here: <a href=\"{{login_url}}\">{{login_url}}</a></p>\n<p>Please change your password after first login.</p>",
+            ],
+            [
+                'key' => 'developer_task_assigned',
+                'name' => 'Developer task assigned',
+                'subject' => 'Task assigned to you: {{task_title}} – {{project_name}}',
+                'body' => "<p>Hello {{name}},</p>\n<p>A task has been assigned to you.</p>\n<p><strong>Project:</strong> {{project_name}} ({{project_code}})</p>\n<p><strong>Task:</strong> {{task_title}}</p>\n<p><a href=\"{{project_url}}\">View project &raquo;</a></p>",
+            ],
+            [
+                'key' => 'developer_bug_assigned',
+                'name' => 'Developer bug assigned',
+                'subject' => 'Bug assigned to you: {{bug_title}} – {{project_name}}',
+                'body' => "<p>Hello {{name}},</p>\n<p>A bug has been assigned to you.</p>\n<p><strong>Project:</strong> {{project_name}} ({{project_code}})</p>\n<p><strong>Bug:</strong> {{bug_title}}</p>\n<p><a href=\"{{project_url}}\">View project &raquo;</a></p>",
+            ],
+            [
+                'key' => 'sales_project_complete',
+                'name' => 'Sales – project status Complete',
+                'subject' => 'Project marked Complete: {{project_name}}',
+                'body' => "<p>Hello {{name}},</p>\n<p>The following project has been marked as Complete.</p>\n<p><strong>Project:</strong> {{project_name}} ({{project_code}})</p>\n<p><a href=\"{{project_url}}\">View project &raquo;</a></p>",
+            ],
+            [
+                'key' => 'developer_payout_updated',
+                'name' => 'Developer payout status updated',
+                'subject' => 'Payment status updated for {{project_name}}',
+                'body' => "<p>Hello {{name}},</p>\n<p>Your {{payout_type}} payment status for project <strong>{{project_name}}</strong> has been updated to: {{payout_status}}.</p>\n<p><a href=\"{{project_url}}\">View project &raquo;</a></p>",
+            ],
+            [
+                'key' => 'sales_payout_updated',
+                'name' => 'Sales payout status updated',
+                'subject' => 'Payment status updated for {{project_name}}',
+                'body' => "<p>Hello {{name}},</p>\n<p>Your {{payout_type}} payment status for project <strong>{{project_name}}</strong> has been updated to: {{payout_status}}.</p>\n<p><a href=\"{{project_url}}\">View project &raquo;</a></p>",
+            ],
+            [
+                'key' => 'developer_note_added',
+                'name' => 'Developer – new note on project',
+                'subject' => 'New note for {{project_name}}: {{note_title}}',
+                'body' => "<p>Hello {{name}},</p>\n<p>A new note has been added to a project you are assigned to.</p>\n<p><strong>Project:</strong> {{project_name}} ({{project_code}})</p>\n<p><strong>Note:</strong> {{note_title}}</p>\n<p><a href=\"{{project_url}}\">View project &raquo;</a></p>",
+            ],
+            [
+                'key' => 'developer_link_added',
+                'name' => 'Developer – new link on project',
+                'subject' => 'New link for {{project_name}}: {{link_label}}',
+                'body' => "<p>Hello {{name}},</p>\n<p>A new link has been added to a project you are assigned to.</p>\n<p><strong>Project:</strong> {{project_name}} ({{project_code}})</p>\n<p><strong>Link:</strong> {{link_label}}</p>\n<p><a href=\"{{project_url}}\">View project &raquo;</a></p>",
+            ],
+            [
+                'key' => 'developer_document_uploaded',
+                'name' => 'Developer – new document on project',
+                'subject' => 'New document for {{project_name}}: {{document_name}}',
+                'body' => "<p>Hello {{name}},</p>\n<p>A new document has been uploaded to a project you are assigned to.</p>\n<p><strong>Project:</strong> {{project_name}} ({{project_code}})</p>\n<p><strong>Document:</strong> {{document_name}}</p>\n<p><a href=\"{{project_url}}\">View project &raquo;</a></p>",
+            ],
         ];
 
         foreach ($templates as $t) {

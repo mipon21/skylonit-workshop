@@ -45,19 +45,32 @@
                     </template>
                     <div class="pt-2 border-t border-slate-700/50">
                         <label class="block text-sm font-medium text-slate-400 mb-1">Who can see this link?</label>
-                        <select name="visibility" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
-                            @foreach(\App\Models\ProjectLink::visibilityLabels() as $value => $label)
-                                <option value="{{ $value }}" {{ old('visibility', 'client') === $value ? 'selected' : '' }}>{{ $label }}</option>
-                            @endforeach
-                        </select>
-                        <p class="text-slate-500 text-xs mt-1">Admin always sees all. Choose who else can see this link or APK.</p>
+                        @if($isDeveloper ?? false)
+                            <input type="hidden" name="visibility" value="{{ \App\Models\ProjectLink::VISIBILITY_CLIENT }}">
+                            <select disabled class="w-full rounded-xl bg-slate-800/80 border border-slate-600 text-slate-400 px-4 py-2.5 cursor-not-allowed">
+                                <option value="{{ \App\Models\ProjectLink::VISIBILITY_CLIENT }}" selected>Admin & Client (no guest)</option>
+                            </select>
+                            <p class="text-slate-500 text-xs mt-1">Developers can only add links visible to Admin & Client.</p>
+                        @else
+                            <select name="visibility" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+                                @foreach(\App\Models\ProjectLink::visibilityLabels() as $value => $label)
+                                    <option value="{{ $value }}" {{ old('visibility', 'client') === $value ? 'selected' : '' }}>{{ $label }}</option>
+                                @endforeach
+                            </select>
+                            <p class="text-slate-500 text-xs mt-1">Admin always sees all. Choose who else can see this link or APK.</p>
+                        @endif
                     </div>
+                    @if(($isDeveloper ?? false) || ($isClient ?? false))
+                    <input type="hidden" name="send_email" value="1">
+                    <p class="text-slate-500 text-xs pt-2 border-t border-slate-700/50">Email notification will be sent to the client.</p>
+                    @else
                     <div class="pt-2 border-t border-slate-700/50">
                         <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="send_email" value="1" {{ old('send_email', true) ? 'checked' : '' }} class="rounded border-slate-600 bg-slate-900 text-sky-500 focus:ring-sky-500">
+                            <input type="checkbox" name="send_email" value="1" {{ old('send_email', false) ? 'checked' : '' }} class="rounded border-slate-600 bg-slate-900 text-sky-500 focus:ring-sky-500">
                             <span class="text-sm font-medium text-slate-400">Send Email Notification?</span>
                         </label>
                     </div>
+                    @endif
                 </div>
                 <div class="mt-6 flex justify-end gap-3">
                     <button type="button" @click="linkModal = false" class="px-4 py-2.5 rounded-xl border border-slate-600 text-slate-300 hover:bg-slate-700">Cancel</button>

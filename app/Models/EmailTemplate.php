@@ -22,6 +22,7 @@ class EmailTemplate extends Model
     public static function availablePlaceholders(): array
     {
         return [
+            'name',
             'client_name',
             'client_email',
             'project_name',

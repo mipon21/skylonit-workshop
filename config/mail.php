@@ -125,6 +125,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Project activity notification addresses (client uploads & admin changes)
+    |--------------------------------------------------------------------------
+    | Comma-separated email address(es) that receive notifications when:
+    | - A client uploads a document, or
+    | - An admin (or system) changes project-related data (payments, expenses,
+    |   documents, contracts, tasks, bugs, notes, links, client, activity).
+    | Example: MAIL_PROJECT_ACTIVITY_NOTIFICATION_TO=dev@example.com,pm@example.com
+    */
+    'project_activity_notification_to' => array_filter(array_map('trim', explode(',', env('MAIL_PROJECT_ACTIVITY_NOTIFICATION_TO', '')))),
+
+    /*
+    |--------------------------------------------------------------------------
     | Email Footer (shown on all notification emails)
     |--------------------------------------------------------------------------
     | Override via .env (MAIL_FOOTER_*) or via Settings in database.

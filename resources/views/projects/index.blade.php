@@ -54,7 +54,7 @@
     <div class="space-y-6" x-data="{ open: false }">
         <div class="flex flex-wrap items-center justify-between gap-4">
             <h1 class="text-2xl font-semibold text-white">Projects</h1>
-            @if(!($isClient ?? false))
+            @if(!($isClient ?? false) && !($isDeveloper ?? false) && !($isSales ?? false))
             <button @click="open = true" class="px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-medium text-sm transition">
                 Add Project
             </button>
@@ -89,7 +89,9 @@
                 <div x-show="filteredIds.includes({{ $project->id }})" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="group relative bg-slate-800/60 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg hover:shadow-xl hover:border-slate-600 transition-all hover:-translate-y-0.5 overflow-visible max-md:p-4">
                     <a href="{{ route('projects.show', $project) }}" class="block">
                         <p class="font-semibold text-white group-hover:text-sky-400 transition">{{ $project->project_name }} <span class="text-slate-500 text-sm font-normal">· {{ $project->project_code ?: $project->formatted_id }}</span></p>
+                        @if(!($isDeveloper ?? false) && !($isSales ?? false))
                         <p class="text-slate-400 text-sm mt-1">{{ $project->client->name }}</p>
+                        @endif
                         <div class="mt-3 flex flex-wrap items-center gap-2">
                             @if($project->project_type)
                                 <span class="px-2.5 py-0.5 rounded-lg text-xs font-medium bg-slate-600/80 text-slate-300 border border-slate-500/50">{{ $project->project_type }}</span>
@@ -120,6 +122,7 @@
                                 <div class="absolute top-0 left-0 bottom-0 rounded-full transition-[width] duration-700 ease-out" style="height: 13px; background: linear-gradient(to right, #0ea5e9, #22d3ee);" :style="{ width: progressFill + '%' }"></div>
                             </div>
                         </div>
+                        @if(!($isDeveloper ?? false) && !($isSales ?? false))
                         <div class="mt-3" x-data="{ payFill: 0, payTarget: {{ $paymentProgressPercent }} }" x-init="setTimeout(() => { payFill = payTarget }, 200)">
                             <div class="flex items-center justify-between text-xs mb-1">
                                 <span class="text-slate-500 font-medium">Payment progress</span>
@@ -137,10 +140,33 @@
                             <span class="text-slate-400">Due</span>
                             <span class="payment-amount {{ $project->due > 0 ? 'text-amber-400' : 'text-emerald-400' }} font-medium">৳ {{ number_format($project->due, 0) }}</span>
                         </div>
+                        @elseif($isDeveloper ?? false)
+                        @php $devPayoutStatus = $project->getPayoutFor(\App\Models\ProjectPayout::TYPE_DEVELOPER)?->status ?? 'not_paid'; @endphp
+                        <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between text-sm">
+                            <span class="text-slate-400">Your payout</span>
+                            <span @class([
+                                'font-medium',
+                                'text-emerald-400' => $devPayoutStatus === 'paid',
+                                'text-amber-400' => in_array($devPayoutStatus, ['partial', 'due', 'upcoming']),
+                                'text-slate-400' => $devPayoutStatus === 'not_paid',
+                            ])>{{ $devPayoutStatus === 'paid' ? 'Paid' : ($devPayoutStatus === 'partial' ? 'Partially paid' : 'Not paid') }}</span>
+                        </div>
+                        @elseif($isSales ?? false)
+                        @php $salesPayoutStatus = $project->getPayoutFor(\App\Models\ProjectPayout::TYPE_SALES)?->status ?? 'not_paid'; @endphp
+                        <div class="mt-4 pt-4 border-t border-slate-700/50 flex justify-between text-sm">
+                            <span class="text-slate-400">Your payout</span>
+                            <span @class([
+                                'font-medium',
+                                'text-emerald-400' => $salesPayoutStatus === 'paid',
+                                'text-amber-400' => in_array($salesPayoutStatus, ['partial', 'due', 'upcoming']),
+                                'text-slate-400' => $salesPayoutStatus === 'not_paid',
+                            ])>{{ $salesPayoutStatus === 'paid' ? 'Paid' : ($salesPayoutStatus === 'partial' ? 'Partially paid' : 'Not paid') }}</span>
+                        </div>
+                        @endif
                     </a>
                     <div class="mt-4 pt-4 border-t border-slate-700/50 flex flex-wrap items-center gap-2">
                         <a href="{{ route('projects.show', $project) }}" class="px-3 py-1.5 rounded-lg bg-slate-700/80 hover:bg-slate-600 text-slate-300 hover:text-white text-xs font-medium">View</a>
-                        @if(!($isClient ?? false))
+                        @if(!($isClient ?? false) && !($isDeveloper ?? false) && !($isSales ?? false))
                         <a href="{{ route('projects.edit', $project) }}" class="px-3 py-1.5 rounded-lg bg-slate-700/80 hover:bg-slate-600 text-slate-300 hover:text-white text-xs font-medium">Edit</a>
                         <form action="{{ route('projects.destroy', $project) }}" method="POST" class="inline" onsubmit="return confirm('Delete this project? All related payments, expenses, documents, tasks, bugs and notes will be removed.');">
                             @csrf
@@ -159,7 +185,7 @@
             <p x-show="projectsData.length && filteredIds.length === 0" x-transition class="py-6 text-center text-slate-500">No projects match your search or filter.</p>
         </div>
 
-        @if(!($isClient ?? false))
+        @if(!($isClient ?? false) && !($isDeveloper ?? false) && !($isSales ?? false))
         {{-- Add Project Modal --}}
         <div x-show="open" x-cloak class="fixed inset-0 z-50 overflow-y-auto" aria-modal="true">
             <div class="flex min-h-full items-center justify-center p-4 max-md:p-0 max-md:items-stretch">
@@ -242,6 +268,31 @@
                                         <option value="On Hold" {{ old('status') === 'On Hold' ? 'selected' : '' }}>On Hold</option>
                                     </select>
                                 </div>
+                                @if(($developers ?? collect())->isNotEmpty())
+                                @php $defaultAddDeveloperIds = $developers->count() === 1 ? [$developers->first()->id] : []; @endphp
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-400 mb-1">Assign Developers</label>
+                                    <select name="developer_ids[]" multiple class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 min-h-[100px]">
+                                        @foreach($developers as $dev)
+                                            <option value="{{ $dev->id }}" {{ in_array($dev->id, old('developer_ids', $defaultAddDeveloperIds)) ? 'selected' : '' }}>{{ $dev->name }} ({{ $dev->email }})</option>
+                                        @endforeach
+                                    </select>
+                                    <p class="text-slate-500 text-xs mt-1">Hold Ctrl/Cmd to select multiple. Optional. Assigned users receive an email when added.</p>
+                                </div>
+                                @endif
+                                @if(($sales ?? collect())->isNotEmpty())
+                                @php $defaultAddSalesId = $sales->count() === 1 ? $sales->first()->id : ''; @endphp
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-400 mb-1">Assign Sales (one per project)</label>
+                                    <select name="sales_id" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+                                        <option value="">— None —</option>
+                                        @foreach($sales as $s)
+                                            <option value="{{ $s->id }}" {{ (string) old('sales_id', $defaultAddSalesId) === (string) $s->id ? 'selected' : '' }}>{{ $s->name }} ({{ $s->email }})</option>
+                                        @endforeach
+                                    </select>
+                                    <p class="text-slate-500 text-xs mt-1">Optional. One sales person per project. They receive an email when assigned.</p>
+                                </div>
+                                @endif
 
                                 {{-- Distribution Settings: hidden by default, toggled by gear icon --}}
                                 <div x-show="distributionSettingsOpen" class="pt-4 mt-4 border-t-2 border-slate-600/70 rounded-xl bg-slate-800/40 p-4 -mx-1">

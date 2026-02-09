@@ -52,13 +52,14 @@ class ProfitPoolService
     }
 
     /**
-     * Total profit pool (all-time) = sum of all projects' realized_profit. Dynamic, not stored.
+     * Total profit pool (all-time) = sum of all projects' paid_profit. Only projects
+     * with profit payout status "paid" (or partial with amount_paid) contribute. Dynamic, not stored.
      */
     public function getTotalProfitPool(): float
     {
         $total = \App\Models\Project::with([])->get()->sum(function ($p) {
             // Developer–Sales mode projects contribute ZERO to profit pool.
-            return $p->is_developer_sales_mode ? 0 : $p->realized_profit;
+            return $p->is_developer_sales_mode ? 0 : $p->paid_profit;
         });
         return round($total, 2);
     }

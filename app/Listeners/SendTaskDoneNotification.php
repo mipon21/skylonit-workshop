@@ -4,16 +4,21 @@ namespace App\Listeners;
 
 use App\Events\TaskStatusUpdated;
 use App\Jobs\SendTemplateMailJob;
+use App\Models\User;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 class SendTaskDoneNotification implements ShouldQueue
 {
+    /** Notify client when Admin or Developer marks the task as done (not when client does). */
     public function handle(TaskStatusUpdated $event): void
     {
         if ($event->newStatus !== 'done') {
             return;
         }
-        // Always send when task is marked Done
+        $updater = $event->updatedByUserId ? User::find($event->updatedByUserId) : null;
+        if (! $updater || $updater->isClient()) {
+            return;
+        }
         $task = $event->task->load(['project.client']);
         $project = $task->project;
         $client = $project->client;

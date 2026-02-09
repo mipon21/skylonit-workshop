@@ -4,16 +4,23 @@ namespace App\Listeners;
 
 use App\Events\DocumentUploaded;
 use App\Jobs\SendTemplateMailJob;
+use App\Models\User;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 class SendDocumentUploadedNotification implements ShouldQueue
 {
+    /** Notify client when Admin or Developer uploads a document (not when client uploads). */
     public function handle(DocumentUploaded $event): void
     {
-        if (! $event->sendEmail) {
+        if (! $event->document->is_public) {
             return;
         }
-        if (! $event->document->is_public) {
+        $uploader = $event->document->uploaded_by_user_id ? User::find($event->document->uploaded_by_user_id) : null;
+        if (! $uploader || $uploader->isClient()) {
+            return;
+        }
+        // Developer upload: always notify client (form has no send_email checkbox for developers). Admin: respect checkbox.
+        if ($uploader->isAdmin() && ! $event->sendEmail) {
             return;
         }
 

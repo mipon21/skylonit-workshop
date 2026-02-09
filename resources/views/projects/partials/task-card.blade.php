@@ -23,8 +23,10 @@
     </button>
     <div x-show="expandedTaskId == {{ $task->id }}" x-transition class="px-3 pb-3 border-t border-slate-700/50">
         <div class="pt-2 text-slate-300 text-sm whitespace-pre-wrap">{{ $task->description ?: '—' }}</div>
+        @php $canChangeTaskStatus = !($isClient ?? false) && ((($isDeveloper ?? false) && $task->assigned_to_user_id === Auth::id()) || (!($isDeveloper ?? false) && !($isSales ?? false))); @endphp
         @if(!($isClient ?? false))
         <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
+            @if($canChangeTaskStatus)
             <form action="{{ route('projects.tasks.update', [$project, $task]) }}" method="POST" class="inline">
                 @csrf
                 @method('PATCH')
@@ -39,6 +41,8 @@
                     <option value="done" {{ $task->status === 'done' ? 'selected' : '' }}>Done</option>
                 </select>
             </form>
+            @endif
+            @if(!($isDeveloper ?? false) && !($isSales ?? false))
             <div class="flex items-center gap-2">
                 <button type="button" @click="taskEditModal = {{ $task->id }}" class="text-sky-400 hover:text-sky-300 text-xs">Edit</button>
                 <form action="{{ route('projects.tasks.destroy', [$project, $task]) }}" method="POST" class="inline" onsubmit="return confirm('Delete this task?');">
@@ -47,6 +51,7 @@
                     <button type="submit" class="text-red-400 hover:text-red-300 text-xs">Delete</button>
                 </form>
             </div>
+            @endif
         </div>
         @endif
     </div>

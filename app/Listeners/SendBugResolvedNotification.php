@@ -4,16 +4,21 @@ namespace App\Listeners;
 
 use App\Events\BugStatusUpdated;
 use App\Jobs\SendTemplateMailJob;
+use App\Models\User;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 class SendBugResolvedNotification implements ShouldQueue
 {
+    /** Notify client when Admin or Developer marks the bug as resolved (not when client does). */
     public function handle(BugStatusUpdated $event): void
     {
         if ($event->newStatus !== 'resolved') {
             return;
         }
-        // Always send when bug is marked Resolved
+        $updater = $event->updatedByUserId ? User::find($event->updatedByUserId) : null;
+        if (! $updater || $updater->isClient()) {
+            return;
+        }
         $bug = $event->bug->load(['project.client']);
         $project = $bug->project;
         $client = $project->client;

@@ -19,6 +19,7 @@ use App\Http\Controllers\Guest\GuestProjectController;
 use App\Http\Controllers\Guest\LeadController as GuestLeadController;
 use App\Http\Controllers\HotOfferController;
 use App\Http\Controllers\InternalExpenseController;
+use App\Http\Controllers\InternalUserController;
 use App\Http\Controllers\InvestmentController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\LeadController;
@@ -53,10 +54,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/dashboard/calendar-notes', [CalendarNoteController::class, 'store'])->name('calendar-notes.store');
     Route::delete('/dashboard/calendar-notes/{date}', [CalendarNoteController::class, 'destroy'])->name('calendar-notes.destroy');
 
-    // Invoices: both admin and client can view/download their invoices
-    Route::get('/invoices', [InvoiceController::class, 'index'])->name('invoices.index');
-    Route::get('/invoices/{invoice}/download', [InvoiceController::class, 'download'])->name('invoices.download');
-    Route::get('/invoices/{invoice}/view', [InvoiceController::class, 'view'])->name('invoices.view');
+    // Invoices: admin and client only; developer and sales cannot access
+    Route::middleware('invoices')->group(function () {
+        Route::get('/invoices', [InvoiceController::class, 'index'])->name('invoices.index');
+        Route::get('/invoices/{invoice}/download', [InvoiceController::class, 'download'])->name('invoices.download');
+        Route::get('/invoices/{invoice}/view', [InvoiceController::class, 'view'])->name('invoices.view');
+    });
 
     // Client payments list (requires auth)
     Route::get('/client/payments', [ClientPaymentController::class, 'index'])->name('client.payments.index');
@@ -71,6 +74,9 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/payment-methods', [\App\Http\Controllers\UserPaymentMethodController::class, 'store'])->name('profile.payment-methods.store');
+    Route::put('/profile/payment-methods/{user_payment_method}', [\App\Http\Controllers\UserPaymentMethodController::class, 'update'])->name('profile.payment-methods.update');
+    Route::delete('/profile/payment-methods/{user_payment_method}', [\App\Http\Controllers\UserPaymentMethodController::class, 'destroy'])->name('profile.payment-methods.destroy');
     Route::post('/profile/logo', [ProfileController::class, 'updateLogo'])->name('profile.logo.update');
     Route::post('/profile/favicon', [ProfileController::class, 'updateFavicon'])->name('profile.favicon.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -118,6 +124,8 @@ Route::middleware(['auth'])->group(function () {
             'destroy' => 'testimonials.destroy',
         ]);
         Route::resource('clients', ClientController::class);
+        Route::resource('developers', InternalUserController::class)->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy'])->names('developers');
+        Route::resource('sales', InternalUserController::class)->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy'])->names('sales');
 
         Route::get('dashboard/projects/create', [ProjectController::class, 'create'])->name('projects.create');
         Route::post('projects', [ProjectController::class, 'store'])->name('projects.store');
@@ -148,19 +156,6 @@ Route::middleware(['auth'])->group(function () {
         Route::post('projects/{project}/contracts/{contract}/send-email', [ContractController::class, 'sendEmail'])->name('projects.contracts.send-email');
 
         Route::post('projects/{project}/tasks', [TaskController::class, 'store'])->name('projects.tasks.store');
-        Route::patch('projects/{project}/tasks/{task}', [TaskController::class, 'update'])->name('projects.tasks.update');
-        Route::delete('projects/{project}/tasks/{task}', [TaskController::class, 'destroy'])->name('projects.tasks.destroy');
-
-        Route::patch('projects/{project}/bugs/{bug}', [BugController::class, 'update'])->name('projects.bugs.update');
-        Route::delete('projects/{project}/bugs/{bug}', [BugController::class, 'destroy'])->name('projects.bugs.destroy');
-
-        Route::post('projects/{project}/notes', [ProjectNoteController::class, 'store'])->name('projects.notes.store');
-        Route::patch('projects/{project}/notes/{project_note}', [ProjectNoteController::class, 'update'])->name('projects.notes.update');
-        Route::delete('projects/{project}/notes/{project_note}', [ProjectNoteController::class, 'destroy'])->name('projects.notes.destroy');
-
-        Route::post('projects/{project}/links', [ProjectLinkController::class, 'store'])->name('projects.links.store');
-        Route::patch('projects/{project}/links/{project_link}', [ProjectLinkController::class, 'update'])->name('projects.links.update');
-        Route::delete('projects/{project}/links/{project_link}', [ProjectLinkController::class, 'destroy'])->name('projects.links.destroy');
 
         // Settings → Email Templates
         Route::get('settings/email-templates', [EmailTemplateController::class, 'index'])->name('email-templates.index');
@@ -176,6 +171,23 @@ Route::middleware(['auth'])->group(function () {
     // Shared: projects index & show (controller scopes for client) – under dashboard to avoid conflict with guest /projects
     Route::get('dashboard/projects', [ProjectController::class, 'index'])->name('projects.index');
     Route::get('dashboard/projects/{project}', [ProjectController::class, 'show'])->name('projects.show');
+    Route::post('projects/{project}/activity-viewed', [ProjectController::class, 'markActivityViewed'])->name('projects.activity.viewed');
+
+    // Task/Bug update & destroy: developer can update status only on assigned items (controller enforces); admin can do all
+    Route::patch('projects/{project}/tasks/{task}', [TaskController::class, 'update'])->name('projects.tasks.update');
+    Route::delete('projects/{project}/tasks/{task}', [TaskController::class, 'destroy'])->name('projects.tasks.destroy');
+    Route::patch('projects/{project}/bugs/{bug}', [BugController::class, 'update'])->name('projects.bugs.update');
+    Route::delete('projects/{project}/bugs/{bug}', [BugController::class, 'destroy'])->name('projects.bugs.destroy');
+
+    // Notes: developer/sales can add notes and edit/delete only their own (controller enforces)
+    Route::post('projects/{project}/notes', [ProjectNoteController::class, 'store'])->name('projects.notes.store');
+    Route::patch('projects/{project}/notes/{project_note}', [ProjectNoteController::class, 'update'])->name('projects.notes.update');
+    Route::delete('projects/{project}/notes/{project_note}', [ProjectNoteController::class, 'destroy'])->name('projects.notes.destroy');
+
+    // Links: developer/sales can add links and edit/delete only their own (controller enforces)
+    Route::post('projects/{project}/links', [ProjectLinkController::class, 'store'])->name('projects.links.store');
+    Route::patch('projects/{project}/links/{project_link}', [ProjectLinkController::class, 'update'])->name('projects.links.update');
+    Route::delete('projects/{project}/links/{project_link}', [ProjectLinkController::class, 'destroy'])->name('projects.links.destroy');
 
     // Documents: client can upload/view/download/delete for own projects
     Route::post('projects/{project}/documents', [DocumentController::class, 'store'])->name('projects.documents.store');

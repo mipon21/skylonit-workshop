@@ -4,16 +4,23 @@ namespace App\Listeners;
 
 use App\Events\NoteCreated;
 use App\Jobs\SendTemplateMailJob;
+use App\Models\User;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 class SendNoteCreatedNotification implements ShouldQueue
 {
+    /** Notify client when Admin or Developer creates a note (not when client creates). */
     public function handle(NoteCreated $event): void
     {
-        if (! $event->sendEmail) {
+        if (($event->note->visibility ?? '') !== 'client') {
             return;
         }
-        if (($event->note->visibility ?? '') !== 'client') {
+        $creator = $event->note->created_by ? User::find($event->note->created_by) : null;
+        if (! $creator || $creator->isClient()) {
+            return;
+        }
+        // Developer: always notify client. Admin: respect send_email checkbox.
+        if ($creator->isAdmin() && ! $event->sendEmail) {
             return;
         }
 

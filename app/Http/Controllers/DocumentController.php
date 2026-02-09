@@ -40,7 +40,8 @@ class DocumentController extends Controller
             'local'
         );
 
-        $isPublic = Auth::user()->isClient()
+        $user = Auth::user();
+        $isPublic = ($user->isClient() || $user->isDeveloper())
             ? true
             : $request->boolean('is_public');
 
@@ -62,6 +63,15 @@ class DocumentController extends Controller
             abort(404);
         }
         $this->authorizeProjectForClient($project);
+        $user = Auth::user();
+        if ($user->isClient() || $user->isDeveloper()) {
+            abort(403, 'Clients and developers cannot change document visibility.');
+        }
+        if ($user->isSales()) {
+            if ((int) $document->uploaded_by_user_id !== (int) $user->id) {
+                abort(403, 'You can only edit documents you uploaded.');
+            }
+        }
         $validated = $request->validate([
             'is_public' => ['required', 'boolean'],
         ]);
@@ -113,6 +123,13 @@ class DocumentController extends Controller
         $this->authorizeProjectForClient($project);
         if ($document->project_id !== $project->id) {
             abort(404);
+        }
+        $user = Auth::user();
+        // Clients and developers/sales may only delete documents they uploaded; admin can delete any.
+        if ($user->isClient() || $user->isDeveloper() || $user->isSales()) {
+            if ((int) $document->uploaded_by_user_id !== (int) $user->id) {
+                abort(403, 'You can only delete documents you uploaded.');
+            }
         }
         Storage::delete($document->file_path);
         $document->delete();

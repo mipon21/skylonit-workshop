@@ -39,6 +39,17 @@
                         <label class="block text-sm font-medium text-slate-400 mb-1">Due date</label>
                         <input type="date" name="due_date" value="{{ old('due_date', $task->due_date?->format('Y-m-d')) }}" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
                     </div>
+                    @if(($developersForAssign ?? collect())->isNotEmpty())
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-1">Assign to Developer</label>
+                        <select name="assigned_to_user_id" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500">
+                            <option value="">— None —</option>
+                            @foreach($developersForAssign as $dev)
+                                <option value="{{ $dev->id }}" {{ old('assigned_to_user_id', $task->assigned_to_user_id) == $dev->id ? 'selected' : '' }}>{{ $dev->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @endif
                     <div class="pt-2 border-t border-slate-700/50">
                         <label class="flex items-center gap-2 cursor-pointer">
                             <input type="hidden" name="is_public" value="0">
@@ -48,7 +59,12 @@
                     </div>
                     <div class="pt-2 border-t border-slate-700/50">
                         <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="send_email" value="1" {{ old('send_email', true) ? 'checked' : '' }} class="rounded border-slate-600 bg-slate-900 text-sky-500 focus:ring-sky-500">
+                            @if(($isDeveloper ?? false) || ($isClient ?? false))
+                            <input type="hidden" name="send_email" value="1">
+                            <p class="text-slate-500 text-xs">Email notification will be sent when relevant.</p>
+                            @else
+                            <input type="checkbox" name="send_email" value="1" {{ old('send_email', false) ? 'checked' : '' }} class="rounded border-slate-600 bg-slate-900 text-sky-500 focus:ring-sky-500">
+                            @endif
                             <span class="text-sm font-medium text-slate-400">Send Email Notification?</span>
                         </label>
                         <p class="text-slate-500 text-xs mt-1">If checked and status is set to Done, client is notified.</p>

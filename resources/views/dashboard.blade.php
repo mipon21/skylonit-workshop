@@ -4,6 +4,95 @@
     <div class="space-y-6">
         <h1 class="text-2xl font-semibold text-white">Dashboard</h1>
 
+        @if($isDeveloper ?? false)
+        {{-- Developer dashboard: no financial data --}}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-md:grid-cols-1 max-md:gap-3">
+            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg max-md:p-4">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 rounded-xl bg-sky-500/20 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+                    </div>
+                    <span class="text-slate-400 text-sm font-medium">Assigned Projects</span>
+                </div>
+                <p class="text-2xl font-bold text-white">{{ $activeProjects ?? 0 }}</p>
+                <p class="text-slate-500 text-xs mt-1">Projects you are assigned to</p>
+            </div>
+            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg max-md:p-4">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                    </div>
+                    <span class="text-slate-400 text-sm font-medium">Assigned Tasks</span>
+                </div>
+                <p class="text-2xl font-bold text-white">{{ $activeTasks ?? 0 }} <span class="text-slate-500 text-base font-normal">open</span> / <span class="text-emerald-400">{{ $assignedTasksDone ?? 0 }}</span> <span class="text-slate-500 text-base font-normal">done</span></p>
+                <p class="text-slate-500 text-xs mt-1">Tasks assigned to you</p>
+            </div>
+            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg max-md:p-4">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    </div>
+                    <span class="text-slate-400 text-sm font-medium">Assigned Bugs</span>
+                </div>
+                <p class="text-2xl font-bold text-white">{{ $openBugs ?? 0 }} <span class="text-slate-500 text-base font-normal">open</span> / <span class="text-emerald-400">{{ $assignedBugsSolved ?? 0 }}</span> <span class="text-slate-500 text-base font-normal">solved</span></p>
+                <p class="text-slate-500 text-xs mt-1">Bugs assigned to you</p>
+            </div>
+            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg max-md:p-4">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 rounded-xl bg-sky-500/20 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    </div>
+                    <span class="text-slate-400 text-sm font-medium">Documents</span>
+                </div>
+                <p class="text-2xl font-bold text-white">{{ $documentsCount ?? 0 }}</p>
+                <p class="text-slate-500 text-xs mt-1">Public documents</p>
+            </div>
+        </div>
+        @elseif($isSales ?? false)
+        {{-- Sales dashboard: assigned projects, payment status only (no amounts) --}}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-md:grid-cols-1 max-md:gap-3">
+            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg max-md:p-4">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 rounded-xl bg-sky-500/20 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+                    </div>
+                    <span class="text-slate-400 text-sm font-medium">Assigned Projects</span>
+                </div>
+                <p class="text-2xl font-bold text-white">{{ $projects->count() }}</p>
+                <p class="text-slate-500 text-xs mt-1">Projects you are assigned to</p>
+            </div>
+            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg max-md:p-4">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <span class="text-slate-400 text-sm font-medium">Paid</span>
+                </div>
+                <p class="text-2xl font-bold text-emerald-400">{{ $projects->where('due', '<=', 0)->count() }}</p>
+                <p class="text-slate-500 text-xs mt-1">Projects fully paid</p>
+            </div>
+            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg max-md:p-4">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <span class="text-slate-400 text-sm font-medium">Unpaid / Partial</span>
+                </div>
+                <p class="text-2xl font-bold text-amber-400">{{ $projects->filter(fn ($p) => $p->due > 0)->count() }}</p>
+                <p class="text-slate-500 text-xs mt-1">Payment status only (no amounts)</p>
+            </div>
+            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg max-md:p-4">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    </div>
+                    <span class="text-slate-400 text-sm font-medium">Active Projects</span>
+                </div>
+                <p class="text-2xl font-bold text-white">{{ $activeProjects ?? 0 }}</p>
+                <p class="text-slate-500 text-xs mt-1">Pending + Running</p>
+            </div>
+        </div>
+        @else
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-md:grid-cols-1 max-md:gap-3">
             <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg hover:shadow-xl transition-shadow max-md:p-4">
                 <div class="flex items-center gap-3 mb-3">
@@ -15,7 +104,6 @@
                 <p class="text-2xl font-bold text-white"><span class="payment-amount">৳ {{ number_format($isClient ?? false ? $totalContractAmount : $totalRevenue, 0) }}</span></p>
                 <p class="text-slate-500 text-xs mt-1">{{ $isClient ?? false ? 'Your projects' : 'Gross contract amount' }}</p>
             </div>
-
             <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg hover:shadow-xl transition-shadow max-md:p-4">
                 <div class="flex items-center gap-3 mb-3">
                     <div class="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
@@ -49,6 +137,7 @@
                 <p class="text-slate-500 text-xs mt-1">Pending + Running</p>
             </div>
         </div>
+        @endif
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-md:grid-cols-1 max-md:gap-3">
             <div class="bg-slate-800/60 backdrop-blur border border-slate-700/50 rounded-2xl p-4 shadow hover:shadow-lg transition-shadow max-md:p-3">
@@ -116,8 +205,8 @@
         </div>
         @endif
 
-        {{-- Calendar & Chart: equal width on desktop; full-width stack on mobile --}}
-        <div class="grid grid-cols-2 max-md:grid-cols-1 gap-4 items-stretch">
+        {{-- Calendar & Chart: equal width on desktop; full-width stack on mobile. Sales: no Recent Activity, calendar full width. --}}
+        <div class="grid {{ ($isSales ?? false) ? 'grid-cols-1' : 'grid-cols-2' }} max-md:grid-cols-1 gap-4 items-stretch">
             {{-- Calendar: 7-column grid with date notes --}}
             <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-xl p-3 shadow-lg flex flex-col min-w-0 max-md:w-full" style="height: 268px;" x-data="dashboardCalendar()" x-init="init()">
                 <div class="flex items-center justify-between mb-2 shrink-0">
@@ -200,7 +289,8 @@
                 </div>
             </div>
 
-            {{-- Recent Activity feed: GitHub-style timeline, same height as calendar, scrollable --}}
+            @if(!($isSales ?? false))
+            {{-- Recent Activity feed: GitHub-style timeline, same height as calendar, scrollable (hidden for Sales) --}}
             <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-xl p-3 shadow-lg flex flex-col min-w-0 max-md:w-full overflow-hidden" style="height: 268px;">
                 <h2 class="text-slate-300 font-semibold text-sm mb-2 shrink-0 flex items-center gap-1.5">
                     <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
@@ -258,6 +348,7 @@
                     </ul>
                 </div>
             </div>
+            @endif
         </div>
     </div>
 

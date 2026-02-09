@@ -18,10 +18,18 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         $isClient = $user->isClient();
+        $isDeveloper = $user->isDeveloper();
+        $isSales = $user->isSales();
         $projectQuery = Project::query();
 
         if ($isClient && $user->client) {
             $projectQuery->forClient($user->client->id);
+        }
+        if ($isDeveloper) {
+            $projectQuery->forDeveloper($user->id);
+        }
+        if ($isSales) {
+            $projectQuery->forSales($user->id);
         }
 
         $projects = $projectQuery->get();
@@ -33,9 +41,15 @@ class DashboardController extends Controller
             $totalDue = $projects->sum(fn (Project $p) => $p->due);
             $totalRevenue = $totalContractAmount;
             $totalProfit = $totalPaid;
+        } elseif ($isDeveloper || $isSales) {
+            $totalRevenue = 0;
+            $totalProfit = 0;
+            $totalPaid = 0;
+            $totalDue = 0;
+            $totalContractAmount = 0;
         } else {
             $totalRevenue = Project::sum('contract_amount');
-            $totalProfit = Project::all()->sum(fn (Project $p) => $p->realized_profit);
+            $totalProfit = Project::all()->sum(fn (Project $p) => $p->paid_profit);
             $totalPaid = Project::all()->sum(fn (Project $p) => $p->total_paid);
             $totalDue = Project::all()->sum(fn (Project $p) => $p->due);
             $totalContractAmount = $totalRevenue;
@@ -57,9 +71,32 @@ class DashboardController extends Controller
             } else {
                 $openBugs = $openBugs->whereHas('project', fn ($q) => $q->whereIn('id', $projectIds))->count();
                 $activeTasks = $activeTasks->whereHas('project', fn ($q) => $q->whereIn('id', $projectIds))->count();
-                // Only count public documents and client-visible notes for client dashboard
                 $documentsCount = $documentsCount->whereIn('project_id', $projectIds)->where('is_public', true)->count();
                 $notesCount = $notesCount->whereIn('project_id', $projectIds)->where('visibility', 'client')->count();
+            }
+        } elseif ($isDeveloper) {
+            if (empty($projectIds)) {
+                $openBugs = 0;
+                $activeTasks = 0;
+                $documentsCount = 0;
+                $notesCount = 0;
+            } else {
+                $openBugs = $openBugs->whereHas('project', fn ($q) => $q->whereIn('id', $projectIds))->where('assigned_to_user_id', $user->id)->count();
+                $activeTasks = $activeTasks->whereHas('project', fn ($q) => $q->whereIn('id', $projectIds))->where('assigned_to_user_id', $user->id)->count();
+                $documentsCount = $documentsCount->whereIn('project_id', $projectIds)->where('is_public', true)->count();
+                $notesCount = $notesCount->whereIn('project_id', $projectIds)->where('visibility', 'client')->count();
+            }
+        } elseif ($isSales) {
+            if (empty($projectIds)) {
+                $openBugs = 0;
+                $activeTasks = 0;
+                $documentsCount = 0;
+                $notesCount = 0;
+            } else {
+                $openBugs = $openBugs->whereHas('project', fn ($q) => $q->whereIn('id', $projectIds))->count();
+                $activeTasks = $activeTasks->whereHas('project', fn ($q) => $q->whereIn('id', $projectIds))->count();
+                $documentsCount = $documentsCount->whereIn('project_id', $projectIds)->where('is_public', true)->count();
+                $notesCount = $notesCount->whereIn('project_id', $projectIds)->whereIn('visibility', ['client', 'internal'])->count();
             }
         } else {
             $openBugs = $openBugs->count();
@@ -68,7 +105,6 @@ class DashboardController extends Controller
             $notesCount = $notesCount->count();
         }
 
-        // Recent activity feed: admin = all projects, client = own projects + client visibility only
         $recentActivitiesQuery = ProjectActivity::with(['project', 'user'])
             ->orderByDesc('created_at')
             ->limit(50);
@@ -79,6 +115,20 @@ class DashboardController extends Controller
                 $recentActivities = $recentActivitiesQuery->whereIn('project_id', $projectIds)
                     ->where('visibility', 'client')
                     ->get();
+            }
+        } elseif ($isDeveloper || $isSales) {
+            if (empty($projectIds)) {
+                $recentActivities = collect();
+            } else {
+                $recentActivities = $recentActivitiesQuery->whereIn('project_id', $projectIds)
+                    ->whereIn('visibility', [ProjectActivity::VISIBILITY_CLIENT, ProjectActivity::VISIBILITY_DEVELOPER_SALES])
+                    ->get()
+                    ->reject(fn ($a) => in_array($a->action_type, [
+                        'payment_created',
+                        'payment_marked_paid',
+                        'invoice_generated',
+                    ], true))
+                    ->values();
             }
         } else {
             $recentActivities = $recentActivitiesQuery->get();
@@ -92,8 +142,17 @@ class DashboardController extends Controller
                 ->get();
         }
 
+        $assignedTasksDone = 0;
+        $assignedBugsSolved = 0;
+        if ($isDeveloper && ! empty($projectIds)) {
+            $assignedTasksDone = Task::whereIn('project_id', $projectIds)->where('assigned_to_user_id', $user->id)->where('status', 'done')->count();
+            $assignedBugsSolved = Bug::whereIn('project_id', $projectIds)->where('assigned_to_user_id', $user->id)->whereIn('status', ['resolved'])->count();
+        }
+
         return view('dashboard', compact(
             'isClient',
+            'isDeveloper',
+            'isSales',
             'totalRevenue',
             'totalProfit',
             'totalDue',
@@ -105,7 +164,10 @@ class DashboardController extends Controller
             'documentsCount',
             'notesCount',
             'recentActivities',
-            'clientNotifications'
+            'clientNotifications',
+            'projects',
+            'assignedTasksDone',
+            'assignedBugsSolved'
         ));
     }
 }

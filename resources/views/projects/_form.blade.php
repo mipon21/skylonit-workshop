@@ -2,6 +2,12 @@
     $project = $project ?? null;
     $clients = $clients ?? \App\Models\Client::orderBy('name')->get();
     $nextProjectCode = $nextProjectCode ?? \App\Models\Project::generateNextProjectCode();
+    $developers = $developers ?? collect();
+    $sales = $sales ?? collect();
+    $defaultDeveloperIds = $project ? $project->developers()->pluck('users.id')->all() : ($developers->count() === 1 ? [$developers->first()->id] : []);
+    $defaultSalesId = $project ? $project->sales()->pluck('users.id')->first() : ($sales->count() === 1 ? $sales->first()->id : null);
+    $selectedDeveloperIds = old('developer_ids', $defaultDeveloperIds);
+    $selectedSalesId = old('sales_id', $defaultSalesId);
 @endphp
 <div class="space-y-4">
     <div>
@@ -82,6 +88,30 @@
                 <option value="On Hold" {{ old('status', $project?->status) === 'On Hold' ? 'selected' : '' }}>On Hold</option>
             </select>
         </div>
+
+        @if($developers->isNotEmpty())
+        <div>
+            <label class="block text-sm font-medium text-slate-400 mb-1">Assign Developers</label>
+            <select name="developer_ids[]" multiple class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 min-h-[100px]">
+                @foreach($developers as $dev)
+                    <option value="{{ $dev->id }}" {{ in_array($dev->id, $selectedDeveloperIds) ? 'selected' : '' }}>{{ $dev->name }} ({{ $dev->email }})</option>
+                @endforeach
+            </select>
+            <p class="text-slate-500 text-xs mt-1">Hold Ctrl/Cmd to select multiple. Assigned users receive an email when added.</p>
+        </div>
+        @endif
+        @if($sales->isNotEmpty())
+        <div>
+            <label class="block text-sm font-medium text-slate-400 mb-1">Assign Sales (one per project)</label>
+            <select name="sales_id" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+                <option value="">— None —</option>
+                @foreach($sales as $s)
+                    <option value="{{ $s->id }}" {{ (string)$selectedSalesId === (string)$s->id ? 'selected' : '' }}>{{ $s->name }} ({{ $s->email }})</option>
+                @endforeach
+            </select>
+            <p class="text-slate-500 text-xs mt-1">One sales person per project. They receive an email when assigned.</p>
+        </div>
+        @endif
 
         {{-- Distribution Settings: only visible when opened via gear beside "Add Project" or "Edit Project". --}}
         <div x-show="distributionSettingsOpen" x-cloak class="pt-4 mt-4 border-t-2 border-slate-600/70 rounded-xl bg-slate-800/40 p-4 -mx-1">

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\PayoutStatusChanged;
 use App\Models\Project;
 use App\Models\ProjectPayout;
 use Illuminate\Http\JsonResponse;
@@ -26,6 +27,10 @@ class ProjectPayoutController extends Controller
         $payout->paid_at = $validated['paid_at'] ?? null;
         $payout->note = $validated['note'] ?? null;
         $payout->save();
+
+        if (in_array($payout->type, [ProjectPayout::TYPE_DEVELOPER, ProjectPayout::TYPE_SALES], true)) {
+            event(new PayoutStatusChanged($payout->fresh()));
+        }
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json(['ok' => true]);

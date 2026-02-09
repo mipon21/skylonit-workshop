@@ -99,21 +99,26 @@ class Project extends Model
     }
 
     /**
-     * Generate next project code (SLN-XXXXXX) by analyzing previous project codes.
-     * Parses SLN-000033 style codes, finds the greatest number, returns SLN-000034.
+     * Generate next project code (SLN-XXXXXX) by reusing the first gap in the sequence.
+     * If project SLN-000037 is deleted, the next created project gets SLN-000037, not SLN-000038.
      * Used when adding a new project; field is auto-filled and readonly.
      */
     public static function generateNextProjectCode(): string
     {
-        $maxNumber = (int) static::max('id');
+        $used = collect(static::pluck('id')->all());
 
         foreach (static::whereNotNull('project_code')->pluck('project_code') as $code) {
             if (preg_match('/^SLN-(\d+)$/i', trim($code), $m)) {
-                $maxNumber = max($maxNumber, (int) $m[1]);
+                $used->push((int) $m[1]);
             }
         }
 
-        $nextNumber = $maxNumber + 1;
+        $used = $used->unique()->filter(fn ($n) => $n >= 1)->values();
+
+        $nextNumber = 1;
+        while ($used->contains($nextNumber)) {
+            $nextNumber++;
+        }
 
         return 'SLN-' . str_pad((string) $nextNumber, 6, '0', STR_PAD_LEFT);
     }
@@ -127,6 +132,30 @@ class Project extends Model
     public function additionalClients(): BelongsToMany
     {
         return $this->belongsToMany(Client::class, 'project_clients')->withTimestamps();
+    }
+
+    /** Developers assigned to this project. */
+    public function developers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'project_developers')->withTimestamps();
+    }
+
+    /** Sales persons assigned to this project. */
+    public function sales(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'project_sales')->withTimestamps();
+    }
+
+    /** Scope: projects assigned to this developer. */
+    public function scopeForDeveloper($query, int $userId)
+    {
+        return $query->whereHas('developers', fn ($q) => $q->where('users.id', $userId));
+    }
+
+    /** Scope: projects assigned to this sales user. */
+    public function scopeForSales($query, int $userId)
+    {
+        return $query->whereHas('sales', fn ($q) => $q->where('users.id', $userId));
     }
 
     /** Scope: projects visible to this client (primary or additional). */
@@ -143,6 +172,24 @@ class Project extends Model
     {
         return $this->client_id === $clientId
             || $this->additionalClients()->where('clients.id', $clientId)->exists();
+    }
+
+    /** Whether this user (developer) is assigned to the project. */
+    public function hasDeveloperAssigned(int $userId): bool
+    {
+        return $this->developers()->where('users.id', $userId)->exists();
+    }
+
+    /** Whether this user (sales) is assigned to the project. */
+    public function hasSalesAssigned(int $userId): bool
+    {
+        return $this->sales()->where('users.id', $userId)->exists();
+    }
+
+    /** Payment status label for Sales: Paid / Unpaid (no amounts). */
+    public function getPaymentStatusLabelAttribute(): string
+    {
+        return $this->due <= 0 ? 'Paid' : ($this->total_paid > 0 ? 'Partial' : 'Unpaid');
     }
 
     public function payments(): HasMany
@@ -354,6 +401,52 @@ class Project extends Model
     public function getRealizedProfitAttribute(): float
     {
         return round($this->profit * $this->realized_ratio, 2);
+    }
+
+    /**
+     * Overhead amount that counts as "paid" for dashboards and fund balance.
+     * Only when the project's overhead payout status is paid (or partial with amount_paid).
+     */
+    public function getPaidOverheadAttribute(): float
+    {
+        return $this->amountCountedAsPaid(ProjectPayout::TYPE_OVERHEAD, $this->realized_overhead);
+    }
+
+    /** Sales amount that counts as "paid" (only when payout status is paid/partial). */
+    public function getPaidSalesAttribute(): float
+    {
+        return $this->amountCountedAsPaid(ProjectPayout::TYPE_SALES, $this->realized_sales);
+    }
+
+    /** Developer amount that counts as "paid" (only when payout status is paid/partial). */
+    public function getPaidDeveloperAttribute(): float
+    {
+        return $this->amountCountedAsPaid(ProjectPayout::TYPE_DEVELOPER, $this->realized_developer);
+    }
+
+    /** Profit amount that counts as "paid" for dashboards and profit pool (only when payout status is paid/partial). */
+    public function getPaidProfitAttribute(): float
+    {
+        return $this->amountCountedAsPaid(ProjectPayout::TYPE_PROFIT, $this->realized_profit);
+    }
+
+    /**
+     * Amount to count as "paid" for a payout type: full realized when status is paid,
+     * amount_paid when partial, zero when not_paid/upcoming/due.
+     */
+    protected function amountCountedAsPaid(string $type, float $realizedAmount): float
+    {
+        $payout = $this->getPayoutFor($type);
+        if (!$payout) {
+            return 0.0;
+        }
+        if ($payout->status === ProjectPayout::STATUS_PAID) {
+            return round($realizedAmount, 2);
+        }
+        if ($payout->status === ProjectPayout::STATUS_PARTIAL && $payout->amount_paid !== null) {
+            return round((float) $payout->amount_paid, 2);
+        }
+        return 0.0;
     }
 
     /** Alias for expense_total (backward compatibility). */

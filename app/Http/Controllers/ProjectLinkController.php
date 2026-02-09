@@ -20,19 +20,28 @@ class ProjectLinkController extends Controller
             case ProjectLink::VISIBILITY_ADMIN_ONLY:
                 $validated['visible_to_client'] = false;
                 $validated['is_public'] = false;
+                $validated['visible_to_developer'] = false;
+                break;
+            case ProjectLink::VISIBILITY_ADMIN_DEVELOPER:
+                $validated['visible_to_client'] = false;
+                $validated['is_public'] = false;
+                $validated['visible_to_developer'] = true;
                 break;
             case ProjectLink::VISIBILITY_CLIENT:
                 $validated['visible_to_client'] = true;
                 $validated['is_public'] = false;
+                $validated['visible_to_developer'] = $validated['visible_to_developer'] ?? false;
                 break;
             case ProjectLink::VISIBILITY_GUEST:
                 $validated['visible_to_client'] = false;
                 $validated['is_public'] = true;
+                $validated['visible_to_developer'] = $validated['visible_to_developer'] ?? false;
                 break;
             case ProjectLink::VISIBILITY_ALL:
             default:
                 $validated['visible_to_client'] = true;
                 $validated['is_public'] = true;
+                $validated['visible_to_developer'] = $validated['visible_to_developer'] ?? false;
                 break;
         }
     }
@@ -46,7 +55,7 @@ class ProjectLinkController extends Controller
             'apk_file' => ['nullable', 'file', 'max:512000'], // 500MB, accept .apk
             'login_username' => ['nullable', 'string', 'max:255'],
             'login_password' => ['nullable', 'string', 'max:255'],
-            'visibility' => ['required', 'in:admin_only,client,guest,all'],
+            'visibility' => ['required', 'in:admin_only,admin_developer,client,guest,all'],
             'send_email' => ['nullable', 'boolean'],
         ]);
         if (($validated['link_type'] ?? 'url') === ProjectLink::TYPE_URL && ! filter_var($validated['url'] ?? '', FILTER_VALIDATE_URL)) {
@@ -55,7 +64,11 @@ class ProjectLinkController extends Controller
 
         $linkType = $validated['link_type'] ?? ProjectLink::TYPE_URL;
         $validated['link_type'] = $linkType;
-        self::applyVisibilityToValidated($validated, $request->input('visibility', 'all'));
+        $visibility = $request->input('visibility', 'all');
+        if ($request->user()->isDeveloper()) {
+            $visibility = ProjectLink::VISIBILITY_CLIENT;
+        }
+        self::applyVisibilityToValidated($validated, $visibility);
         unset($validated['visibility']);
 
         if ($linkType === ProjectLink::TYPE_APK) {
@@ -78,6 +91,7 @@ class ProjectLinkController extends Controller
         }
 
         unset($validated['apk_file'], $validated['send_email']);
+        $validated['created_by'] = auth()->id();
         $link = $project->projectLinks()->create($validated);
         event(new LinkCreated($link, $request->boolean('send_email')));
         return redirect()->route('projects.show', $project)->withFragment('links')->with('success', 'Link added.');
@@ -88,6 +102,12 @@ class ProjectLinkController extends Controller
         if ($project_link->project_id !== $project->id) {
             abort(404);
         }
+        $user = $request->user();
+        if ($user->isDeveloper() || $user->isSales()) {
+            if ($project_link->created_by !== $user->id) {
+                abort(403, 'You can only edit links you added.');
+            }
+        }
         $validated = $request->validate([
             'link_type' => ['required', 'in:url,apk'],
             'label' => ['required', 'string', 'max:255'],
@@ -95,7 +115,7 @@ class ProjectLinkController extends Controller
             'apk_file' => ['nullable', 'file', 'max:512000'],
             'login_username' => ['nullable', 'string', 'max:255'],
             'login_password' => ['nullable', 'string', 'max:255'],
-            'visibility' => ['required', 'in:admin_only,client,guest,all'],
+            'visibility' => ['required', 'in:admin_only,admin_developer,client,guest,all'],
         ]);
         if (($validated['link_type'] ?? 'url') === ProjectLink::TYPE_URL && ! filter_var($validated['url'] ?? '', FILTER_VALIDATE_URL)) {
             return redirect()->back()->withInput()->withErrors(['url' => 'A valid URL is required for link type.']);
@@ -103,7 +123,11 @@ class ProjectLinkController extends Controller
 
         $linkType = $validated['link_type'] ?? $project_link->link_type;
         $validated['link_type'] = $linkType;
-        self::applyVisibilityToValidated($validated, $request->input('visibility', 'all'));
+        $visibility = $request->input('visibility', 'all');
+        if ($user->isDeveloper()) {
+            $visibility = ProjectLink::VISIBILITY_CLIENT;
+        }
+        self::applyVisibilityToValidated($validated, $visibility);
         unset($validated['visibility']);
 
         if ($linkType === ProjectLink::TYPE_APK) {
@@ -185,6 +209,12 @@ class ProjectLinkController extends Controller
     {
         if ($project_link->project_id !== $project->id) {
             abort(404);
+        }
+        $user = Auth::user();
+        if ($user->isDeveloper() || $user->isSales()) {
+            if ($project_link->created_by !== $user->id) {
+                abort(403, 'You can only remove links you added.');
+            }
         }
         $project_link->delete();
         return redirect()->route('projects.show', $project)->withFragment('links')->with('success', 'Link removed.');

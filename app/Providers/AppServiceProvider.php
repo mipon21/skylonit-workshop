@@ -10,6 +10,7 @@ use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\Project;
 use App\Models\ProjectActivity;
+use App\Models\ProjectPayout;
 use App\Models\ProjectLink;
 use App\Models\ProjectNote;
 use App\Models\Setting;
@@ -115,6 +116,28 @@ class AppServiceProvider extends ServiceProvider
                 : 0;
             $view->with('clientUnreadNotifications', $initialUnread);
             $view->with('clientUnreadCount', $unreadCount);
+
+            // Payment sidebar for Sales and Developer: payouts that are not not_paid
+            $sidebarPayouts = collect();
+            if ($user && ($user->isDeveloper() || $user->isSales())) {
+                $type = $user->isDeveloper() ? ProjectPayout::TYPE_DEVELOPER : ProjectPayout::TYPE_SALES;
+                $sidebarPayouts = ProjectPayout::query()
+                    ->where('type', $type)
+                    ->where('status', '!=', ProjectPayout::STATUS_NOT_PAID)
+                    ->whereHas('project', function ($q) use ($user) {
+                        if ($user->isDeveloper()) {
+                            $q->forDeveloper($user->id);
+                        } else {
+                            $q->forSales($user->id);
+                        }
+                    })
+                    ->with('project:id,project_name')
+                    ->orderByRaw("CASE status WHEN 'due' THEN 1 WHEN 'upcoming' THEN 2 WHEN 'partial' THEN 3 WHEN 'paid' THEN 4 ELSE 5 END")
+                    ->orderBy('updated_at', 'desc')
+                    ->limit(20)
+                    ->get();
+            }
+            $view->with('sidebarPayouts', $sidebarPayouts);
         });
     }
 }

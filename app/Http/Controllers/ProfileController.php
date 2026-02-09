@@ -19,7 +19,10 @@ class ProfileController extends Controller
     {
         $user = $request->user();
         $isClient = $user->isClient();
+        $isDeveloper = $user->isDeveloper();
+        $isSales = $user->isSales();
         $client = $isClient ? $user->client : null;
+        $paymentMethods = ($isDeveloper || $isSales) ? $user->paymentMethods : collect();
 
         $logoPath = Setting::get('app_logo');
         $currentLogoUrl = $logoPath ? asset('storage/' . $logoPath) : null;
@@ -30,6 +33,9 @@ class ProfileController extends Controller
             'user' => $user,
             'client' => $client,
             'isClient' => $isClient,
+            'isDeveloper' => $isDeveloper,
+            'isSales' => $isSales,
+            'paymentMethods' => $paymentMethods,
             'currentLogoUrl' => $currentLogoUrl,
             'currentFaviconUrl' => $currentFaviconUrl,
         ]);

@@ -2,8 +2,10 @@
 
 namespace App\Observers;
 
+use App\Mail\ProjectActivityNotificationMail;
 use App\Models\ClientNotification;
 use App\Models\ProjectActivity;
+use Illuminate\Support\Facades\Mail;
 
 class ProjectActivityObserver
 {
@@ -16,20 +18,30 @@ class ProjectActivityObserver
 
     public function created(ProjectActivity $activity): void
     {
-        if ($activity->visibility !== ProjectActivity::VISIBILITY_CLIENT) {
-            return;
+        if ($activity->visibility === ProjectActivity::VISIBILITY_CLIENT) {
+            if (! in_array($activity->action_type, self::PAYMENT_ACTION_TYPES, true)) {
+                $this->createNotificationsForProjectClients($activity->project_id, [
+                    'activity_id' => $activity->id,
+                    'type' => ClientNotification::TYPE_NORMAL,
+                    'title' => $this->titleFromDescription($activity->description),
+                    'message' => $activity->description,
+                ]);
+            }
         }
 
-        if (in_array($activity->action_type, self::PAYMENT_ACTION_TYPES, true)) {
-            return;
+        $recipients = config('mail.project_activity_notification_to', []);
+        if (! empty($recipients) && is_array($recipients)) {
+            $addresses = array_values(array_unique(array_filter(array_map(function ($e) {
+                return is_string($e) ? trim($e) : '';
+            }, $recipients))));
+            if (! empty($addresses)) {
+                try {
+                    Mail::to($addresses)->queue(new ProjectActivityNotificationMail($activity));
+                } catch (\Throwable $e) {
+                    report($e);
+                }
+            }
         }
-
-        $this->createNotificationsForProjectClients($activity->project_id, [
-            'activity_id' => $activity->id,
-            'type' => ClientNotification::TYPE_NORMAL,
-            'title' => $this->titleFromDescription($activity->description),
-            'message' => $activity->description,
-        ]);
     }
 
     private function titleFromDescription(string $description): string

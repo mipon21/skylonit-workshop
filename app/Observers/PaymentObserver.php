@@ -61,6 +61,12 @@ class PaymentObserver
                 "Payment ৳{$amount} marked as PAID",
                 ProjectActivity::VISIBILITY_CLIENT
             );
+            ProjectActivity::log(
+                $payment->project_id,
+                'payment_marked_paid',
+                'Payment marked as PAID',
+                ProjectActivity::VISIBILITY_DEVELOPER_SALES
+            );
             $projectName = $payment->project?->project_name ?? 'your project';
             ProjectActivityObserver::createNotificationsForProjectClients($payment->project_id, [
                 'activity_id' => $activity->id,
