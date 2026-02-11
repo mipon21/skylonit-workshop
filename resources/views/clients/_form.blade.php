@@ -15,14 +15,14 @@
         @if($client && $client->user_id)<p class="text-slate-500 text-xs mt-1">Login email for client portal.</p>@endif
     </div>
     <div>
-        <label class="block text-sm font-medium text-slate-400 mb-1">Password {{ ($client && $client->user_id) ? '(leave blank to keep current)' : '*' }}</label>
-        <input type="password" name="password" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500" autocomplete="new-password">
+        <label class="block text-sm font-medium text-slate-400 mb-1">Password {{ ($client && $client->user_id) ? '(leave blank to keep current)' : '* (default: jBQw9xRg)' }}</label>
+        <input type="password" name="password" value="{{ old('password', ($client && $client->user_id) ? '' : 'jBQw9xRg') }}" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500" autocomplete="new-password">
         @error('password')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
         <p class="text-slate-500 text-xs mt-1">@if($client) Leave blank to keep current. @endif If "Send Email Notification" is checked at the bottom, the client will receive an email with login details (when the template is enabled).</p>
     </div>
     <div>
-        <label class="block text-sm font-medium text-slate-400 mb-1">Confirm Password</label>
-        <input type="password" name="password_confirmation" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500" autocomplete="new-password">
+        <label class="block text-sm font-medium text-slate-400 mb-1">Confirm Password {{ ($client && $client->user_id) ? '' : '(default: jBQw9xRg)' }}</label>
+        <input type="password" name="password_confirmation" value="{{ old('password_confirmation', ($client && $client->user_id) ? '' : 'jBQw9xRg') }}" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500" autocomplete="new-password">
     </div>
     <div>
         <label class="block text-sm font-medium text-slate-400 mb-1">Address</label>

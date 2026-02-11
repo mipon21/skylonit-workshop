@@ -6,6 +6,7 @@ use App\Mail\ProjectActivityNotificationMail;
 use App\Models\ClientNotification;
 use App\Models\ProjectActivity;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class ProjectActivityObserver
 {
@@ -71,13 +72,23 @@ class ProjectActivityObserver
             ->unique()
             ->values();
 
+        // Ensure title/message are ASCII-safe to avoid charset errors (full content stays in project_notes)
+        $safeTitle = Str::ascii($attrs['title'] ?? '') ?: 'Notification';
+        $safeMessage = Str::ascii($attrs['message'] ?? '') ?: 'New project activity.';
         $base = array_merge($attrs, [
+            'title' => $safeTitle,
+            'message' => $safeMessage,
             'project_id' => $projectId,
             'is_read' => false,
         ]);
 
         foreach ($clientIds as $clientId) {
-            ClientNotification::create(array_merge($base, ['client_id' => $clientId]));
+            try {
+                ClientNotification::create(array_merge($base, ['client_id' => $clientId]));
+            } catch (\Throwable $e) {
+                report($e);
+                // Don't rethrow: note/activity already saved; notification is supplementary
+            }
         }
     }
 }
