@@ -35,6 +35,7 @@ class EmailTemplate extends Model
             'note_title',
             'link_url',
             'task_title',
+            'milestone_name',
             'bug_title',
             'login_url',
             'client_password',

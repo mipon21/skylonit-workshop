@@ -71,6 +71,12 @@ class EmailTemplateSeeder extends Seeder
                 'body' => "<p>Hello {{client_name}},</p>\n<p>The following task has been marked as done for {{project_name}}.</p>\n<p><strong>Task:</strong> {{task_title}}</p>\n<p>View project: {{login_url}}</p>",
             ],
             [
+                'key' => 'client_milestone_completed',
+                'name' => 'Client milestone completed',
+                'subject' => 'Milestone completed: {{milestone_name}} – {{project_name}}',
+                'body' => "<p>Hello {{client_name}},</p>\n<p>Congratulations! The following milestone has been completed for your project {{project_name}}.</p>\n<p><strong>Milestone:</strong> {{milestone_name}}</p>\n<p>View project: {{login_url}}</p>",
+            ],
+            [
                 'key' => 'client_contract_uploaded',
                 'name' => 'Client contract uploaded (ready for signature)',
                 'subject' => 'Contract ready for signature – {{project_name}}',

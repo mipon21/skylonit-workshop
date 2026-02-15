@@ -43,6 +43,7 @@ class ProjectController extends Controller
         $user = Auth::user();
         $query = Project::with(['client', 'projectPayouts'])
             ->withCount(['tasks', 'tasks as tasks_done_count' => fn ($q) => $q->where('status', 'done')])
+            ->orderByDesc('is_pinned')
             ->orderByRaw('CASE WHEN project_code IS NULL OR project_code = "" THEN 1 ELSE 0 END')
             ->orderByDesc('project_code');
 
@@ -78,6 +79,7 @@ class ProjectController extends Controller
                 'client_name' => ($isDeveloper || $isSales) ? '' : ($p->client->name ?? ''),
                 'status' => $p->status ?? '',
                 'payment_status' => $paymentStatus,
+                'is_pinned' => $p->is_pinned,
             ];
         })->values()->toArray();
         $developers = User::where('role', 'developer')->orderBy('name')->get();
@@ -165,7 +167,7 @@ class ProjectController extends Controller
             abort(403, 'You do not have access to this project.');
         }
 
-        $project->load(['client', 'additionalClients', 'payments', 'expenses', 'documents' => fn ($q) => $q->with('uploadedBy'), 'contracts' => fn ($q) => $q->with(['uploadedByUser', 'signedByUser', 'audits' => fn ($aq) => $aq->with('user')]), 'tasks', 'bugs', 'projectNotes' => fn ($q) => $q->with('creator'), 'projectLinks', 'projectPayouts'])
+        $project->load(['client', 'additionalClients', 'payments', 'expenses', 'documents' => fn ($q) => $q->with('uploadedBy'), 'contracts' => fn ($q) => $q->with(['uploadedByUser', 'signedByUser', 'audits' => fn ($aq) => $aq->with('user')]), 'tasks' => fn ($q) => $q->with('milestone'), 'milestones', 'bugs', 'projectNotes' => fn ($q) => $q->with('creator'), 'projectLinks', 'projectPayouts'])
             ->loadCount(['tasks', 'tasks as tasks_done_count' => fn ($q) => $q->where('status', 'done')]);
 
         $isClient = $user->isClient();
@@ -385,6 +387,12 @@ class ProjectController extends Controller
         ]);
         $project->update($validated);
         return redirect()->route('projects.show', $project)->with('success', 'Status updated.');
+    }
+
+    public function togglePin(Project $project): RedirectResponse
+    {
+        $project->update(['is_pinned' => ! $project->is_pinned]);
+        return redirect()->back()->with('success', $project->is_pinned ? 'Project pinned.' : 'Project unpinned.');
     }
 
     public function destroy(Project $project): RedirectResponse

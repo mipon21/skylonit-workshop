@@ -86,7 +86,7 @@
 
             <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 max-md:grid-cols-1 max-md:gap-3">
                 @forelse($projects as $project)
-                <div x-show="filteredIds.includes({{ $project->id }})" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="group relative bg-slate-800/60 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg hover:shadow-xl hover:border-slate-600 transition-all hover:-translate-y-0.5 overflow-visible max-md:p-4">
+                <div x-show="filteredIds.includes({{ $project->id }})" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="group relative bg-slate-800/60 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg hover:shadow-xl hover:border-slate-600 transition-all hover:-translate-y-0.5 overflow-visible max-md:p-4 {{ $project->is_pinned ? 'ring-1 ring-amber-500/40' : '' }}">
                     <a href="{{ route('projects.show', $project) }}" class="block">
                         <p class="font-semibold text-white group-hover:text-sky-400 transition">{{ $project->project_name }} <span class="text-slate-500 text-sm font-normal">· {{ $project->project_code ?: $project->formatted_id }}</span></p>
                         @if(!($isDeveloper ?? false) && !($isSales ?? false))
@@ -164,14 +164,29 @@
                         </div>
                         @endif
                     </a>
-                    <div class="mt-4 pt-4 border-t border-slate-700/50 flex flex-wrap items-center gap-2">
-                        <a href="{{ route('projects.show', $project) }}" class="px-3 py-1.5 rounded-lg bg-slate-700/80 hover:bg-slate-600 text-slate-300 hover:text-white text-xs font-medium">View</a>
+                    <div class="mt-4 pt-4 border-t border-slate-700/50 flex flex-wrap items-center justify-between gap-2">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <a href="{{ route('projects.show', $project) }}" class="px-3 py-1.5 rounded-lg bg-slate-700/80 hover:bg-slate-600 text-slate-300 hover:text-white text-xs font-medium">View</a>
+                            @if(!($isClient ?? false) && !($isDeveloper ?? false) && !($isSales ?? false))
+                            <a href="{{ route('projects.edit', $project) }}" class="px-3 py-1.5 rounded-lg bg-slate-700/80 hover:bg-slate-600 text-slate-300 hover:text-white text-xs font-medium">Edit</a>
+                            <form action="{{ route('projects.destroy', $project) }}" method="POST" class="inline" onsubmit="return confirm('Delete this project? All related payments, expenses, documents, tasks, bugs and notes will be removed.');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300 text-xs font-medium">Delete</button>
+                            </form>
+                            @endif
+                        </div>
                         @if(!($isClient ?? false) && !($isDeveloper ?? false) && !($isSales ?? false))
-                        <a href="{{ route('projects.edit', $project) }}" class="px-3 py-1.5 rounded-lg bg-slate-700/80 hover:bg-slate-600 text-slate-300 hover:text-white text-xs font-medium">Edit</a>
-                        <form action="{{ route('projects.destroy', $project) }}" method="POST" class="inline" onsubmit="return confirm('Delete this project? All related payments, expenses, documents, tasks, bugs and notes will be removed.');">
+                        <form action="{{ route('projects.pin.toggle', $project) }}" method="POST" class="inline">
                             @csrf
-                            @method('DELETE')
-                            <button type="submit" class="px-3 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300 text-xs font-medium">Delete</button>
+                            @method('PATCH')
+                            <button type="submit" title="{{ $project->is_pinned ? 'Unpin' : 'Pin to top' }}" class="p-1.5 rounded-lg {{ $project->is_pinned ? 'text-amber-400 hover:bg-amber-500/20' : 'text-slate-500 hover:text-amber-400 hover:bg-slate-700/80' }} transition">
+                                @if($project->is_pinned)
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>
+                                @else
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>
+                                @endif
+                            </button>
                         </form>
                         @endif
                     </div>

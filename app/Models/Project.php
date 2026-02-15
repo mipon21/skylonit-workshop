@@ -64,6 +64,7 @@ class Project extends Model
         'developer_percentage',
         'is_public',
         'is_featured',
+        'is_pinned',
         'short_description',
         'featured_image_path',
         'tech_stack',
@@ -81,6 +82,7 @@ class Project extends Model
         'developer_percentage' => 'float',
         'is_public' => 'boolean',
         'is_featured' => 'boolean',
+        'is_pinned' => 'boolean',
     ];
 
     /** Sales Commission Applicable: default true for all projects (including when null/legacy). */
@@ -210,6 +212,11 @@ class Project extends Model
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class);
+    }
+
+    public function milestones(): HasMany
+    {
+        return $this->hasMany(Milestone::class)->orderBy('sort_order')->orderBy('id');
     }
 
     public function bugs(): HasMany

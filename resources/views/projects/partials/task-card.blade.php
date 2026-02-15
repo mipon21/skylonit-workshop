@@ -13,12 +13,17 @@
             <p class="text-slate-500 text-xs mt-0.5">Due {{ $task->due_date->format('M d, Y') }}</p>
         @endif
         <div class="flex flex-wrap items-center justify-between gap-2 mt-2">
-            <span @class([
-                'px-2 py-0.5 rounded text-xs font-medium',
-                'bg-red-500/20 text-red-400' => $task->priority === 'high',
-                'bg-amber-500/20 text-amber-400' => $task->priority === 'medium',
-                'bg-slate-500/20 text-slate-400' => $task->priority === 'low',
-            ])>{{ ucfirst($task->priority) }}</span>
+            <div class="flex flex-wrap items-center gap-1.5">
+                <span @class([
+                    'px-2 py-0.5 rounded text-xs font-medium',
+                    'bg-red-500/20 text-red-400' => $task->priority === 'high',
+                    'bg-amber-500/20 text-amber-400' => $task->priority === 'medium',
+                    'bg-slate-500/20 text-slate-400' => $task->priority === 'low',
+                ])>{{ ucfirst($task->priority) }}</span>
+                @if(($isDeveloper ?? false) && $task->assigned_to_user_id === Auth::id())
+                <span class="px-2 py-0.5 rounded text-xs font-medium bg-sky-500/20 text-sky-400" title="Assigned to you">You</span>
+                @endif
+            </div>
         </div>
     </button>
     <div x-show="expandedTaskId == {{ $task->id }}" x-transition class="px-3 pb-3 border-t border-slate-700/50">
@@ -35,6 +40,7 @@
                 <input type="hidden" name="priority" value="{{ $task->priority }}">
                 <input type="hidden" name="due_date" value="{{ $task->due_date?->format('Y-m-d') }}">
                 <input type="hidden" name="is_public" value="{{ $task->is_public ? '1' : '0' }}">
+                <input type="hidden" name="milestone_id" value="{{ $task->milestone_id ?? '' }}">
                 <select name="status" onchange="this.form.submit()" class="rounded bg-slate-800 border border-slate-600 text-white text-xs px-2 py-1">
                     <option value="todo" {{ $task->status === 'todo' ? 'selected' : '' }}>To Do</option>
                     <option value="doing" {{ $task->status === 'doing' ? 'selected' : '' }}>Doing</option>

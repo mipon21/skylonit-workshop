@@ -23,6 +23,7 @@ use App\Http\Controllers\InternalUserController;
 use App\Http\Controllers\InvestmentController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\LeadController;
+use App\Http\Controllers\MilestoneController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
@@ -133,6 +134,7 @@ Route::middleware(['auth'])->group(function () {
         Route::put('projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
         Route::delete('projects/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
         Route::patch('projects/{project}/status', [ProjectController::class, 'updateStatus'])->name('projects.status.update');
+        Route::patch('projects/{project}/pin', [ProjectController::class, 'togglePin'])->name('projects.pin.toggle');
         Route::patch('projects/{project}/client', [ProjectController::class, 'updateClient'])->name('projects.client.update');
         Route::post('projects/{project}/additional-clients', [ProjectController::class, 'addClient'])->name('projects.additional-clients.store');
         Route::delete('projects/{project}/additional-clients/{client}', [ProjectController::class, 'removeClient'])->name('projects.additional-clients.destroy');
@@ -156,6 +158,9 @@ Route::middleware(['auth'])->group(function () {
         Route::post('projects/{project}/contracts/{contract}/send-email', [ContractController::class, 'sendEmail'])->name('projects.contracts.send-email');
 
         Route::post('projects/{project}/tasks', [TaskController::class, 'store'])->name('projects.tasks.store');
+        Route::post('projects/{project}/milestones', [MilestoneController::class, 'store'])->name('projects.milestones.store');
+        Route::put('projects/{project}/milestones/{milestone}', [MilestoneController::class, 'update'])->name('projects.milestones.update');
+        Route::delete('projects/{project}/milestones/{milestone}', [MilestoneController::class, 'destroy'])->name('projects.milestones.destroy');
 
         // Settings → Email Templates
         Route::get('settings/email-templates', [EmailTemplateController::class, 'index'])->name('email-templates.index');

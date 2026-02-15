@@ -23,9 +23,17 @@ class TaskController extends Controller
             'due_date' => ['nullable', 'date'],
             'is_public' => ['nullable', 'boolean'],
             'assigned_to_user_id' => ['nullable', 'integer', 'exists:users,id'],
+            'milestone_id' => ['nullable', 'integer', 'exists:milestones,id'],
         ]);
         $validated['is_public'] = $request->boolean('is_public', true);
         $validated['assigned_to_user_id'] = $request->input('assigned_to_user_id') ?: null;
+        $validated['milestone_id'] = $request->input('milestone_id') ?: null;
+        if ($validated['milestone_id']) {
+            $m = \App\Models\Milestone::find($validated['milestone_id']);
+            if (! $m || $m->project_id !== $project->id) {
+                $validated['milestone_id'] = null;
+            }
+        }
         if (in_array($validated['status'] ?? 'todo', ['doing', 'done'], true)) {
             $validated['status_updated_at'] = now();
         }
@@ -70,6 +78,7 @@ class TaskController extends Controller
             'is_public' => ['nullable', 'boolean'],
             'send_email' => ['nullable', 'boolean'],
             'assigned_to_user_id' => ['nullable', 'integer', 'exists:users,id'],
+            'milestone_id' => ['nullable', 'integer', 'exists:milestones,id'],
         ]);
         $oldStatus = $task->status;
         $newStatus = $validated['status'] ?? $oldStatus;
@@ -77,6 +86,13 @@ class TaskController extends Controller
             $validated['status_updated_at'] = now();
         }
         unset($validated['send_email']);
+        $validated['milestone_id'] = $request->input('milestone_id') ?: null;
+        if (isset($validated['milestone_id']) && $validated['milestone_id']) {
+            $m = \App\Models\Milestone::find($validated['milestone_id']);
+            if (! $m || $m->project_id !== $project->id) {
+                $validated['milestone_id'] = null;
+            }
+        }
         if (array_key_exists('is_public', $validated)) {
             $validated['is_public'] = $request->boolean('is_public');
         }

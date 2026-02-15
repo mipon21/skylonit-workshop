@@ -29,6 +29,10 @@ class SendTemplateMailJob implements ShouldQueue
     {
         $rendered = $templateMail->renderTemplate($this->templateKey, $this->placeholderData);
         if (! $rendered) {
+            \Illuminate\Support\Facades\Log::warning('Email template not found or inactive', [
+                'template' => $this->templateKey,
+                'to' => $this->toEmail,
+            ]);
             return;
         }
 

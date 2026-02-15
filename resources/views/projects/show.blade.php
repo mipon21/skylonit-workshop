@@ -771,59 +771,156 @@
 
             @if(!($isSales ?? false))
             {{-- Tab: Tasks --}}
-            <div x-show="activeTab === 'tasks'" class="p-5">
+            <div x-show="activeTab === 'tasks'" class="p-5" x-data="{ milestoneModal: false, milestoneEditId: null }">
                 @php
                     $taskTotal = $project->tasks->count();
                     $taskDone = $project->tasks->where('status', 'done')->count();
                     $taskPct = $taskTotal > 0 ? round(($taskDone / $taskTotal) * 100) : 0;
                 @endphp
-                <div class="flex items-center justify-between mb-4">
+                <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
                     <div class="flex items-center gap-4">
                         <h2 class="font-semibold text-white">Tasks</h2>
                         <span class="text-slate-400 text-sm">{{ $taskDone }}/{{ $taskTotal }} done ({{ $taskPct }}%)</span>
                     </div>
                     @if(!($isClient ?? false) && !($isDeveloper ?? false) && !($isSales ?? false))
-                    <button @click="taskModal = true" class="px-3 py-1.5 rounded-lg bg-sky-500/20 text-sky-400 hover:bg-sky-500/30 text-sm font-medium">Add Task</button>
+                    <div class="flex items-center gap-2">
+                        <button @click="milestoneModal = true; milestoneEditId = null" class="px-3 py-1.5 rounded-lg bg-violet-500/20 text-violet-400 hover:bg-violet-500/30 text-sm font-medium">Add Milestone</button>
+                        <button @click="taskModal = true" class="px-3 py-1.5 rounded-lg bg-sky-500/20 text-sky-400 hover:bg-sky-500/30 text-sm font-medium">Add Task</button>
+                    </div>
                     @endif
                 </div>
                 <div class="h-2 bg-slate-700 rounded-full overflow-hidden mb-6">
                     <div class="h-full bg-emerald-500 rounded-full transition-all" style="width: {{ $taskPct }}%"></div>
                 </div>
-                <div class="grid md:grid-cols-3 gap-4 max-md:grid-cols-1 max-md:gap-3">
-                    <div class="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4">
-                        <h3 class="text-amber-400 font-medium text-sm mb-3">To Do</h3>
-                        <div class="space-y-3">
-                            @foreach($project->tasks->where('status', 'todo') as $task)
-                                @include('projects.partials.task-card', ['task' => $task, 'project' => $project, 'isClient' => $isClient ?? false, 'isDeveloper' => $isDeveloper ?? false, 'isSales' => $isSales ?? false])
-                            @endforeach
-                            @if($project->tasks->where('status', 'todo')->isEmpty())
-                                <p class="text-slate-500 text-sm">No tasks</p>
+                <div class="space-y-8">
+                    @foreach($project->milestones as $milestone)
+                    @php
+                        $mTasks = $project->tasks->where('milestone_id', $milestone->id);
+                        $mDone = $mTasks->where('status', 'done')->count();
+                        $mTotal = $mTasks->count();
+                        $mPct = $mTotal > 0 ? round(($mDone / $mTotal) * 100) : 0;
+                    @endphp
+                    <div class="rounded-xl border border-slate-700/50 overflow-hidden">
+                        <div class="flex items-center justify-between bg-slate-800/60 px-4 py-3 border-b border-slate-700/50">
+                            <div class="flex items-center gap-3">
+                                <h3 class="font-medium text-white">{{ $milestone->name }}</h3>
+                                <span class="text-slate-400 text-sm">{{ $mDone }}/{{ $mTotal }} done</span>
+                                @if($milestone->completed_at)
+                                <span class="px-2 py-0.5 rounded-lg text-xs font-medium bg-emerald-500/20 text-emerald-400">Completed</span>
+                                @endif
+                            </div>
+                            @if(!($isClient ?? false) && !($isDeveloper ?? false) && !($isSales ?? false))
+                            <div class="flex items-center gap-2">
+                                <form action="{{ route('projects.milestones.destroy', [$project, $milestone]) }}" method="POST" class="inline" onsubmit="return confirm('Remove this milestone? Tasks will be moved to &quot;No milestone&quot;.');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-slate-500 hover:text-red-400 text-xs">Remove</button>
+                                </form>
+                            </div>
                             @endif
                         </div>
-                    </div>
-                    <div class="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4">
-                        <h3 class="text-amber-400 font-medium text-sm mb-3">Doing</h3>
-                        <div class="space-y-3">
-                            @foreach($project->tasks->where('status', 'doing') as $task)
-                                @include('projects.partials.task-card', ['task' => $task, 'project' => $project, 'isClient' => $isClient ?? false, 'isDeveloper' => $isDeveloper ?? false, 'isSales' => $isSales ?? false])
-                            @endforeach
-                            @if($project->tasks->where('status', 'doing')->isEmpty())
-                                <p class="text-slate-500 text-sm">No tasks</p>
-                            @endif
+                        <div class="grid md:grid-cols-3 gap-4 max-md:grid-cols-1 max-md:gap-3 p-4 bg-slate-800/20">
+                            <div class="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4">
+                                <h4 class="text-amber-400 font-medium text-xs mb-3">To Do</h4>
+                                <div class="space-y-3">
+                                    @foreach($mTasks->where('status', 'todo') as $task)
+                                        @include('projects.partials.task-card', ['task' => $task, 'project' => $project, 'isClient' => $isClient ?? false, 'isDeveloper' => $isDeveloper ?? false, 'isSales' => $isSales ?? false])
+                                    @endforeach
+                                    @if($mTasks->where('status', 'todo')->isEmpty())
+                                        <p class="text-slate-500 text-sm">No tasks</p>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4">
+                                <h4 class="text-amber-400 font-medium text-xs mb-3">Doing</h4>
+                                <div class="space-y-3">
+                                    @foreach($mTasks->where('status', 'doing') as $task)
+                                        @include('projects.partials.task-card', ['task' => $task, 'project' => $project, 'isClient' => $isClient ?? false, 'isDeveloper' => $isDeveloper ?? false, 'isSales' => $isSales ?? false])
+                                    @endforeach
+                                    @if($mTasks->where('status', 'doing')->isEmpty())
+                                        <p class="text-slate-500 text-sm">No tasks</p>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4">
+                                <h4 class="text-emerald-400 font-medium text-xs mb-3">Done</h4>
+                                <div class="space-y-3">
+                                    @foreach($mTasks->where('status', 'done') as $task)
+                                        @include('projects.partials.task-card', ['task' => $task, 'project' => $project, 'isClient' => $isClient ?? false, 'isDeveloper' => $isDeveloper ?? false, 'isSales' => $isSales ?? false])
+                                    @endforeach
+                                    @if($mTasks->where('status', 'done')->isEmpty())
+                                        <p class="text-slate-500 text-sm">No tasks</p>
+                                    @endif
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4">
-                        <h3 class="text-emerald-400 font-medium text-sm mb-3">Done</h3>
-                        <div class="space-y-3">
-                            @foreach($project->tasks->where('status', 'done') as $task)
-                                @include('projects.partials.task-card', ['task' => $task, 'project' => $project, 'isClient' => $isClient ?? false, 'isDeveloper' => $isDeveloper ?? false, 'isSales' => $isSales ?? false])
-                            @endforeach
-                            @if($project->tasks->where('status', 'done')->isEmpty())
-                                <p class="text-slate-500 text-sm">No tasks</p>
-                            @endif
+                    @endforeach
+                    @php $unassignedTasks = $project->tasks->whereNull('milestone_id'); @endphp
+                    <div class="rounded-xl border border-slate-700/50 overflow-hidden">
+                        <div class="flex items-center justify-between bg-slate-800/40 px-4 py-3 border-b border-slate-700/50">
+                            <h3 class="font-medium text-slate-400">No milestone</h3>
+                            <span class="text-slate-500 text-sm">{{ $unassignedTasks->where('status', 'done')->count() }}/{{ $unassignedTasks->count() }} done</span>
+                        </div>
+                        <div class="grid md:grid-cols-3 gap-4 max-md:grid-cols-1 max-md:gap-3 p-4 bg-slate-800/20">
+                            <div class="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4">
+                                <h4 class="text-amber-400 font-medium text-xs mb-3">To Do</h4>
+                                <div class="space-y-3">
+                                    @foreach($unassignedTasks->where('status', 'todo') as $task)
+                                        @include('projects.partials.task-card', ['task' => $task, 'project' => $project, 'isClient' => $isClient ?? false, 'isDeveloper' => $isDeveloper ?? false, 'isSales' => $isSales ?? false])
+                                    @endforeach
+                                    @if($unassignedTasks->where('status', 'todo')->isEmpty())
+                                        <p class="text-slate-500 text-sm">No tasks</p>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4">
+                                <h4 class="text-amber-400 font-medium text-xs mb-3">Doing</h4>
+                                <div class="space-y-3">
+                                    @foreach($unassignedTasks->where('status', 'doing') as $task)
+                                        @include('projects.partials.task-card', ['task' => $task, 'project' => $project, 'isClient' => $isClient ?? false, 'isDeveloper' => $isDeveloper ?? false, 'isSales' => $isSales ?? false])
+                                    @endforeach
+                                    @if($unassignedTasks->where('status', 'doing')->isEmpty())
+                                        <p class="text-slate-500 text-sm">No tasks</p>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4">
+                                <h4 class="text-emerald-400 font-medium text-xs mb-3">Done</h4>
+                                <div class="space-y-3">
+                                    @foreach($unassignedTasks->where('status', 'done') as $task)
+                                        @include('projects.partials.task-card', ['task' => $task, 'project' => $project, 'isClient' => $isClient ?? false, 'isDeveloper' => $isDeveloper ?? false, 'isSales' => $isSales ?? false])
+                                    @endforeach
+                                    @if($unassignedTasks->where('status', 'done')->isEmpty())
+                                        <p class="text-slate-500 text-sm">No tasks</p>
+                                    @endif
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
+                {{-- Add Milestone Modal --}}
+                @if(!($isClient ?? false) && !($isDeveloper ?? false) && !($isSales ?? false))
+                <div x-show="milestoneModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" aria-modal="true">
+                    <div class="flex min-h-full items-center justify-center p-4">
+                        <div x-show="milestoneModal" x-transition class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="milestoneModal = false"></div>
+                        <div x-show="milestoneModal" x-transition class="relative w-full max-w-md bg-slate-800 border border-slate-700 rounded-2xl shadow-xl p-6">
+                            <h2 class="text-lg font-semibold text-white mb-4">Add Milestone</h2>
+                            <form action="{{ route('projects.milestones.store', $project) }}" method="POST">
+                                @csrf
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-400 mb-1">Name *</label>
+                                    <input type="text" name="name" required placeholder="e.g. Milestone 1, Phase 1" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+                                </div>
+                                <div class="mt-6 flex justify-end gap-3">
+                                    <button type="button" @click="milestoneModal = false" class="px-4 py-2.5 rounded-xl border border-slate-600 text-slate-300 hover:bg-slate-700">Cancel</button>
+                                    <button type="submit" class="px-4 py-2.5 rounded-xl bg-violet-500 hover:bg-violet-600 text-white font-medium">Add Milestone</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                @endif
             </div>
 
             {{-- Tab: Bugs --}}

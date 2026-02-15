@@ -34,6 +34,7 @@ use App\Listeners\SendProjectCompleteToSalesNotification;
 use App\Listeners\SendProjectCreatedNotification;
 use App\Listeners\SendPayoutStatusChangedNotification;
 use App\Listeners\SendTaskAssignedNotification;
+use App\Listeners\SendMilestoneCompletedNotification;
 use App\Listeners\SendTaskDoneNotification;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
@@ -70,7 +71,10 @@ class EventServiceProvider extends ServiceProvider
             NotifyDevelopersOnLinkCreated::class,
         ],
         BugStatusUpdated::class => [SendBugResolvedNotification::class],
-        TaskStatusUpdated::class => [SendTaskDoneNotification::class],
+        TaskStatusUpdated::class => [
+            SendMilestoneCompletedNotification::class,
+            SendTaskDoneNotification::class,
+        ],
         TaskAssigned::class => [SendTaskAssignedNotification::class],
         BugAssigned::class => [SendBugAssignedNotification::class],
         ProjectStatusChanged::class => [SendProjectCompleteToSalesNotification::class],

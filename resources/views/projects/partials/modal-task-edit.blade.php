@@ -8,6 +8,17 @@
                 @csrf
                 @method('PATCH')
                 <div class="space-y-4">
+                    @if(($project->milestones ?? collect())->isNotEmpty())
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-1">Milestone</label>
+                        <select name="milestone_id" class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+                            <option value="">— No milestone —</option>
+                            @foreach($project->milestones as $m)
+                                <option value="{{ $m->id }}" {{ old('milestone_id', $task->milestone_id) == $m->id ? 'selected' : '' }}>{{ $m->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @endif
                     <div>
                         <label class="block text-sm font-medium text-slate-400 mb-1">Title *</label>
                         <input type="text" name="title" value="{{ old('title', $task->title) }}" required class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">

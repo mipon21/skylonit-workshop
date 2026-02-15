@@ -8,6 +8,7 @@ use App\Models\ProjectActivity;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
+
 class ProjectActivityObserver
 {
     /** Action types that are handled by Payment/Invoice observers with payment_id/invoice_id. */
