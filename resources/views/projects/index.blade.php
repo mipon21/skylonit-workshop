@@ -41,6 +41,7 @@
                     get statusCountRunning() { return this.listAfterSearch.filter(function (p) { return p.status === 'Running'; }).length; },
                     get statusCountComplete() { return this.listAfterSearch.filter(function (p) { return p.status === 'Complete'; }).length; },
                     get statusCountOnHold() { return this.listAfterSearch.filter(function (p) { return p.status === 'On Hold'; }).length; },
+                    get statusCountOnSupport() { return this.listAfterSearch.filter(function (p) { return p.status === 'On Support'; }).length; },
                     get paymentCountAll() { return this.listAfterSearch.length; },
                     get paymentCountUnpaid() { return this.listAfterSearch.filter(function (p) { return p.payment_status === 'unpaid'; }).length; },
                     get paymentCountPartial() { return this.listAfterSearch.filter(function (p) { return p.payment_status === 'partial'; }).length; },
@@ -73,6 +74,7 @@
                         <button type="button" @click="statusFilter = 'Running'" :class="statusFilter === 'Running' ? 'bg-sky-500/30 text-sky-300 border-sky-500' : 'bg-slate-800 text-slate-400 border-slate-600 hover:text-white'" class="px-3 py-1.5 rounded-lg border text-sm font-medium transition">Running <span class="opacity-80 tabular-nums" x-text="'(' + statusCountRunning + ')'"></span></button>
                         <button type="button" @click="statusFilter = 'Complete'" :class="statusFilter === 'Complete' ? 'bg-sky-500/30 text-sky-300 border-sky-500' : 'bg-slate-800 text-slate-400 border-slate-600 hover:text-white'" class="px-3 py-1.5 rounded-lg border text-sm font-medium transition">Complete <span class="opacity-80 tabular-nums" x-text="'(' + statusCountComplete + ')'"></span></button>
                         <button type="button" @click="statusFilter = 'On Hold'" :class="statusFilter === 'On Hold' ? 'bg-sky-500/30 text-sky-300 border-sky-500' : 'bg-slate-800 text-slate-400 border-slate-600 hover:text-white'" class="px-3 py-1.5 rounded-lg border text-sm font-medium transition">On Hold <span class="opacity-80 tabular-nums" x-text="'(' + statusCountOnHold + ')'"></span></button>
+                        <button type="button" @click="statusFilter = 'On Support'" :class="statusFilter === 'On Support' ? 'bg-sky-500/30 text-sky-300 border-sky-500' : 'bg-slate-800 text-slate-400 border-slate-600 hover:text-white'" class="px-3 py-1.5 rounded-lg border text-sm font-medium transition">On Support <span class="opacity-80 tabular-nums" x-text="'(' + statusCountOnSupport + ')'"></span></button>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
                         <span class="text-slate-400 text-sm">Payment status:</span>
@@ -102,6 +104,7 @@
                                 'bg-sky-500/20 text-sky-400' => $project->status === 'Running',
                                 'bg-emerald-500/20 text-emerald-400' => $project->status === 'Complete',
                                 'bg-violet-500/20 text-violet-400' => $project->status === 'On Hold',
+                                'bg-teal-500/20 text-teal-400' => $project->status === 'On Support',
                             ])>{{ $project->status }}</span>
                             @if($project->is_net_base_negative)
                                 <span class="px-2.5 py-0.5 rounded-lg text-xs font-medium bg-amber-500/20 text-amber-400">Net &lt; 0</span>
@@ -281,6 +284,7 @@
                                         <option value="Running" {{ old('status') === 'Running' ? 'selected' : '' }}>Running</option>
                                         <option value="Complete" {{ old('status') === 'Complete' ? 'selected' : '' }}>Complete</option>
                                         <option value="On Hold" {{ old('status') === 'On Hold' ? 'selected' : '' }}>On Hold</option>
+                                        <option value="On Support" {{ old('status') === 'On Support' ? 'selected' : '' }}>On Support</option>
                                     </select>
                                 </div>
                                 @if(($developers ?? collect())->isNotEmpty())

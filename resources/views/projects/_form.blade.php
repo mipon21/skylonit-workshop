@@ -86,6 +86,7 @@
                 <option value="Running" {{ old('status', $project?->status) === 'Running' ? 'selected' : '' }}>Running</option>
                 <option value="Complete" {{ old('status', $project?->status) === 'Complete' ? 'selected' : '' }}>Complete</option>
                 <option value="On Hold" {{ old('status', $project?->status) === 'On Hold' ? 'selected' : '' }}>On Hold</option>
+                <option value="On Support" {{ old('status', $project?->status) === 'On Support' ? 'selected' : '' }}>On Support</option>
             </select>
         </div>
 

@@ -4,6 +4,7 @@
     @php
         $tabCountPayments = $project->payments->count();
         $tabCountExpenses = $project->expenses->count();
+        $tabCountSupport = $project->supportPackages->count();
         $tabCountDocuments = $project->documents->count();
         $tabCountContracts = $project->contracts->count();
         $tabCountTasks = $project->tasks->count();
@@ -16,7 +17,7 @@
         $defaultTab = ($isSales ?? false) ? 'payments' : ($isInternal ? 'documents' : 'payments');
     @endphp
     <div class="space-y-6" x-data="{
-        activeTab: (() => { const h = window.location.hash.slice(1); return ['payments','expenses','client','documents','contracts','tasks','bugs','notes','links','activity'].includes(h) ? h : '{{ $defaultTab }}'; })(),
+        activeTab: (() => { const h = window.location.hash.slice(1); return ['payments','expenses','support','client','documents','contracts','tasks','bugs','notes','links','activity'].includes(h) ? h : '{{ $defaultTab }}'; })(),
         unviewedActivityCount: {{ (int) ($unviewedActivityCount ?? 0) }},
         markActivityViewed() {
             if (this.unviewedActivityCount > 0) {
@@ -50,7 +51,8 @@
         taskEditModal: null,
         bugEditModal: null,
         payoutModal: false,
-        payoutType: null
+        payoutType: null,
+        clearShareModal: false
     }" x-init="init()">
         <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
@@ -89,6 +91,7 @@
                         <button type="button" @click="statusValue = 'Running'; statusOpen = false; $nextTick(() => $refs.statusForm.submit())" class="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition">Running</button>
                         <button type="button" @click="statusValue = 'Complete'; statusOpen = false; $nextTick(() => $refs.statusForm.submit())" class="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition">Complete</button>
                         <button type="button" @click="statusValue = 'On Hold'; statusOpen = false; $nextTick(() => $refs.statusForm.submit())" class="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition">On Hold</button>
+                        <button type="button" @click="statusValue = 'On Support'; statusOpen = false; $nextTick(() => $refs.statusForm.submit())" class="w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition">On Support</button>
                     </div>
                 </div>
                 @else
@@ -366,6 +369,10 @@
                     <span>Expenses</span>
                     <span class="min-w-[1.25rem] h-5 px-1.5 rounded-md bg-slate-600/80 text-slate-300 text-xs font-semibold tabular-nums flex items-center justify-center">{{ $tabCountExpenses }}</span>
                 </button>
+                <button @click="setTab('support')" :class="activeTab === 'support' ? 'bg-sky-500/20 text-sky-400 border-b-2 border-sky-500' : 'text-slate-400 hover:text-white'" class="px-5 py-4 font-medium text-sm whitespace-nowrap border-b-2 border-transparent inline-flex items-center gap-1.5">
+                    <span>Support</span>
+                    <span class="min-w-[1.25rem] h-5 px-1.5 rounded-md bg-slate-600/80 text-slate-300 text-xs font-semibold tabular-nums flex items-center justify-center">{{ $tabCountSupport }}</span>
+                </button>
                 @if(!($isClient ?? false))
                 <button @click="setTab('client')" :class="activeTab === 'client' ? 'bg-sky-500/20 text-sky-400 border-b-2 border-sky-500' : 'text-slate-400 hover:text-white'" class="px-5 py-4 font-medium text-sm whitespace-nowrap border-b-2 border-transparent inline-flex items-center gap-1.5">
                     <span>Client</span>
@@ -550,6 +557,166 @@
                     <span class="text-slate-400">Total expense</span>
                     <span class="payment-amount font-semibold text-white">৳ {{ number_format(($isClient ?? false) ? $project->public_expense_total : $project->expense_total, 0) }}</span>
                 </div>
+            </div>
+
+            {{-- Tab: Support (Admin & Client only; Developer/Sales have NO visibility) --}}
+            <div x-show="activeTab === 'support'" class="p-5">
+                @if(session('success'))<p class="mb-4 px-4 py-3 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-sm">{{ session('success') }}</p>@endif
+                @if(session('error'))<p class="mb-4 px-4 py-3 rounded-xl bg-red-500/20 border border-red-500/30 text-red-400 text-sm">{{ session('error') }}</p>@endif
+                @if(session('info'))<p class="mb-4 px-4 py-3 rounded-xl bg-sky-500/20 border border-sky-500/30 text-sky-400 text-sm">{{ session('info') }}</p>@endif
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="font-semibold text-white">Support Packages</h2>
+                    @if(!($isClient ?? false))
+                    @php
+                        $eligibleForClearShare = $project->supportPackages->filter(fn ($s) => $s->isPaid() && !$s->isShareCleared());
+                    @endphp
+                    <div class="flex items-center gap-2">
+                        @if($eligibleForClearShare->isNotEmpty())
+                        <button type="button" @click="clearShareModal = true" class="px-3 py-1.5 rounded-lg bg-violet-500/20 text-violet-400 hover:bg-violet-500/30 text-sm font-medium">Clear Share</button>
+                        @endif
+                        <a href="{{ route('support-packages.create', $project) }}" class="px-3 py-1.5 rounded-lg bg-sky-500/20 text-sky-400 hover:bg-sky-500/30 text-sm font-medium">Create Package</a>
+                    </div>
+                    @endif
+                </div>
+                {{-- Clear Share modal (admin only) --}}
+                @if(!($isClient ?? false) && $eligibleForClearShare->isNotEmpty())
+                <div x-show="clearShareModal" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60" @click.self="clearShareModal = false">
+                    <div class="bg-slate-800 border border-slate-600 rounded-2xl shadow-xl max-w-md w-full p-5" @click.stop>
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-semibold text-white">Clear Share</h3>
+                            <button type="button" @click="clearShareModal = false" class="text-slate-400 hover:text-white">&times;</button>
+                        </div>
+                        <p class="text-slate-400 text-sm mb-4">Select a paid support package to mark its share as cleared (internal use only).</p>
+                        <ul class="space-y-2">
+                            @foreach($eligibleForClearShare as $sp)
+                            <li class="flex items-center justify-between py-2 px-3 rounded-xl bg-slate-800/60 border border-slate-700/50">
+                                <div>
+                                    <span class="text-white font-medium">{{ $sp->package_label }}</span>
+                                    <span class="text-slate-400 text-sm ml-2">· ৳ {{ number_format($sp->amount, 0) }}</span>
+                                </div>
+                                <form action="{{ route('support-packages.mark-share-cleared', [$project, $sp]) }}" method="POST" class="inline" onsubmit="return confirm('Mark share as cleared for this package?');">
+                                    @csrf
+                                    <button type="submit" class="px-2 py-1 rounded-lg bg-violet-500/20 text-violet-400 hover:bg-violet-500/30 text-xs font-medium">Share Clear</button>
+                                </form>
+                            </li>
+                            @endforeach
+                        </ul>
+                        <button type="button" @click="clearShareModal = false" class="mt-4 w-full px-4 py-2 rounded-xl border border-slate-600 text-slate-300 hover:bg-slate-700 text-sm font-medium">Close</button>
+                    </div>
+                </div>
+                @endif
+                @php
+                    $activeSupport = $project->supportPackages->filter(fn ($s) => $s->support_status === 'active');
+                    $expiredSupport = $project->supportPackages->filter(fn ($s) => $s->support_status === 'expired');
+                    $upcomingSupport = $project->supportPackages->filter(fn ($s) => $s->support_status === 'upcoming');
+                    $dueSupport = $project->supportPackages->filter(fn ($s) => $s->payment_status === 'due');
+                @endphp
+                @if($activeSupport->isNotEmpty())
+                <h3 class="text-sm font-medium text-emerald-400 mb-2">Active Support</h3>
+                <ul class="space-y-2 mb-4">
+                    @foreach($activeSupport as $sp)
+                    <li class="flex items-center justify-between py-2 px-3 rounded-xl bg-slate-800/60 border border-slate-700/50">
+                        <div>
+                            <span class="text-white font-medium">{{ $sp->package_label }}</span>
+                            <span class="text-slate-400 text-sm ml-2">· Expires {{ $sp->end_date->format('M j, Y') }}</span>
+                            @if(!($isClient ?? false) && $sp->isShareCleared())
+                            <span class="ml-2 px-2 py-0.5 rounded text-xs font-medium bg-violet-500/20 text-violet-400 border border-violet-500/40">Share cleared</span>
+                            @endif
+                        </div>
+                        <div class="flex items-center gap-2">
+                            @if($sp->invoice_path && (Auth::user()->isAdmin() || Auth::user()->isClient()))
+                            <a href="{{ route('support-packages.view-invoice', [$project, $sp]) }}" target="_blank" rel="noopener" class="px-2 py-1 rounded-lg bg-sky-500/20 text-sky-400 hover:bg-sky-500/30 text-xs font-medium">View</a>
+                            <a href="{{ route('support-packages.download-invoice', [$project, $sp]) }}" class="px-2 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 text-xs font-medium">Download Invoice</a>
+                            @endif
+                            @if(!($isClient ?? false))
+                            <form action="{{ route('support-packages.destroy', [$project, $sp]) }}" method="POST" class="inline" onsubmit="return confirm('Delete this support package?');">@csrf @method('DELETE')<button type="submit" class="px-2 py-1 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 text-xs font-medium">Delete</button></form>
+                            @endif
+                        </div>
+                    </li>
+                    @endforeach
+                </ul>
+                @endif
+                @if($upcomingSupport->isNotEmpty())
+                <h3 class="text-sm font-medium text-sky-400 mb-2">Upcoming</h3>
+                <ul class="space-y-2 mb-4">
+                    @foreach($upcomingSupport as $sp)
+                    <li class="flex items-center justify-between py-2 px-3 rounded-xl bg-slate-800/60 border border-slate-700/50">
+                        <div class="flex items-center gap-2">
+                            <span class="text-white">{{ $sp->package_label }}</span>
+                            @if(!($isClient ?? false) && $sp->isShareCleared())
+                            <span class="px-2 py-0.5 rounded text-xs font-medium bg-violet-500/20 text-violet-400 border border-violet-500/40">Share cleared</span>
+                            @endif
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-slate-400 text-sm">Starts {{ $sp->start_date->format('M j, Y') }}</span>
+                            @if(!($isClient ?? false))
+                            <form action="{{ route('support-packages.destroy', [$project, $sp]) }}" method="POST" class="inline" onsubmit="return confirm('Delete this support package?');">@csrf @method('DELETE')<button type="submit" class="px-2 py-1 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 text-xs font-medium">Delete</button></form>
+                            @endif
+                        </div>
+                    </li>
+                    @endforeach
+                </ul>
+                @endif
+                @if($dueSupport->isNotEmpty())
+                <h3 class="text-sm font-medium text-amber-400 mb-2">Due Payments</h3>
+                <ul class="space-y-3">
+                    @foreach($dueSupport as $sp)
+                    <li class="flex items-center justify-between py-2 border-b border-slate-700/30 last:border-0 max-md:flex-col max-md:items-stretch max-md:gap-2">
+                        <div>
+                            <span class="payment-amount text-white font-medium">৳ {{ number_format($sp->amount, 0) }}</span>
+                            <span class="px-2 py-0.5 rounded text-xs font-medium bg-amber-500/20 text-amber-400 ml-2">DUE</span>
+                            <div class="text-slate-500 text-sm mt-0.5">{{ $sp->package_label }}</div>
+                        </div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            @if($sp->payment_link)
+                                @if(Auth::user()->isClient())
+                                <a href="{{ $sp->payment_link }}" target="_blank" rel="noopener" class="px-3 py-1.5 rounded-lg bg-sky-500 hover:bg-sky-600 text-white text-xs font-medium">Pay Now</a>
+                                @else
+                                <button type="button" data-payment-link="{{ $sp->payment_link }}" class="copy-payment-link px-3 py-1.5 rounded-lg bg-sky-500/20 text-sky-400 hover:bg-sky-500/30 text-xs font-medium">Copy Link</button>
+                                <form action="{{ route('support-packages.send-email', [$project, $sp]) }}" method="POST" class="inline">@csrf<button type="submit" class="px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 text-xs font-medium">Send Email</button></form>
+                                @endif
+                            @else
+                                @if(!($isClient ?? false))
+                                <form action="{{ route('support-packages.generate-link', [$project, $sp]) }}" method="POST" class="inline">@csrf<button type="submit" class="px-3 py-1.5 rounded-lg bg-sky-500/20 text-sky-400 hover:bg-sky-500/30 text-xs font-medium">Generate Payment Link</button></form>
+                                @endif
+                            @endif
+                            @if(!($isClient ?? false))
+                            <form action="{{ route('support-packages.mark-paid', [$project, $sp]) }}" method="POST" class="inline" onsubmit="return confirm('Mark as paid (cash/offline)?');">@csrf<button type="submit" class="px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 text-xs font-medium">Mark as Paid</button></form>
+                            <form action="{{ route('support-packages.destroy', [$project, $sp]) }}" method="POST" class="inline" onsubmit="return confirm('Delete this support package?');">@csrf @method('DELETE')<button type="submit" class="px-2 py-1 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 text-xs font-medium">Delete</button></form>
+                            @endif
+                        </div>
+                    </li>
+                    @endforeach
+                </ul>
+                @endif
+                @if($expiredSupport->isNotEmpty())
+                <h3 class="text-sm font-medium text-slate-400 mb-2 mt-4">Expired Support</h3>
+                <ul class="space-y-2">
+                    @foreach($expiredSupport as $sp)
+                    <li class="flex items-center justify-between py-2 px-3 rounded-xl bg-slate-800/40 border border-slate-700/30">
+                        <div class="flex items-center gap-2">
+                            <span class="text-slate-400">{{ $sp->package_label }}</span>
+                            @if(!($isClient ?? false) && $sp->isShareCleared())
+                            <span class="px-2 py-0.5 rounded text-xs font-medium bg-violet-500/20 text-violet-400 border border-violet-500/40">Share cleared</span>
+                            @endif
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-slate-500 text-sm">Ended {{ $sp->end_date->format('M j, Y') }}</span>
+                            @if($sp->invoice_path && (Auth::user()->isAdmin() || Auth::user()->isClient()))
+                            <a href="{{ route('support-packages.view-invoice', [$project, $sp]) }}" target="_blank" rel="noopener" class="px-2 py-1 rounded-lg bg-sky-500/20 text-sky-400 hover:bg-sky-500/30 text-xs font-medium">View</a>
+                            <a href="{{ route('support-packages.download-invoice', [$project, $sp]) }}" class="px-2 py-1 rounded-lg bg-slate-500/20 text-slate-400 hover:bg-slate-500/30 text-xs font-medium">Download Invoice</a>
+                            @endif
+                            @if(!($isClient ?? false))
+                            <form action="{{ route('support-packages.destroy', [$project, $sp]) }}" method="POST" class="inline" onsubmit="return confirm('Delete this support package?');">@csrf @method('DELETE')<button type="submit" class="px-2 py-1 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 text-xs font-medium">Delete</button></form>
+                            @endif
+                        </div>
+                    </li>
+                    @endforeach
+                </ul>
+                @endif
+                @if($project->supportPackages->isEmpty())
+                <p class="text-slate-500 text-sm">No support packages yet. @if(!($isClient ?? false))<a href="{{ route('support-packages.create', $project) }}" class="text-sky-400 hover:text-sky-300">Create one</a>@endif</p>
+                @endif
             </div>
 
             {{-- Tab: Client (admin only) --}}

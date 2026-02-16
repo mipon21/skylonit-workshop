@@ -35,6 +35,18 @@ class EmailTemplateSeeder extends Seeder
                 'body' => "<p>Hello {{client_name}},</p>\n<p>We have received your payment of ৳{{payment_amount}} for {{project_name}}.</p>\n<p>Your invoice is attached to this email.</p>\n<p>View invoices: {{invoice_link}}</p>",
             ],
             [
+                'key' => 'client_support_package_created',
+                'name' => 'Support package created (payment link)',
+                'subject' => 'Support package for {{project_name}}: {{support_package_label}}',
+                'body' => "<p>Hello {{client_name}},</p>\n<p>A support package has been created for your project <strong>{{project_name}}</strong>.</p>\n<p><strong>Package:</strong> {{support_package_label}}</p>\n<p><strong>Amount:</strong> ৳{{payment_amount}}</p>\n<p><strong>Pay here:</strong> <a href=\"{{payment_link}}\">{{payment_link}}</a></p>\n<p>Or log in: {{login_url}}</p>",
+            ],
+            [
+                'key' => 'client_support_payment_success',
+                'name' => 'Support package payment successful',
+                'subject' => 'Support payment received – {{project_name}}',
+                'body' => "<p>Hello {{client_name}},</p>\n<p>We have received your support package payment of ৳{{payment_amount}} for {{project_name}}.</p>\n<p><strong>Package:</strong> {{support_package_label}}</p>\n<p>Your invoice is attached to this email.</p>\n<p>View project: {{invoice_link}}</p>",
+            ],
+            [
                 'key' => 'client_document_uploaded',
                 'name' => 'Client document uploaded',
                 'subject' => 'New document for {{project_name}}: {{document_name}}',

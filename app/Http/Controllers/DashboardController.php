@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Bug;
 use App\Models\ClientNotification;
 use App\Models\Document;
+use App\Models\InternalFundLedger;
+use App\Models\SupportPackage;
 use App\Models\Project;
 use App\Models\ProjectActivity;
 use App\Models\ProjectNote;
@@ -105,6 +107,31 @@ class DashboardController extends Controller
             $notesCount = $notesCount->count();
         }
 
+        $activeSupportsCount = 0;
+        $expiringSupportsCount = 0;
+        $supportRevenue = 0;
+        $supportToOverhead = 0;
+        if ($isClient && $user->client) {
+            $clientId = $user->client->id;
+            $activeSupportsCount = SupportPackage::active()
+                ->whereHas('project', fn ($q) => $q->forClient($clientId))
+                ->count();
+            $expiringSupportsCount = SupportPackage::expiringThisMonth()
+                ->whereHas('project', fn ($q) => $q->forClient($clientId))
+                ->count();
+        } elseif (! $isClient && ! $isDeveloper && ! $isSales) {
+            $activeSupportsCount = SupportPackage::active()->count();
+            $expiringSupportsCount = SupportPackage::expiringThisMonth()->count();
+            $supportRevenue = SupportPackage::where('payment_status', SupportPackage::PAYMENT_STATUS_PAID)->sum('amount');
+            // Only count ledger entries for support packages that still exist (ignore orphaned rows from deleted packages)
+            $supportShareLedger = InternalFundLedger::where('reference_type', InternalFundLedger::REFERENCE_SUPPORT_PACKAGE_SHARE)
+                ->where('direction', InternalFundLedger::DIRECTION_CREDIT);
+            $supportPackageIds = SupportPackage::pluck('id');
+            $supportToOverhead = (clone $supportShareLedger)->whereIn('reference_id', $supportPackageIds)->sum('amount');
+            // Remove orphaned ledger rows left from support packages deleted before we added cleanup
+            $supportShareLedger->whereNotIn('reference_id', $supportPackageIds)->delete();
+        }
+
         $recentActivitiesQuery = ProjectActivity::with(['project', 'user'])
             ->orderByDesc('created_at')
             ->limit(50);
@@ -167,7 +194,11 @@ class DashboardController extends Controller
             'clientNotifications',
             'projects',
             'assignedTasksDone',
-            'assignedBugsSolved'
+            'assignedBugsSolved',
+            'activeSupportsCount',
+            'expiringSupportsCount',
+            'supportRevenue',
+            'supportToOverhead'
         ));
     }
 }

@@ -12,6 +12,7 @@ use App\Events\LinkCreated;
 use App\Events\NoteCreated;
 use App\Events\PaymentCreated;
 use App\Events\PaymentSuccess;
+use App\Events\SupportPackagePaymentSuccess;
 use App\Events\PayoutStatusChanged;
 use App\Events\ProjectCreated;
 use App\Events\ProjectStatusChanged;
@@ -30,6 +31,7 @@ use App\Listeners\NotifyDevelopersOnNoteCreated;
 use App\Listeners\SendNoteCreatedNotification;
 use App\Listeners\SendPaymentCreatedNotification;
 use App\Listeners\SendPaymentSuccessNotification;
+use App\Listeners\SendSupportPackagePaymentSuccessNotification;
 use App\Listeners\SendProjectCompleteToSalesNotification;
 use App\Listeners\SendProjectCreatedNotification;
 use App\Listeners\SendPayoutStatusChangedNotification;
@@ -57,6 +59,7 @@ class EventServiceProvider extends ServiceProvider
         ProjectCreated::class => [SendProjectCreatedNotification::class],
         PaymentCreated::class => [SendPaymentCreatedNotification::class],
         PaymentSuccess::class => [SendPaymentSuccessNotification::class],
+        SupportPackagePaymentSuccess::class => [SendSupportPackagePaymentSuccessNotification::class],
         DocumentUploaded::class => [
             SendDocumentUploadedNotification::class,
             NotifyDevelopersOnDocumentUploaded::class,

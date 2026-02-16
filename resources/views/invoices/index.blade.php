@@ -15,7 +15,7 @@
         </div>
 
         <div id="invoices-list">
-            @include('invoices.partials.list', ['invoices' => $invoices])
+            @include('invoices.partials.list', ['invoices' => $invoices, 'supportInvoices' => $supportInvoices ?? collect()])
         </div>
 
         <script>

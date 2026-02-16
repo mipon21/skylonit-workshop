@@ -13,6 +13,8 @@ class InternalFundLedger extends Model
 
     public const REFERENCE_INTERNAL_EXPENSE = 'internal_expense';
     public const REFERENCE_MANUAL_ADJUSTMENT = 'manual_adjustment';
+    public const REFERENCE_SUPPORT_PACKAGE_SHARE = 'support_package_share';
+    public const REFERENCE_EXTERNAL_INCOME = 'external_income';
 
     public const DIRECTION_DEBIT = 'debit';
     public const DIRECTION_CREDIT = 'credit';

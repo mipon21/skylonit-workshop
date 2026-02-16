@@ -130,6 +130,11 @@ class Project extends Model
         return $this->belongsTo(Client::class);
     }
 
+    public function supportPackages(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(SupportPackage::class);
+    }
+
     /** Additional clients linked to this project (excluding the primary client). */
     public function additionalClients(): BelongsToMany
     {

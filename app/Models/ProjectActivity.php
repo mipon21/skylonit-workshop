@@ -57,6 +57,7 @@ class ProjectActivity extends Model
             'project_created', 'project_status_changed' => 'project',
             'invoice_generated' => 'invoice',
             'contract_uploaded', 'contract_viewed', 'contract_signed' => 'document',
+            'support_package_created', 'support_payment_completed' => 'payment',
             default => 'activity',
         };
     }

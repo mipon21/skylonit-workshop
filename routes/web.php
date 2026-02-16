@@ -19,12 +19,14 @@ use App\Http\Controllers\Guest\GuestProjectController;
 use App\Http\Controllers\Guest\LeadController as GuestLeadController;
 use App\Http\Controllers\HotOfferController;
 use App\Http\Controllers\InternalExpenseController;
+use App\Http\Controllers\InternalIncomeController;
 use App\Http\Controllers\InternalUserController;
 use App\Http\Controllers\InvestmentController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\MilestoneController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\SupportPackageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectPayoutController;
@@ -104,6 +106,12 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('finance/internal-expenses/{internal_expense}', [InternalExpenseController::class, 'destroy'])->name('internal-expenses.destroy');
         Route::get('finance/internal-expenses/report/overhead', [InternalExpenseController::class, 'reportOverhead'])->name('internal-expenses.report.overhead');
         Route::get('finance/internal-expenses/report/investment', [InternalExpenseController::class, 'reportInvestment'])->name('internal-expenses.report.investment');
+        Route::get('finance/internal-income', [InternalIncomeController::class, 'index'])->name('internal-income.index');
+        Route::get('finance/internal-income/create', [InternalIncomeController::class, 'create'])->name('internal-income.create');
+        Route::post('finance/internal-income', [InternalIncomeController::class, 'store'])->name('internal-income.store');
+        Route::get('finance/internal-income/{internal_income}/edit', [InternalIncomeController::class, 'edit'])->name('internal-income.edit');
+        Route::put('finance/internal-income/{internal_income}', [InternalIncomeController::class, 'update'])->name('internal-income.update');
+        Route::delete('finance/internal-income/{internal_income}', [InternalIncomeController::class, 'destroy'])->name('internal-income.destroy');
         Route::get('/marketing/leads', [LeadController::class, 'index'])->name('leads.index');
         Route::get('/marketing/leads/export', [LeadController::class, 'export'])->name('leads.export');
         Route::get('/marketing/leads/export/xlsx', [LeadController::class, 'exportExcel'])->name('leads.export.xlsx');
@@ -146,6 +154,14 @@ Route::middleware(['auth'])->group(function () {
         Route::post('projects/{project}/payments/{payment}/send-payment-link-email', [PaymentController::class, 'sendPaymentLinkEmail'])->name('projects.payments.send-payment-link-email');
         Route::delete('projects/{project}/payments/{payment}', [PaymentController::class, 'destroy'])->name('projects.payments.destroy');
         Route::patch('projects/{project}/payouts', [ProjectPayoutController::class, 'update'])->name('projects.payouts.update');
+
+        Route::get('projects/{project}/support-packages/create', [SupportPackageController::class, 'create'])->name('support-packages.create');
+        Route::post('projects/{project}/support-packages', [SupportPackageController::class, 'store'])->name('support-packages.store');
+        Route::post('projects/{project}/support-packages/{support_package}/generate-link', [SupportPackageController::class, 'generateLink'])->name('support-packages.generate-link');
+        Route::post('projects/{project}/support-packages/{support_package}/mark-paid', [SupportPackageController::class, 'markAsPaid'])->name('support-packages.mark-paid');
+        Route::post('projects/{project}/support-packages/{support_package}/send-email', [SupportPackageController::class, 'sendPaymentLinkEmail'])->name('support-packages.send-email');
+        Route::post('projects/{project}/support-packages/{support_package}/mark-share-cleared', [SupportPackageController::class, 'markShareCleared'])->name('support-packages.mark-share-cleared');
+        Route::delete('projects/{project}/support-packages/{support_package}', [SupportPackageController::class, 'destroy'])->name('support-packages.destroy');
 
         Route::post('projects/{project}/expenses', [ExpenseController::class, 'store'])->name('projects.expenses.store');
         Route::patch('projects/{project}/expenses/{expense}', [ExpenseController::class, 'update'])->name('projects.expenses.update');
@@ -207,6 +223,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('projects/{project}/contracts/{contract}/download', [ContractController::class, 'download'])->name('projects.contracts.download');
     Route::get('projects/{project}/contracts/{contract}/sign', [ContractController::class, 'signForm'])->name('projects.contracts.sign-form');
     Route::post('projects/{project}/contracts/{contract}/sign', [ContractController::class, 'sign'])->name('projects.contracts.sign');
+
+    Route::get('projects/{project}/support-packages/{support_package}/invoice', [SupportPackageController::class, 'downloadInvoice'])->name('support-packages.download-invoice');
+    Route::get('projects/{project}/support-packages/{support_package}/invoice/view', [SupportPackageController::class, 'viewInvoice'])->name('support-packages.view-invoice');
 
     // Bugs: client can create and view attachment
     Route::post('projects/{project}/bugs', [BugController::class, 'store'])->name('projects.bugs.store');

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Events\PaymentSuccess;
 use App\Models\Payment;
+use App\Models\SupportPackage;
 use App\Services\InvoiceService;
 use App\Services\UddoktaPayService;
 use Illuminate\Http\RedirectResponse;
@@ -60,11 +61,34 @@ class ClientPaymentController extends Controller
 
         $payments = $query->paginate(20)->withQueryString();
 
+        $supportQuery = SupportPackage::with('project')
+            ->whereHas('project', fn ($q) => $q->forClient($client->id));
+
+        if ($search && is_string($search)) {
+            $term = trim($search);
+            if ($term !== '') {
+                $supportQuery->where(function ($q) use ($term) {
+                    $q->where('invoice_number', 'like', '%' . $term . '%')
+                        ->orWhere('package_label', 'like', '%' . $term . '%')
+                        ->orWhereHas('project', fn ($p) => $p->where('project_name', 'like', '%' . $term . '%')
+                            ->orWhere('project_code', 'like', '%' . $term . '%'));
+                });
+            }
+        }
+        if ($statusFilter === 'due') {
+            $supportQuery->where('payment_status', SupportPackage::PAYMENT_STATUS_DUE);
+        } elseif ($statusFilter === 'paid') {
+            $supportQuery->where('payment_status', SupportPackage::PAYMENT_STATUS_PAID);
+        }
+        $supportPackages = $supportQuery->orderBy('payment_status')
+            ->orderByDesc('created_at')
+            ->get();
+
         if ($request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
-            return view('client-payments.partials.list', compact('payments'));
+            return view('client-payments.partials.list', compact('payments', 'supportPackages'));
         }
 
-        return view('client-payments.index', compact('payments'));
+        return view('client-payments.index', compact('payments', 'supportPackages'));
     }
 
     /**

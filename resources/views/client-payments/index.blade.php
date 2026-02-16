@@ -21,7 +21,7 @@
         </div>
 
         <div id="payments-list">
-            @include('client-payments.partials.list', ['payments' => $payments])
+            @include('client-payments.partials.list', ['payments' => $payments, 'supportPackages' => $supportPackages ?? collect()])
         </div>
 
         <script>

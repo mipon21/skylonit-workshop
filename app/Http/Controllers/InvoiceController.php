@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Invoice;
 use App\Models\Project;
+use App\Models\SupportPackage;
 use App\Services\InvoiceService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -46,11 +47,35 @@ class InvoiceController extends Controller
 
         $invoices = $query->paginate(20)->withQueryString();
 
-        if ($request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
-            return view('invoices.partials.list', compact('invoices'));
+        $supportInvoices = collect();
+        if ($user->isClient() && $user->client) {
+            $supportQuery = SupportPackage::with('project')
+                ->where('payment_status', SupportPackage::PAYMENT_STATUS_PAID)
+                ->whereNotNull('invoice_path')
+                ->whereHas('project', fn ($q) => $q->forClient($user->client->id));
+        } elseif (! $user->isClient()) {
+            $supportQuery = SupportPackage::with('project')
+                ->where('payment_status', SupportPackage::PAYMENT_STATUS_PAID)
+                ->whereNotNull('invoice_path');
+        }
+        if (isset($supportQuery)) {
+            if ($search && is_string($search) && trim($search) !== '') {
+                $term = trim($search);
+                $supportQuery->where(function ($q) use ($term) {
+                    $q->where('invoice_number', 'like', '%' . $term . '%')
+                        ->orWhere('package_label', 'like', '%' . $term . '%')
+                        ->orWhereHas('project', fn ($p) => $p->where('project_name', 'like', '%' . $term . '%')
+                            ->orWhere('project_code', 'like', '%' . $term . '%'));
+                });
+            }
+            $supportInvoices = $supportQuery->orderByDesc('paid_at')->get();
         }
 
-        return view('invoices.index', compact('invoices'));
+        if ($request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+            return view('invoices.partials.list', compact('invoices', 'supportInvoices'));
+        }
+
+        return view('invoices.index', compact('invoices', 'supportInvoices'));
     }
 
     /**

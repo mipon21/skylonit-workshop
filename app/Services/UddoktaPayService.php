@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Client;
 use App\Models\Payment;
+use App\Models\SupportPackage;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -71,6 +72,68 @@ class UddoktaPayService
             return [
                 'success' => false,
                 'message' => $data['message'] ?? 'No payment URL in response. Keys received: ' . implode(', ', array_keys($data ?? [])),
+            ];
+        }
+
+        return [
+            'success' => true,
+            'payment_url' => $paymentUrl,
+            'invoice_id' => $data['invoice_id'] ?? $data['invoice'] ?? null,
+        ];
+    }
+
+    /**
+     * Create a charge for a support package. Uses support_package_id in metadata for webhook lookup.
+     *
+     * @return array{success: bool, payment_url?: string, invoice_id?: string, message?: string}
+     */
+    public function createChargeForSupportPackage(SupportPackage $supportPackage, string $redirectUrl, string $cancelUrl, string $webhookUrl): array
+    {
+        if (! $this->apiKey) {
+            Log::warning('UddoktaPay: API key not configured.');
+            return ['success' => false, 'message' => 'UddoktaPay is not configured.'];
+        }
+
+        $project = $supportPackage->project;
+        $client = $supportPackage->client;
+
+        $payload = [
+            'full_name' => $client->name ?? 'Customer',
+            'email' => $client->user?->email ?? $client->email ?? 'customer@example.com',
+            'amount' => (float) $supportPackage->amount,
+            'metadata' => [
+                'support_package_id' => (string) $supportPackage->id,
+                'project_id' => (string) $project->id,
+                'client_id' => (string) $client->id,
+            ],
+            'redirect_url' => $redirectUrl,
+            'cancel_url' => $cancelUrl,
+            'webhook_url' => $webhookUrl,
+            'return_type' => 'GET',
+        ];
+
+        $response = Http::withHeaders([
+            'RT-UDDOKTAPAY-API-KEY' => $this->apiKey,
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
+        ])->post($this->baseUrl . config('services.uddoktapay.checkout_path', '/api/checkout-v2'), $payload);
+
+        $data = $response->json();
+
+        if (! $response->successful()) {
+            Log::warning('UddoktaPay create charge (support) failed.', ['response' => $data, 'support_package_id' => $supportPackage->id]);
+            return [
+                'success' => false,
+                'message' => $data['message'] ?? $response->body(),
+            ];
+        }
+
+        $paymentUrl = $data['payment_url'] ?? $data['checkout_url'] ?? $data['redirect_url'] ?? $data['url'] ?? null;
+        if (empty($paymentUrl)) {
+            Log::warning('UddoktaPay create charge (support): no payment URL in response.', ['response' => $data]);
+            return [
+                'success' => false,
+                'message' => $data['message'] ?? 'No payment URL in response.',
             ];
         }
 

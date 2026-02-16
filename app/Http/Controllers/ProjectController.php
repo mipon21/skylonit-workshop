@@ -107,7 +107,7 @@ class ProjectController extends Controller
             'contract_amount' => ['required', 'numeric', 'min:0'],
             'contract_date' => ['nullable', 'date'],
             'delivery_date' => ['nullable', 'date'],
-            'status' => ['required', 'in:Pending,Running,Complete,On Hold'],
+            'status' => ['required', 'in:Pending,Running,Complete,On Hold,On Support'],
             'exclude_from_overhead_profit' => ['nullable', 'boolean'],
             'developer_sales_mode' => ['nullable', 'boolean'],
             'sales_commission_enabled' => ['nullable', 'boolean'],
@@ -167,7 +167,7 @@ class ProjectController extends Controller
             abort(403, 'You do not have access to this project.');
         }
 
-        $project->load(['client', 'additionalClients', 'payments', 'expenses', 'documents' => fn ($q) => $q->with('uploadedBy'), 'contracts' => fn ($q) => $q->with(['uploadedByUser', 'signedByUser', 'audits' => fn ($aq) => $aq->with('user')]), 'tasks' => fn ($q) => $q->with('milestone'), 'milestones', 'bugs', 'projectNotes' => fn ($q) => $q->with('creator'), 'projectLinks', 'projectPayouts'])
+        $project->load(['client', 'additionalClients', 'payments', 'expenses', 'supportPackages', 'documents' => fn ($q) => $q->with('uploadedBy'), 'contracts' => fn ($q) => $q->with(['uploadedByUser', 'signedByUser', 'audits' => fn ($aq) => $aq->with('user')]), 'tasks' => fn ($q) => $q->with('milestone'), 'milestones', 'bugs', 'projectNotes' => fn ($q) => $q->with('creator'), 'projectLinks', 'projectPayouts'])
             ->loadCount(['tasks', 'tasks as tasks_done_count' => fn ($q) => $q->where('status', 'done')]);
 
         $isClient = $user->isClient();
@@ -198,12 +198,14 @@ class ProjectController extends Controller
         }
         $activities = $activitiesQuery->get();
 
-        // Developer and Sales must not see client payment–related activity (payments, invoices)
+        // Developer and Sales must not see client payment–related activity (payments, invoices, support)
         if ($isDeveloper || $isSales) {
             $activities = $activities->reject(fn ($a) => in_array($a->action_type, [
                 'payment_created',
                 'payment_marked_paid',
                 'invoice_generated',
+                'support_package_created',
+                'support_payment_completed',
             ], true))->values();
         }
 
@@ -211,7 +213,7 @@ class ProjectController extends Controller
         $unviewedQuery = $project->projectActivities()
             ->when($isClient, fn ($q) => $q->where('visibility', ProjectActivity::VISIBILITY_CLIENT))
             ->when($isDeveloper || $isSales, fn ($q) => $q->whereIn('visibility', [ProjectActivity::VISIBILITY_CLIENT, ProjectActivity::VISIBILITY_DEVELOPER_SALES])
-                ->whereNotIn('action_type', ['payment_created', 'payment_marked_paid', 'invoice_generated']))
+                ->whereNotIn('action_type', ['payment_created', 'payment_marked_paid', 'invoice_generated', 'support_package_created', 'support_payment_completed']))
             ->when($activityView, fn ($q) => $q->where('created_at', '>', $activityView->viewed_at));
         $unviewedActivityCount = $unviewedQuery->count();
 
@@ -318,7 +320,7 @@ class ProjectController extends Controller
             'contract_amount' => ['required', 'numeric', 'min:0'],
             'contract_date' => ['nullable', 'date'],
             'delivery_date' => ['nullable', 'date'],
-            'status' => ['required', 'in:Pending,Running,Complete,On Hold'],
+            'status' => ['required', 'in:Pending,Running,Complete,On Hold,On Support'],
             'exclude_from_overhead_profit' => ['nullable', 'boolean'],
             'developer_sales_mode' => ['nullable', 'boolean'],
             'sales_commission_enabled' => ['nullable', 'boolean'],
@@ -383,7 +385,7 @@ class ProjectController extends Controller
     public function updateStatus(Request $request, Project $project): RedirectResponse
     {
         $validated = $request->validate([
-            'status' => ['required', 'in:Pending,Running,Complete,On Hold'],
+            'status' => ['required', 'in:Pending,Running,Complete,On Hold,On Support'],
         ]);
         $project->update($validated);
         return redirect()->route('projects.show', $project)->with('success', 'Status updated.');
