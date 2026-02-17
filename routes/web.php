@@ -14,6 +14,7 @@ use App\Http\Controllers\EmailTemplateController;
 use App\Http\Controllers\GoogleSyncController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\Guest\GuestDashboardController;
+use App\Http\Controllers\Guest\GuestFeaturedImageController;
 use App\Http\Controllers\Guest\GuestLinkController;
 use App\Http\Controllers\Guest\GuestProjectController;
 use App\Http\Controllers\Guest\LeadController as GuestLeadController;
@@ -39,6 +40,8 @@ use Illuminate\Support\Facades\Route;
 
 // ========== Guest (public) portal – no auth ==========
 Route::get('/', GuestDashboardController::class)->name('guest.dashboard');
+// Serve featured project images from storage when public/storage symlink is broken (e.g. Windows)
+Route::get('storage/featured-projects/{filename}', GuestFeaturedImageController::class)->name('guest.featured-image');
 Route::get('/projects', [GuestProjectController::class, 'index'])->name('guest.projects.index');
 Route::get('/projects/{project}', [GuestProjectController::class, 'show'])->name('guest.projects.show');
 Route::get('/links', [GuestLinkController::class, 'index'])->name('guest.links.index');

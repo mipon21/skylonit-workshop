@@ -96,6 +96,17 @@ ERP is the source of truth. Revenue fields are never synced from Sheet to ERP.
 5. Create tabs: **Projects**, **Payments**, **Expenses**, **Documents**, **Tasks**, **Bugs**, **Notes**. Use the first row as header; columns are filled by the app (see `config/google_sheets.php` and `App\Services\GoogleSheetsService`).
 6. For cron: `* * * * * cd /path-to-app && php artisan schedule:run >> /dev/null 2>&1`
 
+**Troubleshooting — "Invalid grant: account not found"**
+
+This error means Google does not recognize the service account in your credentials. Fix it by:
+
+- Creating a **new Service Account** in Google Cloud Console (APIs & Services → Credentials → Create credentials → Service account), then **Create key (JSON)**.
+- Replacing your credentials: save the new JSON as `storage/app/google-credentials.json` (or set `GOOGLE_SHEETS_CREDENTIALS`), or set `GOOGLE_CLIENT_EMAIL` and `GOOGLE_PRIVATE_KEY` in `.env` (private key as one line with `\n` for newlines).
+- **Sharing the Google Sheet** with the new service account email (e.g. `name@project-id.iam.gserviceaccount.com`) as **Editor**.
+- Running `php artisan config:clear` after changing `.env`.
+
+Do not reuse keys from a deleted service account or from another Google Cloud project.
+
 ## Push notifications (FCM) — optional
 
 Client portal users (logged-in clients, not guests) can receive **browser/mobile push notifications** in addition to in-app popups and polling.
