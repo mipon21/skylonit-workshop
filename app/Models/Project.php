@@ -380,39 +380,40 @@ class Project extends Model
     }
 
     /**
-     * Fraction of contract received (completed payments). 0 = no payment yet, 1 = fully paid.
-     * Overhead, Sales, Developer, Profit "fill" based on this.
+     * Cash base = Total Paid − Total Expenses. Expense fully deducted immediately.
+     * Base for realized distribution values. Min 0.
      */
-    public function getRealizedRatioAttribute(): float
+    public function getCashBaseAttribute(): float
     {
-        if ($this->contract_amount <= 0) {
-            return 0.0;
-        }
-        return min(1.0, round($this->total_paid / $this->contract_amount, 4));
+        return $this->distributionService()->getCashBase($this);
     }
 
-    /** Overhead counted only as payments are completed (realized). */
+    /** Realized overhead: cash_base × overhead%. */
     public function getRealizedOverheadAttribute(): float
     {
-        return round($this->overhead * $this->realized_ratio, 2);
+        $breakdown = $this->distributionService()->getRealizedBreakdown($this);
+        return $breakdown['overhead'];
     }
 
-    /** Sales counted only as payments are completed (realized). */
+    /** Realized sales: cash_base × sales%. */
     public function getRealizedSalesAttribute(): float
     {
-        return round($this->sales * $this->realized_ratio, 2);
+        $breakdown = $this->distributionService()->getRealizedBreakdown($this);
+        return $breakdown['sales'];
     }
 
-    /** Developer counted only as payments are completed (realized). */
+    /** Realized developer: cash_base × developer%. */
     public function getRealizedDeveloperAttribute(): float
     {
-        return round($this->developer * $this->realized_ratio, 2);
+        $breakdown = $this->distributionService()->getRealizedBreakdown($this);
+        return $breakdown['developer'];
     }
 
-    /** Profit counted only as payments are completed (realized). */
+    /** Realized profit: cash_base − (realized_overhead + realized_sales + realized_developer). */
     public function getRealizedProfitAttribute(): float
     {
-        return round($this->profit * $this->realized_ratio, 2);
+        $breakdown = $this->distributionService()->getRealizedBreakdown($this);
+        return $breakdown['profit'];
     }
 
     /**

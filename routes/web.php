@@ -146,7 +146,7 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('projects/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
         Route::patch('projects/{project}/status', [ProjectController::class, 'updateStatus'])->name('projects.status.update');
         Route::patch('projects/{project}/pin', [ProjectController::class, 'togglePin'])->name('projects.pin.toggle');
-        Route::patch('projects/{project}/client', [ProjectController::class, 'updateClient'])->name('projects.client.update');
+        Route::match(['patch', 'post'], 'projects/{project}/client', [ProjectController::class, 'updateClient'])->name('projects.client.update');
         Route::post('projects/{project}/additional-clients', [ProjectController::class, 'addClient'])->name('projects.additional-clients.store');
         Route::delete('projects/{project}/additional-clients/{client}', [ProjectController::class, 'removeClient'])->name('projects.additional-clients.destroy');
 

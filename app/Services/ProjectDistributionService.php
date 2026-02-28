@@ -29,11 +29,21 @@ class ProjectDistributionService
     }
 
     /**
-     * Base amount (B) = Contract Amount − Direct Project Expenses. Non-negative for distribution.
+     * Full base = Contract Amount − Direct Project Expenses. Non-negative. Used for "of …" full totals.
      */
     public function getBaseAmount(Project $project): float
     {
         return round(max(0, $project->contract_amount - $project->expense_total), 2);
+    }
+
+    /**
+     * Cash base = Total Paid − Total Expenses. Expense is fully deducted immediately.
+     * Used for realized values on project distribution cards. Min 0.
+     */
+    public function getCashBase(Project $project): float
+    {
+        $cashBase = $project->total_paid - $project->expense_total;
+        return round(max(0, $cashBase), 2);
     }
 
     /**
@@ -42,8 +52,23 @@ class ProjectDistributionService
      */
     public function getBreakdown(Project $project): array
     {
-        $base = $this->getBaseAmount($project);
+        return $this->getBreakdownForBase($project, $this->getBaseAmount($project));
+    }
 
+    /**
+     * Realized breakdown: applies same percentages to cash_base (paid − expenses).
+     * Sum of realized components equals cash_base.
+     */
+    public function getRealizedBreakdown(Project $project): array
+    {
+        return $this->getBreakdownForBase($project, $this->getCashBase($project));
+    }
+
+    /**
+     * Compute overhead, sales, developer, profit for a given base. Same percentage logic for full or cash base.
+     */
+    private function getBreakdownForBase(Project $project, float $base): array
+    {
         if ($this->isDeveloperSalesMode($project)) {
             return [
                 'base' => $base,

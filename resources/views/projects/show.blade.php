@@ -104,7 +104,7 @@
             $tasksTotal = $project->tasks_count ?? $project->tasks->count();
             $tasksDone = $project->tasks_done_count ?? $project->tasks->where('status', 'done')->count();
             $projectProgressPercent = $tasksTotal > 0 ? round(($tasksDone / $tasksTotal) * 100) : 0;
-            $paymentsPercent = round($project->realized_ratio * 100);
+            $paymentsPercent = $project->contract_amount > 0 ? min(100, round(($project->total_paid / $project->contract_amount) * 100)) : 0;
         @endphp
         <style>
             @keyframes project-progress-fill { from { width: 0%; } to { width: {{ $projectProgressPercent }}%; } }
@@ -339,7 +339,7 @@
             @endif
         </div>
         @if(!($isClient ?? false) && !($isDeveloper ?? false) && !($isSales ?? false))
-        <p class="text-slate-500 text-xs mt-1">Amounts above fill as completed payments are received (<span class="payment-amount">{{ number_format($project->realized_ratio * 100, 0) }}%</span> realized).</p>
+        <p class="text-slate-500 text-xs mt-1">Amounts above based on cash received (paid minus expenses).</p>
         @endif
 
         @if(!($isDeveloper ?? false) && !($isSales ?? false))

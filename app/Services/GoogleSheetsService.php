@@ -87,7 +87,7 @@ class GoogleSheetsService
     }
 
     /**
-     * Get all rows from Projects tab including ERP columns (A:AL).
+     * Get all rows from Projects tab including ERP columns (A:AP).
      */
     public function getProjectsRows(): array
     {
@@ -97,7 +97,7 @@ class GoogleSheetsService
 
         $tab = config('google_sheets.tabs.projects');
         try {
-            $range = "'{$tab}'!A:AL";
+            $range = "'{$tab}'!A:AP";
             $response = $this->getService()->spreadsheets_values->get(
                 $this->spreadsheetId,
                 $range
@@ -221,7 +221,7 @@ class GoogleSheetsService
     }
 
     /**
-     * Update one row in Projects tab (A:AL). Uses 1-based row index.
+     * Update one row in Projects tab (A:AP). Uses 1-based row index.
      */
     public function updateProjectRow(int $rowIndex, array $values): bool
     {
@@ -231,7 +231,7 @@ class GoogleSheetsService
 
         $tab = config('google_sheets.tabs.projects');
         try {
-            $range = "'{$tab}'!A{$rowIndex}:AL{$rowIndex}";
+            $range = "'{$tab}'!A{$rowIndex}:AP{$rowIndex}";
             $row = $this->formatRowForSheet($values);
             $body = new ValueRange(['values' => [$row]]);
             $this->getService()->spreadsheets_values->update(
@@ -249,7 +249,7 @@ class GoogleSheetsService
     }
 
     /**
-     * Append one row to Projects tab (A:AL).
+     * Append one row to Projects tab (A:AP).
      */
     public function appendProjectRow(array $values): bool
     {
@@ -259,7 +259,7 @@ class GoogleSheetsService
 
         $tab = config('google_sheets.tabs.projects');
         try {
-            $range = "'{$tab}'!A:AL";
+            $range = "'{$tab}'!A:AP";
             $row = $this->formatRowForSheet($values);
             $body = new ValueRange(['values' => [$row]]);
             $this->getService()->spreadsheets_values->append(
@@ -277,7 +277,7 @@ class GoogleSheetsService
     }
 
     /**
-     * Sync project to sheet: upsert by erp_project_id (column AA). Full row A:AL per production schema.
+     * Sync project to sheet: upsert by erp_project_id (column AA). Full row A:AP per production schema.
      * ERP owns: expense_total, net_base, overhead, sales, developer, profit, settlement flags, updated_at.
      */
     public function syncProjectToSheet(\App\Models\Project $project): bool

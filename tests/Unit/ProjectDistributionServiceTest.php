@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Models\Client;
+use App\Models\Payment;
 use App\Models\Project;
 use App\Services\ProjectDistributionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -131,5 +132,73 @@ class ProjectDistributionServiceTest extends TestCase
     {
         $errors = $this->service->validateDistribution(false, 25.0, 40.0);
         $this->assertEmpty($errors);
+    }
+
+    public function test_cash_base_is_paid_minus_expenses_min_zero(): void
+    {
+        $client = Client::create(['name' => 'Test Client']);
+        $project = Project::create([
+            'client_id' => $client->id,
+            'project_name' => 'Cash Base Project',
+            'contract_amount' => 25000,
+            'status' => 'Pending',
+            'developer_sales_mode' => false,
+            'sales_commission_enabled' => true,
+            'sales_percentage' => 25,
+            'developer_percentage' => 40,
+        ]);
+        $project->expenses()->create(['amount' => 2750, 'note' => 'Code Purchase']);
+        $project->payments()->create([
+            'amount' => 5000,
+            'payment_status' => Payment::PAYMENT_STATUS_PAID,
+            'note' => 'First',
+        ]);
+        $project->payments()->create([
+            'amount' => 15000,
+            'payment_status' => Payment::PAYMENT_STATUS_PAID,
+            'note' => 'Middle',
+        ]);
+
+        $cashBase = $this->service->getCashBase($project);
+        $this->assertSame(17250.0, $cashBase);
+
+        $realized = $this->service->getRealizedBreakdown($project);
+        $this->assertSame(3450.0, $realized['overhead']);
+        $this->assertSame(4312.50, $realized['sales']);
+        $this->assertSame(6900.0, $realized['developer']);
+        $this->assertSame(2587.50, $realized['profit']);
+
+        $sum = $realized['overhead'] + $realized['sales'] + $realized['developer'] + $realized['profit'];
+        $this->assertSame($cashBase, round($sum, 2));
+    }
+
+    public function test_cash_base_zero_when_paid_less_than_expenses(): void
+    {
+        $client = Client::create(['name' => 'Test Client']);
+        $project = Project::create([
+            'client_id' => $client->id,
+            'project_name' => 'Negative Cash Base',
+            'contract_amount' => 25000,
+            'status' => 'Pending',
+            'developer_sales_mode' => false,
+            'sales_commission_enabled' => true,
+            'sales_percentage' => 25,
+            'developer_percentage' => 40,
+        ]);
+        $project->expenses()->create(['amount' => 30000, 'note' => 'Large expense']);
+        $project->payments()->create([
+            'amount' => 10000,
+            'payment_status' => Payment::PAYMENT_STATUS_PAID,
+            'note' => 'Partial',
+        ]);
+
+        $cashBase = $this->service->getCashBase($project);
+        $this->assertSame(0.0, $cashBase);
+
+        $realized = $this->service->getRealizedBreakdown($project);
+        $this->assertEquals(0.0, $realized['overhead']);
+        $this->assertEquals(0.0, $realized['sales']);
+        $this->assertEquals(0.0, $realized['developer']);
+        $this->assertEquals(0.0, $realized['profit']);
     }
 }

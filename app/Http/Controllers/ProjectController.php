@@ -264,7 +264,11 @@ class ProjectController extends Controller
         if ($newClient) {
             $this->sendClientProjectCreatedEmail($project, $newClient);
         }
-        return redirect()->route('projects.show', $project)->withFragment('client')->with('success', 'Primary client updated.');
+        return redirect()
+            ->route('projects.show', $project)
+            ->withFragment('client')
+            ->with('success', 'Primary client updated.')
+            ->withHeaders(['Cache-Control' => 'no-cache, no-store, must-revalidate']);
     }
 
     public function addClient(Request $request, Project $project): RedirectResponse

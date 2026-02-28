@@ -80,9 +80,8 @@ class SyncFromGoogleSheetCommand extends Command
 
             $project->project_name = $row[2] ?? $project->project_name;
             $project->project_code = $row[3] ?? $project->project_code;
-            if (isset($row[4]) && $row[4] !== '') {
-                $project->client_id = (int) $row[4];
-            }
+            // Do NOT sync client_id from sheet: the sheet layout (config) has client_name at col 20, not client_id at col E.
+            // Reading row[4] here would use contract_date and overwrite client_id with (int) date, causing all projects to show the same client.
             $project->contract_date = isset($row[7]) && $row[7] ? $row[7] : $project->contract_date;
             $project->delivery_date = isset($row[8]) && $row[8] ? $row[8] : $project->delivery_date;
             $project->status = $row[9] ?? $project->status;
