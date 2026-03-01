@@ -2,250 +2,250 @@
     <x-slot name="title">Dashboard</x-slot>
 
     <div class="space-y-6">
-        <h1 class="text-2xl font-semibold text-white">Dashboard</h1>
+        <h1 class="text-2xl font-semibold theme-text-primary">Dashboard</h1>
 
         @if($isDeveloper ?? false)
         {{-- Developer dashboard: no financial data --}}
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-md:grid-cols-1 max-md:gap-3">
-            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg max-md:p-4">
+            <div class="theme-card-bg theme-border border rounded-2xl p-5 shadow-lg max-md:p-4">
                 <div class="flex items-center gap-3 mb-3">
-                    <div class="w-10 h-10 rounded-xl bg-sky-500/20 flex items-center justify-center">
-                        <svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+                    <div class="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
                     </div>
-                    <span class="text-slate-400 text-sm font-medium">Assigned Projects</span>
+                    <span class="theme-text-secondary text-sm font-medium">Assigned Projects</span>
                 </div>
-                <p class="text-2xl font-bold text-white">{{ $activeProjects ?? 0 }}</p>
-                <p class="text-slate-500 text-xs mt-1">Projects you are assigned to</p>
+                <p class="text-2xl font-bold theme-text-primary">{{ $activeProjects ?? 0 }}</p>
+                <p class="theme-text-muted text-xs mt-1">Projects you are assigned to</p>
             </div>
-            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg max-md:p-4">
+            <div class="theme-card-bg theme-border border rounded-2xl p-5 shadow-lg max-md:p-4">
                 <div class="flex items-center gap-3 mb-3">
                     <div class="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
                         <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                     </div>
-                    <span class="text-slate-400 text-sm font-medium">Assigned Tasks</span>
+                    <span class="theme-text-secondary text-sm font-medium">Assigned Tasks</span>
                 </div>
-                <p class="text-2xl font-bold text-white">{{ $activeTasks ?? 0 }} <span class="text-slate-500 text-base font-normal">open</span> / <span class="text-emerald-400">{{ $assignedTasksDone ?? 0 }}</span> <span class="text-slate-500 text-base font-normal">done</span></p>
-                <p class="text-slate-500 text-xs mt-1">Tasks assigned to you</p>
+                <p class="text-2xl font-bold theme-text-primary">{{ $activeTasks ?? 0 }} <span class="theme-text-muted text-base font-normal">open</span> / <span class="text-emerald-400">{{ $assignedTasksDone ?? 0 }}</span> <span class="theme-text-muted text-base font-normal">done</span></p>
+                <p class="theme-text-muted text-xs mt-1">Tasks assigned to you</p>
             </div>
-            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg max-md:p-4">
+            <div class="theme-card-bg theme-border border rounded-2xl p-5 shadow-lg max-md:p-4">
                 <div class="flex items-center gap-3 mb-3">
                     <div class="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center">
                         <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                     </div>
-                    <span class="text-slate-400 text-sm font-medium">Assigned Bugs</span>
+                    <span class="theme-text-secondary text-sm font-medium">Assigned Bugs</span>
                 </div>
-                <p class="text-2xl font-bold text-white">{{ $openBugs ?? 0 }} <span class="text-slate-500 text-base font-normal">open</span> / <span class="text-emerald-400">{{ $assignedBugsSolved ?? 0 }}</span> <span class="text-slate-500 text-base font-normal">solved</span></p>
-                <p class="text-slate-500 text-xs mt-1">Bugs assigned to you</p>
+                <p class="text-2xl font-bold theme-text-primary">{{ $openBugs ?? 0 }} <span class="theme-text-muted text-base font-normal">open</span> / <span class="text-emerald-400">{{ $assignedBugsSolved ?? 0 }}</span> <span class="theme-text-muted text-base font-normal">solved</span></p>
+                <p class="theme-text-muted text-xs mt-1">Bugs assigned to you</p>
             </div>
-            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg max-md:p-4">
+            <div class="theme-card-bg theme-border border rounded-2xl p-5 shadow-lg max-md:p-4">
                 <div class="flex items-center gap-3 mb-3">
-                    <div class="w-10 h-10 rounded-xl bg-sky-500/20 flex items-center justify-center">
-                        <svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <div class="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     </div>
-                    <span class="text-slate-400 text-sm font-medium">Documents</span>
+                    <span class="theme-text-secondary text-sm font-medium">Documents</span>
                 </div>
-                <p class="text-2xl font-bold text-white">{{ $documentsCount ?? 0 }}</p>
-                <p class="text-slate-500 text-xs mt-1">Public documents</p>
+                <p class="text-2xl font-bold theme-text-primary">{{ $documentsCount ?? 0 }}</p>
+                <p class="theme-text-muted text-xs mt-1">Public documents</p>
             </div>
         </div>
         @elseif($isSales ?? false)
         {{-- Sales dashboard: assigned projects, payment status only (no amounts) --}}
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-md:grid-cols-1 max-md:gap-3">
-            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg max-md:p-4">
+            <div class="theme-card-bg theme-border border rounded-2xl p-5 shadow-lg max-md:p-4">
                 <div class="flex items-center gap-3 mb-3">
-                    <div class="w-10 h-10 rounded-xl bg-sky-500/20 flex items-center justify-center">
-                        <svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+                    <div class="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
                     </div>
-                    <span class="text-slate-400 text-sm font-medium">Assigned Projects</span>
+                    <span class="theme-text-secondary text-sm font-medium">Assigned Projects</span>
                 </div>
-                <p class="text-2xl font-bold text-white">{{ $projects->count() }}</p>
-                <p class="text-slate-500 text-xs mt-1">Projects you are assigned to</p>
+                <p class="text-2xl font-bold theme-text-primary">{{ $projects->count() }}</p>
+                <p class="theme-text-muted text-xs mt-1">Projects you are assigned to</p>
             </div>
-            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg max-md:p-4">
+            <div class="theme-card-bg theme-border border rounded-2xl p-5 shadow-lg max-md:p-4">
                 <div class="flex items-center gap-3 mb-3">
                     <div class="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
                         <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
-                    <span class="text-slate-400 text-sm font-medium">Paid</span>
+                    <span class="theme-text-secondary text-sm font-medium">Paid</span>
                 </div>
                 <p class="text-2xl font-bold text-emerald-400">{{ $projects->where('due', '<=', 0)->count() }}</p>
-                <p class="text-slate-500 text-xs mt-1">Projects fully paid</p>
+                <p class="theme-text-muted text-xs mt-1">Projects fully paid</p>
             </div>
-            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg max-md:p-4">
+            <div class="theme-card-bg theme-border border rounded-2xl p-5 shadow-lg max-md:p-4">
                 <div class="flex items-center gap-3 mb-3">
                     <div class="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
                         <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
-                    <span class="text-slate-400 text-sm font-medium">Unpaid / Partial</span>
+                    <span class="theme-text-secondary text-sm font-medium">Unpaid / Partial</span>
                 </div>
                 <p class="text-2xl font-bold text-amber-400">{{ $projects->filter(fn ($p) => $p->due > 0)->count() }}</p>
-                <p class="text-slate-500 text-xs mt-1">Payment status only (no amounts)</p>
+                <p class="theme-text-muted text-xs mt-1">Payment status only (no amounts)</p>
             </div>
-            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg max-md:p-4">
+            <div class="theme-card-bg theme-border border rounded-2xl p-5 shadow-lg max-md:p-4">
                 <div class="flex items-center gap-3 mb-3">
-                    <div class="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center">
-                        <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    <div class="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                     </div>
-                    <span class="text-slate-400 text-sm font-medium">Active Projects</span>
+                    <span class="theme-text-secondary text-sm font-medium">Active Projects</span>
                 </div>
-                <p class="text-2xl font-bold text-white">{{ $activeProjects ?? 0 }}</p>
-                <p class="text-slate-500 text-xs mt-1">Pending + Running</p>
+                <p class="text-2xl font-bold theme-text-primary">{{ $activeProjects ?? 0 }}</p>
+                <p class="theme-text-muted text-xs mt-1">Pending + Running</p>
             </div>
         </div>
         @else
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-md:grid-cols-1 max-md:gap-3">
-            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg hover:shadow-xl transition-shadow max-md:p-4">
+            <div class="theme-card-bg theme-border border rounded-2xl p-5 shadow-lg hover:shadow-xl transition-shadow max-md:p-4">
                 <div class="flex items-center gap-3 mb-3">
-                    <div class="w-10 h-10 rounded-xl bg-sky-500/20 flex items-center justify-center">
-                        <svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <div class="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
-                    <span class="text-slate-400 text-sm font-medium">{{ $isClient ?? false ? 'Total Contract Amount' : 'Total Revenue' }}</span>
+                    <span class="theme-text-secondary text-sm font-medium">{{ $isClient ?? false ? 'Total Contract Amount' : 'Total Revenue' }}</span>
                 </div>
-                <p class="text-2xl font-bold text-white"><span class="payment-amount">৳ {{ number_format($isClient ?? false ? $totalContractAmount : $totalRevenue, 0) }}</span></p>
-                <p class="text-slate-500 text-xs mt-1">{{ $isClient ?? false ? 'Your projects' : 'Gross contract amount' }}</p>
+                <p class="text-2xl font-bold theme-text-primary"><span class="payment-amount">৳ {{ number_format($isClient ?? false ? $totalContractAmount : $totalRevenue, 0) }}</span></p>
+                <p class="theme-text-muted text-xs mt-1">{{ $isClient ?? false ? 'Your projects' : 'Gross contract amount' }}</p>
             </div>
-            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg hover:shadow-xl transition-shadow max-md:p-4">
+            <div class="theme-card-bg theme-border border rounded-2xl p-5 shadow-lg hover:shadow-xl transition-shadow max-md:p-4">
                 <div class="flex items-center gap-3 mb-3">
                     <div class="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
                         <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
-                    <span class="text-slate-400 text-sm font-medium">{{ $isClient ?? false ? 'Total Paid' : 'Total Profit' }}</span>
+                    <span class="theme-text-secondary text-sm font-medium">{{ $isClient ?? false ? 'Total Paid' : 'Total Profit' }}</span>
                 </div>
                 <p class="text-2xl font-bold text-emerald-400"><span class="payment-amount">৳ {{ number_format($isClient ?? false ? ($totalPaid ?? 0) : $totalProfit, 0) }}</span></p>
-                <p class="text-slate-500 text-xs mt-1">{{ $isClient ?? false ? 'Received' : 'Realized from completed payments' }}</p>
+                <p class="theme-text-muted text-xs mt-1">{{ $isClient ?? false ? 'Received' : 'Realized from completed payments' }}</p>
             </div>
 
-            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg hover:shadow-xl transition-shadow max-md:p-4">
+            <div class="theme-card-bg theme-border border rounded-2xl p-5 shadow-lg hover:shadow-xl transition-shadow max-md:p-4">
                 <div class="flex items-center gap-3 mb-3">
                     <div class="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
                         <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
-                    <span class="text-slate-400 text-sm font-medium">Total Due</span>
+                    <span class="theme-text-secondary text-sm font-medium">Total Due</span>
                 </div>
                 <p class="text-2xl font-bold text-amber-400"><span class="payment-amount">৳ {{ number_format($totalDue, 0) }}</span></p>
-                <p class="text-slate-500 text-xs mt-1">{{ $isClient ?? false ? 'Outstanding' : 'Unpaid from clients' }}</p>
+                <p class="theme-text-muted text-xs mt-1">{{ $isClient ?? false ? 'Outstanding' : 'Unpaid from clients' }}</p>
             </div>
 
-            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg hover:shadow-xl transition-shadow max-md:p-4">
+            <div class="theme-card-bg theme-border border rounded-2xl p-5 shadow-lg hover:shadow-xl transition-shadow max-md:p-4">
                 <div class="flex items-center gap-3 mb-3">
-                    <div class="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center">
-                        <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+                    <div class="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
                     </div>
-                    <span class="text-slate-400 text-sm font-medium">Active Projects</span>
+                    <span class="theme-text-secondary text-sm font-medium">Active Projects</span>
                 </div>
-                <p class="text-2xl font-bold text-white">{{ $activeProjects }}</p>
-                <p class="text-slate-500 text-xs mt-1">Pending + Running</p>
+                <p class="text-2xl font-bold theme-text-primary">{{ $activeProjects }}</p>
+                <p class="theme-text-muted text-xs mt-1">Pending + Running</p>
             </div>
             @if($isClient ?? false)
             <div class="col-span-full grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-md:gap-3">
             @endif
-            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg hover:shadow-xl transition-shadow max-md:p-4">
+            <div class="theme-card-bg theme-border border rounded-2xl p-5 shadow-lg hover:shadow-xl transition-shadow max-md:p-4">
                 <div class="flex items-center gap-3 mb-3">
-                    <div class="w-10 h-10 rounded-xl bg-teal-500/20 flex items-center justify-center">
-                        <svg class="w-5 h-5 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    <div class="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                     </div>
-                    <span class="text-slate-400 text-sm font-medium">Active Supports</span>
+                    <span class="theme-text-secondary text-sm font-medium">Active Supports</span>
                 </div>
-                <p class="text-2xl font-bold text-white">{{ $activeSupportsCount ?? 0 }}</p>
-                <p class="text-slate-500 text-xs mt-1">Support packages in effect</p>
+                <p class="text-2xl font-bold theme-text-primary">{{ $activeSupportsCount ?? 0 }}</p>
+                <p class="theme-text-muted text-xs mt-1">Support packages in effect</p>
             </div>
-            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg hover:shadow-xl transition-shadow max-md:p-4">
+            <div class="theme-card-bg theme-border border rounded-2xl p-5 shadow-lg hover:shadow-xl transition-shadow max-md:p-4">
                 <div class="flex items-center gap-3 mb-3">
                     <div class="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center">
                         <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     </div>
-                    <span class="text-slate-400 text-sm font-medium">Expiring This Month</span>
+                    <span class="theme-text-secondary text-sm font-medium">Expiring This Month</span>
                 </div>
-                <p class="text-2xl font-bold text-white">{{ $expiringSupportsCount ?? 0 }}</p>
-                <p class="text-slate-500 text-xs mt-1">Support packages ending soon</p>
+                <p class="text-2xl font-bold theme-text-primary">{{ $expiringSupportsCount ?? 0 }}</p>
+                <p class="theme-text-muted text-xs mt-1">Support packages ending soon</p>
             </div>
             @if($isClient ?? false)
             </div>
             @endif
             @if(!($isClient ?? false))
-            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg hover:shadow-xl transition-shadow max-md:p-4">
+            <div class="theme-card-bg theme-border border rounded-2xl p-5 shadow-lg hover:shadow-xl transition-shadow max-md:p-4">
                 <div class="flex items-center gap-3 mb-3">
                     <div class="w-10 h-10 rounded-xl bg-violet-500/20 flex items-center justify-center">
                         <svg class="w-5 h-5 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                     </div>
-                    <span class="text-slate-400 text-sm font-medium">Support Revenue</span>
+                    <span class="theme-text-secondary text-sm font-medium">Support Revenue</span>
                 </div>
                 <p class="text-2xl font-bold text-violet-400"><span class="payment-amount">৳ {{ number_format($supportRevenue ?? 0, 0) }}</span></p>
-                <p class="text-slate-500 text-xs mt-1">Separate from project contract</p>
+                <p class="theme-text-muted text-xs mt-1">Separate from project contract</p>
             </div>
-            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-2xl p-5 shadow-lg hover:shadow-xl transition-shadow max-md:p-4">
+            <div class="theme-card-bg theme-border border rounded-2xl p-5 shadow-lg hover:shadow-xl transition-shadow max-md:p-4">
                 <div class="flex items-center gap-3 mb-3">
                     <div class="w-10 h-10 rounded-xl bg-slate-500/20 flex items-center justify-center">
-                        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <svg class="w-5 h-5 theme-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
-                    <span class="text-slate-400 text-sm font-medium">Support to Overhead</span>
+                    <span class="theme-text-secondary text-sm font-medium">Support to Overhead</span>
                 </div>
-                <p class="text-2xl font-bold text-white"><span class="payment-amount">৳ {{ number_format($supportToOverhead ?? 0, 0) }}</span></p>
-                <p class="text-slate-500 text-xs mt-1">Share cleared to overhead</p>
+                <p class="text-2xl font-bold theme-text-primary"><span class="payment-amount">৳ {{ number_format($supportToOverhead ?? 0, 0) }}</span></p>
+                <p class="theme-text-muted text-xs mt-1">Share cleared to overhead</p>
             </div>
             @endif
         </div>
         @endif
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-md:grid-cols-1 max-md:gap-3">
-            <div class="bg-slate-800/60 backdrop-blur border border-slate-700/50 rounded-2xl p-4 shadow hover:shadow-lg transition-shadow max-md:p-3">
+            <div class="theme-bg-tertiary/60 backdrop-blur border theme-border rounded-2xl p-4 shadow hover:shadow-lg transition-shadow max-md:p-3">
                 <div class="flex items-center gap-2 mb-2">
                     <div class="w-9 h-9 rounded-lg bg-red-500/20 flex items-center justify-center">
                         <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                     </div>
-                    <span class="text-slate-400 text-sm font-medium">Open Bugs</span>
+                    <span class="theme-text-secondary text-sm font-medium">Open Bugs</span>
                 </div>
-                <p class="text-xl font-bold text-white">{{ $openBugs }}</p>
-                <p class="text-slate-500 text-xs mt-0.5">Open + In progress</p>
+                <p class="text-xl font-bold theme-text-primary">{{ $openBugs }}</p>
+                <p class="theme-text-muted text-xs mt-0.5">Open + In progress</p>
             </div>
-            <div class="bg-slate-800/60 backdrop-blur border border-slate-700/50 rounded-2xl p-4 shadow hover:shadow-lg transition-shadow">
+            <div class="theme-bg-tertiary/60 backdrop-blur border theme-border rounded-2xl p-4 shadow hover:shadow-lg transition-shadow">
                 <div class="flex items-center gap-2 mb-2">
                     <div class="w-9 h-9 rounded-lg bg-amber-500/20 flex items-center justify-center">
                         <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                     </div>
-                    <span class="text-slate-400 text-sm font-medium">Active Tasks</span>
+                    <span class="theme-text-secondary text-sm font-medium">Active Tasks</span>
                 </div>
-                <p class="text-xl font-bold text-white">{{ $activeTasks }}</p>
-                <p class="text-slate-500 text-xs mt-0.5">To do + Doing</p>
+                <p class="text-xl font-bold theme-text-primary">{{ $activeTasks }}</p>
+                <p class="theme-text-muted text-xs mt-0.5">To do + Doing</p>
             </div>
-            <div class="bg-slate-800/60 backdrop-blur border border-slate-700/50 rounded-2xl p-4 shadow hover:shadow-lg transition-shadow">
+            <div class="theme-bg-tertiary/60 backdrop-blur border theme-border rounded-2xl p-4 shadow hover:shadow-lg transition-shadow">
                 <div class="flex items-center gap-2 mb-2">
-                    <div class="w-9 h-9 rounded-lg bg-sky-500/20 flex items-center justify-center">
-                        <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <div class="w-9 h-9 rounded-lg bg-orange-500/20 flex items-center justify-center">
+                        <svg class="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     </div>
-                    <span class="text-slate-400 text-sm font-medium">Documents</span>
+                    <span class="theme-text-secondary text-sm font-medium">Documents</span>
                 </div>
-                <p class="text-xl font-bold text-white">{{ $documentsCount }}</p>
-                <p class="text-slate-500 text-xs mt-0.5">Uploaded total</p>
+                <p class="text-xl font-bold theme-text-primary">{{ $documentsCount }}</p>
+                <p class="theme-text-muted text-xs mt-0.5">Uploaded total</p>
             </div>
-            <div class="bg-slate-800/60 backdrop-blur border border-slate-700/50 rounded-2xl p-4 shadow hover:shadow-lg transition-shadow">
+            <div class="theme-bg-tertiary/60 backdrop-blur border theme-border rounded-2xl p-4 shadow hover:shadow-lg transition-shadow">
                 <div class="flex items-center gap-2 mb-2">
                     <div class="w-9 h-9 rounded-lg bg-slate-500/20 flex items-center justify-center">
-                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        <svg class="w-4 h-4 theme-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                     </div>
-                    <span class="text-slate-400 text-sm font-medium">Total Notes</span>
+                    <span class="theme-text-secondary text-sm font-medium">Total Notes</span>
                 </div>
-                <p class="text-xl font-bold text-white">{{ $notesCount }}</p>
-                <p class="text-slate-500 text-xs mt-0.5">Project notes</p>
+                <p class="text-xl font-bold theme-text-primary">{{ $notesCount }}</p>
+                <p class="theme-text-muted text-xs mt-0.5">Project notes</p>
             </div>
         </div>
 
         @if(($isClient ?? false) && $clientNotifications->isNotEmpty())
-        <div class="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-4 flex flex-col overflow-hidden" style="height: 268px;">
-            <h2 class="text-slate-300 font-semibold text-sm shrink-0 mb-2 flex items-center gap-1.5">
-                <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+        <div class="theme-card-bg-only theme-border border rounded-2xl p-4 flex flex-col overflow-hidden" style="height: 268px;">
+            <h2 class="theme-text-secondary font-semibold text-sm shrink-0 mb-2 flex items-center gap-1.5">
+                <svg class="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
                 Notifications
             </h2>
             <ul class="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1 -mr-1">
                 @foreach($clientNotifications as $notif)
-                    <li class="flex items-center justify-between gap-3 py-2 border-b border-slate-700/30 last:border-0">
+                    <li class="flex items-center justify-between gap-3 py-2 border-b theme-border/30 last:border-0">
                         <div class="min-w-0">
-                            <p class="text-white font-medium text-sm">{{ $notif->title }}</p>
-                            @if($notif->message)<p class="text-slate-400 text-xs mt-0.5">{{ $notif->message }}</p>@endif
-                            <p class="text-slate-500 text-xs mt-0.5">{{ $notif->created_at->diffForHumans() }}</p>
+                            <p class="theme-text-primary font-medium text-sm">{{ $notif->title }}</p>
+                            @if($notif->message)<p class="theme-text-secondary text-xs mt-0.5">{{ $notif->message }}</p>@endif
+                            <p class="theme-text-muted text-xs mt-0.5">{{ $notif->created_at->diffForHumans() }}</p>
                         </div>
                         @if($notif->link)
-                            <a href="{{ $notif->link }}" class="shrink-0 px-3 py-1.5 rounded-lg bg-sky-500/20 text-sky-400 hover:bg-sky-500/30 text-xs font-medium">View</a>
+                            <a href="{{ $notif->link }}" class="shrink-0 px-3 py-1.5 rounded-lg bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 text-xs font-medium">View</a>
                         @endif
                     </li>
                 @endforeach
@@ -256,33 +256,33 @@
         {{-- Calendar & Chart: equal width on desktop; full-width stack on mobile. Sales: no Recent Activity, calendar full width. --}}
         <div class="grid {{ ($isSales ?? false) ? 'grid-cols-1' : 'grid-cols-2' }} max-md:grid-cols-1 gap-4 items-stretch">
             {{-- Calendar: 7-column grid with date notes --}}
-            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-xl p-3 shadow-lg flex flex-col min-w-0 max-md:w-full" style="height: 268px;" x-data="dashboardCalendar()" x-init="init()">
+            <div class="theme-card-bg theme-border border rounded-xl p-3 shadow-lg flex flex-col min-w-0 max-md:w-full" style="height: 268px;" x-data="dashboardCalendar()" x-init="init()">
                 <div class="flex items-center justify-between mb-2 shrink-0">
-                    <h2 class="text-slate-300 font-semibold text-sm flex items-center gap-1.5">
-                        <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                    <h2 class="theme-text-secondary font-semibold text-sm flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
                         Calendar
                     </h2>
                     <div class="flex items-center gap-0.5">
-                        <button type="button" @click="prevMonth(); fetchNotes();" class="p-1.5 rounded-lg hover:bg-slate-700/50 text-slate-400 hover:text-white transition">
+                        <button type="button" @click="prevMonth(); fetchNotes();" class="p-1.5 rounded-lg theme-sidebar-link-hover theme-text-secondary theme-hover-primary transition">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                         </button>
-                        <span class="text-white font-medium text-xs min-w-[4.5rem] text-center" x-text="monthLabel"></span>
-                        <button type="button" @click="nextMonth(); fetchNotes();" class="p-1.5 rounded-lg hover:bg-slate-700/50 text-slate-400 hover:text-white transition">
+                        <span class="theme-text-primary font-medium text-xs min-w-[4.5rem] text-center" x-text="monthLabel"></span>
+                        <button type="button" @click="nextMonth(); fetchNotes();" class="p-1.5 rounded-lg theme-sidebar-link-hover theme-text-secondary theme-hover-primary transition">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                         </button>
                     </div>
                 </div>
-                <div class="border border-slate-600/50 rounded-lg overflow-visible bg-slate-700/30 flex-1 min-h-0" style="display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: 1fr;">
+                <div class="border theme-border/50 rounded-lg overflow-visible theme-bg-tertiary/30 flex-1 min-h-0" style="display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: 1fr;">
                     <template x-for="day in weekDays" :key="day">
-                        <span class="border-b border-r border-slate-600/50 bg-slate-800/80 text-slate-400 text-[9px] font-semibold uppercase py-1 flex items-center justify-center" style="min-width: 0;" x-text="day"></span>
+                        <span class="border-b border-r theme-border/50 theme-bg-tertiary/80 theme-text-secondary text-[9px] font-semibold uppercase py-1 flex items-center justify-center" style="min-width: 0;" x-text="day"></span>
                     </template>
                     <template x-for="(cell, i) in days" :key="i">
                         <span
                             :class="{
-                                'bg-slate-800/40 border-b border-r border-slate-600/40': cell.empty,
-                                'bg-sky-500 text-white font-bold border-2 border-sky-300 shadow-md shadow-sky-500/30 ring-2 ring-sky-400/50 ring-inset': !cell.empty && cell.isToday,
+                                'theme-bg-tertiary/40 border-b border-r theme-border/40': cell.empty,
+                                'bg-orange-500 theme-text-primary font-bold border-2 border-orange-300 shadow-md shadow-orange-500/30 ring-2 ring-orange-400/50 ring-inset': !cell.empty && cell.isToday,
                                 'bg-amber-500/25 text-amber-100 border-b border-r border-amber-400/50 cursor-pointer': !cell.empty && !cell.isToday && notesByDate[cell.dateKey],
-                                'bg-slate-800/70 text-slate-200 border-b border-r border-slate-600/40 cursor-pointer': !cell.empty && !cell.isToday && !notesByDate[cell.dateKey],
+                                'theme-bg-tertiary theme-text-secondary theme-border border-b border-r cursor-pointer': !cell.empty && !cell.isToday && !notesByDate[cell.dateKey],
                                 'border-r-0': (i + 1) % 7 === 0
                             }"
                             class="flex flex-col items-center justify-center text-[10px] relative"
@@ -302,20 +302,20 @@
                 {{-- Calendar note modal (dark) --}}
                 <div x-show="noteModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" @keydown.escape.window="closeNoteModal()">
                     <div x-show="noteModalOpen" x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="absolute inset-0 bg-slate-950/90" @click="closeNoteModal()"></div>
-                    <div x-show="noteModalOpen" x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" class="relative w-full max-w-md bg-slate-800 border border-slate-600 rounded-2xl shadow-xl shadow-black/30 p-5" @click.stop>
+                    <div x-show="noteModalOpen" x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" class="relative w-full max-w-md theme-bg-tertiary border theme-border rounded-2xl shadow-xl shadow-black/30 p-5" @click.stop>
                         <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-white font-semibold" x-text="noteModalDateLabel"></h3>
-                            <button type="button" @click="closeNoteModal()" class="p-1.5 rounded-lg hover:bg-slate-700 text-slate-400 hover:text-white">
+                            <h3 class="theme-text-primary font-semibold" x-text="noteModalDateLabel"></h3>
+                            <button type="button" @click="closeNoteModal()" class="p-1.5 rounded-lg theme-sidebar-link-hover theme-text-secondary theme-hover-primary">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                             </button>
                         </div>
                         <template x-if="noteViewMode">
                             <div>
-                                <p class="text-slate-300 text-sm whitespace-pre-wrap mb-4 min-h-[4rem]" x-text="noteFormBody || 'No note for this date.'"></p>
+                                <p class="theme-text-secondary text-sm whitespace-pre-wrap mb-4 min-h-[4rem]" x-text="noteFormBody || 'No note for this date.'"></p>
                                 <div class="flex gap-2">
-                                    <button type="button" @click="noteViewMode = false" class="px-3 py-2 rounded-xl bg-sky-500/20 text-sky-400 hover:bg-sky-500/30 text-sm font-medium">Edit</button>
+                                    <button type="button" @click="noteViewMode = false" class="px-3 py-2 rounded-xl bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 text-sm font-medium">Edit</button>
                                     <button type="button" @click="deleteNote()" class="px-3 py-2 rounded-xl bg-red-500/20 text-red-400 hover:bg-red-500/30 text-sm font-medium">Delete</button>
-                                    <button type="button" @click="closeNoteModal()" class="px-3 py-2 rounded-xl bg-slate-700 text-slate-300 hover:bg-slate-600 text-sm font-medium ml-auto">Close</button>
+                                    <button type="button" @click="closeNoteModal()" class="px-3 py-2 rounded-xl theme-btn-secondary text-sm font-medium ml-auto">Close</button>
                                 </div>
                             </div>
                         </template>
@@ -324,12 +324,12 @@
                                 <textarea
                                     x-model="noteFormBody"
                                     rows="4"
-                                    class="w-full rounded-xl border p-3 resize-y text-sm bg-slate-700 text-slate-200 border-slate-500 placeholder-slate-400 focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500"
+                                    class="w-full rounded-xl border p-3 resize-y text-sm theme-input-bg theme-input-border theme-text-primary theme-input-placeholder theme-input-focus"
                                     placeholder="Add a note for this date..."
                                 ></textarea>
                                 <div class="flex gap-2">
-                                    <button type="submit" class="px-4 py-2 rounded-xl bg-sky-500 text-white hover:bg-sky-600 text-sm font-medium">Save</button>
-                                    <button type="button" @click="notesByDate[noteSelectedDate] ? (noteViewMode = true, noteFormBody = notesByDate[noteSelectedDate] || '') : closeNoteModal()" class="px-3 py-2 rounded-xl bg-slate-700 text-slate-300 hover:bg-slate-600 text-sm font-medium">Cancel</button>
+                                    <button type="submit" class="px-4 py-2 rounded-xl bg-orange-500 theme-text-primary hover:bg-orange-600 text-sm font-medium">Save</button>
+                                    <button type="button" @click="notesByDate[noteSelectedDate] ? (noteViewMode = true, noteFormBody = notesByDate[noteSelectedDate] || '') : closeNoteModal()" class="px-3 py-2 rounded-xl theme-btn-secondary text-sm font-medium">Cancel</button>
                                 </div>
                             </form>
                         </template>
@@ -339,8 +339,8 @@
 
             @if(!($isSales ?? false))
             {{-- Recent Activity feed: GitHub-style timeline, same height as calendar, scrollable (hidden for Sales) --}}
-            <div class="bg-slate-800/80 backdrop-blur border border-slate-700/50 rounded-xl p-3 shadow-lg flex flex-col min-w-0 max-md:w-full overflow-hidden" style="height: 268px;">
-                <h2 class="text-slate-300 font-semibold text-sm mb-2 shrink-0 flex items-center gap-1.5">
+            <div class="theme-card-bg theme-border border rounded-xl p-3 shadow-lg flex flex-col min-w-0 max-md:w-full overflow-hidden" style="height: 268px;">
+                <h2 class="theme-text-secondary font-semibold text-sm mb-2 shrink-0 flex items-center gap-1.5">
                     <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                     Recent Activity
                 </h2>
@@ -351,18 +351,18 @@
                         @forelse($recentActivities as $activity)
                             <li class="activity-timeline-item flex gap-3 py-2 first:pt-0 last:pb-0 group">
                                 <div class="shrink-0 w-6 flex justify-center pt-0.5">
-                                    <div class="activity-timeline-dot w-5 h-5 rounded-full border-2 border-slate-800 bg-slate-700/90 flex items-center justify-center ring-2 ring-slate-600/50 group-hover:ring-sky-500/40 transition-all z-10
+                                    <div class="activity-timeline-dot w-5 h-5 rounded-full border-2 border-slate-800 theme-bg-tertiary flex items-center justify-center ring-2 ring-slate-600/50 group-hover:ring-orange-500/40 transition-all z-10
                                         @switch(\App\Models\ProjectActivity::iconFor($activity->action_type))
                                             @case('payment') text-emerald-400 @break
-                                            @case('task') text-sky-400 @break
+                                            @case('task') text-orange-400 @break
                                             @case('bug') text-red-400 @break
                                             @case('document') text-amber-400 @break
                                             @case('note') text-violet-400 @break
-                                            @case('link') text-cyan-400 @break
+                                            @case('link') text-orange-400 @break
                                             @case('expense') text-orange-400 @break
-                                            @case('project') text-slate-400 @break
+                                            @case('project') theme-text-secondary @break
                                             @case('invoice') text-indigo-400 @break
-                                            @default text-slate-400
+                                            @default theme-text-secondary
                                         @endswitch">
                                         @switch(\App\Models\ProjectActivity::iconFor($activity->action_type))
                                             @case('payment') <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2h-2m-4-1V7a2 2 0 012-2h2a2 2 0 012 2v1"/></svg> @break
@@ -378,20 +378,20 @@
                                     </div>
                                 </div>
                                 <div class="min-w-0 flex-1 pb-1">
-                                    <p class="text-slate-200 text-xs leading-tight line-clamp-2">@if(in_array($activity->action_type, ['payment_created', 'payment_marked_paid', 'expense_created', 'invoice_generated']))<span class="payment-amount">{{ $activity->description }}</span>@else{{ $activity->description }}@endif</p>
-                                    <p class="text-slate-500 text-[10px] mt-0.5">
-                                        <span class="text-slate-400 font-medium">Project:</span>
+                                    <p class="theme-text-secondary text-xs leading-tight line-clamp-2">@if(in_array($activity->action_type, ['payment_created', 'payment_marked_paid', 'expense_created', 'invoice_generated']))<span class="payment-amount">{{ $activity->description }}</span>@else{{ $activity->description }}@endif</p>
+                                    <p class="theme-text-muted text-[10px] mt-0.5">
+                                        <span class="theme-text-secondary font-medium">Project:</span>
                                         @if($activity->project)
-                                            <a href="{{ route('projects.show', $activity->project) }}" class="text-sky-400 hover:text-sky-300">{{ $activity->project->project_name }}</a>
+                                            <a href="{{ route('projects.show', $activity->project) }}" class="text-orange-400 hover:text-orange-300">{{ $activity->project->project_name }}</a>
                                         @else
                                             <span>—</span>
                                         @endif
-                                        <span class="text-slate-600">·</span> {{ $activity->created_at->diffForHumans() }}
+                                        <span class="theme-text-muted">·</span> {{ $activity->created_at->diffForHumans() }}
                                     </p>
                                 </div>
                             </li>
                         @empty
-                            <li class="text-slate-500 text-xs py-4 pl-2">No recent activity</li>
+                            <li class="theme-text-muted text-xs py-4 pl-2">No recent activity</li>
                         @endforelse
                     </ul>
                 </div>

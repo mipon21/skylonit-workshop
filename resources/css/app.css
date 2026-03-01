@@ -1,3 +1,5 @@
+@import './theme.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -11,4 +13,87 @@ html.payment-blur-active .payment-amount {
     filter: blur(5px) !important;
     user-select: none !important;
     transition: filter 0.2s ease;
+}
+
+/* Header clock: force primary color and border (override any theme/Tailwind) */
+header .header-clock,
+.guest-layout-header .header-clock,
+.app-layout-header .header-clock {
+    border: 2px solid #EF8121 !important;
+    background: rgba(239, 129, 33, 0.12) !important;
+    color: #EF8121 !important;
+}
+header .header-clock .header-clock-time,
+header .header-clock .header-clock-ampm,
+header .header-clock .header-clock-date,
+header .header-clock .header-clock-sep,
+.guest-layout-header .header-clock .header-clock-time,
+.guest-layout-header .header-clock .header-clock-ampm,
+.guest-layout-header .header-clock .header-clock-date,
+.guest-layout-header .header-clock .header-clock-sep,
+.app-layout-header .header-clock .header-clock-time,
+.app-layout-header .header-clock .header-clock-ampm,
+.app-layout-header .header-clock .header-clock-date,
+.app-layout-header .header-clock .header-clock-sep {
+    color: #EF8121 !important;
+}
+header .header-clock:hover,
+.guest-layout-header .header-clock:hover,
+.app-layout-header .header-clock:hover {
+    border-color: #EF8121 !important;
+    background: rgba(239, 129, 33, 0.18) !important;
+    box-shadow: 0 0 0 1px #EF8121 !important;
+}
+
+/* Project tabs: active = primary bg + white text (loaded last so it wins) */
+button.project-tab-active,
+button.project-tab-active:hover {
+    background-color: #EF8121 !important;
+    color: #ffffff !important;
+    border-color: #EF8121 !important;
+}
+button.project-tab-active .theme-bg-tertiary,
+button.project-tab-active .theme-text-secondary {
+    background-color: rgba(255, 255, 255, 0.25) !important;
+    color: #ffffff !important;
+}
+
+/* Project tabs: 15px radius + padding (horizontal more, vertical less) */
+.project-tabs-wrap > div > button {
+    border-radius: 15px !important;
+}
+.project-tabs-wrap > div:first-of-type > button {
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+}
+.project-tabs-wrap > div:not(:first-of-type) > button {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    padding-top: 0.375rem !important;
+    padding-bottom: 0.375rem !important;
+}
+
+/* Sidebar: active menu = solid primary bg + white text (overrides theme vars / profile overrides) */
+.app-layout-sidebar-nav a.theme-sidebar-active,
+.guest-layout-sidebar-nav a.theme-sidebar-active {
+    background-color: #EF8121 !important;
+    color: #ffffff !important;
+}
+.app-layout-sidebar-nav a.theme-sidebar-active svg,
+.guest-layout-sidebar-nav a.theme-sidebar-active svg,
+.app-layout-sidebar-nav a.theme-sidebar-active span,
+.guest-layout-sidebar-nav a.theme-sidebar-active span {
+    color: #ffffff !important;
+}
+
+/* Projects index: active filter button = primary bg + white text */
+button.projects-filter-active {
+    background-color: #EF8121 !important;
+    color: #ffffff !important;
+    border-color: #EF8121 !important;
+}
+button.projects-filter-active * {
+    color: #ffffff !important;
 }

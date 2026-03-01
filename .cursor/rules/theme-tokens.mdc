@@ -1,0 +1,40 @@
+---
+description: Use theme tokens only; no hardcoded colors in UI
+globs: resources/views/**/*.blade.php, resources/css/**/*.css, resources/js/**/*.js
+alwaysApply: true
+---
+
+# Theme system – token-only colors
+
+This project uses a **token-based theming system**. Dark/Light mode is controlled by `[data-theme="dark"]` and `[data-theme="light"]` on `<html>`.
+
+## Rule
+
+- **Do NOT** use hardcoded Tailwind color classes for backgrounds, text, or borders in shared UI (e.g. `bg-white`, `bg-slate-800`, `text-gray-500`, `border-slate-600`).
+- **Do** use theme token classes from `resources/css/theme.css`.
+
+## Token classes (use these)
+
+| Purpose | Class |
+|--------|--------|
+| Page background | `theme-bg-primary` |
+| Cards / panels | `theme-card-bg` or `theme-card-bg-only` |
+| Sidebar | `theme-sidebar-bg`, `theme-sidebar-text`, `theme-sidebar-link-hover`, `theme-sidebar-active` |
+| Navbar | `theme-navbar-bg` |
+| Text | `theme-text-primary`, `theme-text-secondary`, `theme-text-muted` |
+| Borders | `theme-border` |
+| Buttons | `theme-btn-primary`, `theme-btn-secondary` |
+| Status | `theme-status-success-bg`, `theme-status-danger-bg`, `theme-status-warning-bg`, `theme-status-info-bg` |
+| Modals / dropdowns | `theme-modal-bg`, `theme-modal-backdrop`, `theme-dropdown-bg` |
+| Tables | `theme-table-header-bg`, `theme-table-row-hover`, `theme-table-border` |
+| Inputs | `theme-input-bg`, `theme-input-border`, `theme-input-placeholder`, `theme-input-focus` |
+| Body | `theme-body` |
+
+## Allowed exceptions
+
+- Accent gradients (e.g. logo `from-cyan-400 to-orange-500`) and status badges that stay semantic (e.g. `border-emerald-500/30` for success borders).
+- Third-party vendor views where changing would require forking heavily.
+
+## Adding new UI
+
+When adding new Blade views or components, use only the token classes above so the UI respects the user’s theme (Admin, Client, Developer, Sales, Guest).

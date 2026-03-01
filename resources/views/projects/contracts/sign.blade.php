@@ -2,38 +2,38 @@
     <x-slot name="title">Sign Contract</x-slot>
 
     <div class="max-w-2xl mx-auto space-y-6">
-        <a href="{{ route('projects.show', $project) }}#contracts" class="text-slate-400 hover:text-white text-sm">← Back to project</a>
-        <h1 class="text-2xl font-semibold text-white">Sign Contract</h1>
-        <p class="text-slate-400 text-sm">Project: {{ $project->project_name }}</p>
+        <a href="{{ route('projects.show', $project) }}#contracts" class="theme-text-secondary theme-hover-primary text-sm">← Back to project</a>
+        <h1 class="text-2xl font-semibold theme-text-primary">Sign Contract</h1>
+        <p class="theme-text-secondary text-sm">Project: {{ $project->project_name }}</p>
 
-        <div class="bg-slate-800/80 border border-slate-700/50 rounded-2xl p-6">
+        <div class="theme-bg-tertiary/80 border theme-border rounded-2xl p-6">
             <form action="{{ route('projects.contracts.sign', [$project, $contract]) }}" method="POST" id="sign-form" x-data="signForm()" x-init="init()">
                 @csrf
                 <div class="space-y-6">
                     <div>
-                        <p class="text-sm font-medium text-slate-400 mb-2">Draw your signature (optional)</p>
-                        <div class="border-2 border-slate-600 rounded-xl bg-white overflow-hidden" style="max-width: 100%;">
+                        <p class="text-sm font-medium theme-text-secondary mb-2">Draw your signature (optional)</p>
+                        <div class="border-2 theme-border rounded-xl bg-white overflow-hidden" style="max-width: 100%;">
                             <canvas id="signature-canvas" width="500" height="180" class="block w-full touch-none cursor-crosshair"
                                 style="max-width: 100%; height: auto; min-height: 180px;"></canvas>
                         </div>
-                        <button type="button" @click="clearCanvas()" class="mt-2 text-sm text-slate-400 hover:text-white">Clear</button>
+                        <button type="button" @click="clearCanvas()" class="mt-2 text-sm theme-text-secondary theme-hover-primary">Clear</button>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-1">Or type your full name *</label>
+                        <label class="block text-sm font-medium theme-text-secondary mb-1">Or type your full name *</label>
                         <input type="text" name="signature_text" id="signature_text" value="{{ old('signature_text', auth()->user()->name) }}"
-                            class="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-2.5 focus:ring-2 focus:ring-sky-500"
+                            class="w-full rounded-xl theme-input-bg border theme-border theme-text-primary px-4 py-2.5 focus:ring-2 focus:ring-orange-500"
                             placeholder="Your full name" required>
                         <input type="hidden" name="signature_data" id="signature_data" value="">
                     </div>
                     <div class="flex items-start gap-3">
                         <input type="checkbox" name="agree" id="agree" value="1" required
-                            class="mt-1 rounded border-slate-600 bg-slate-900 text-sky-500 focus:ring-sky-500">
-                        <label for="agree" class="text-sm text-slate-300">I agree to this contract and sign it voluntarily.</label>
+                            class="mt-1 rounded theme-border theme-input-bg text-orange-500 focus:ring-orange-500">
+                        <label for="agree" class="text-sm theme-text-secondary">I agree to this contract and sign it voluntarily.</label>
                     </div>
                 </div>
                 <div class="mt-6 flex gap-3">
-                    <a href="{{ route('projects.show', $project) }}#contracts" class="px-4 py-2.5 rounded-xl border border-slate-600 text-slate-300 hover:bg-slate-700">Cancel</a>
-                    <button type="submit" class="px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-medium">Sign Contract</button>
+                    <a href="{{ route('projects.show', $project) }}#contracts" class="px-4 py-2.5 rounded-xl border theme-border theme-text-secondary theme-sidebar-link-hover">Cancel</a>
+                    <button type="submit" class="px-4 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 theme-text-primary font-medium">Sign Contract</button>
                 </div>
             </form>
         </div>

@@ -1,4 +1,10 @@
 import './bootstrap';
+import * as theme from './theme';
+
+// Expose theme for navbar toggle and chart observer
+window.theme = theme;
+// Sync body class and fire themechange once so charts/observers can run
+theme.applyTheme(theme.currentTheme());
 
 import Alpine from 'alpinejs';
 
@@ -73,6 +79,30 @@ Alpine.data('clientNotificationPopups', function (config) {
       this.list = this.list.filter((n) => n.id !== id);
       this.current = null;
       this.showNext();
+    },
+  };
+});
+
+Alpine.data('headerClock', function () {
+  return {
+    time: '--:--:--',
+    ampm: '',
+    date: '',
+    init() {
+      const pad = (n) => String(n).padStart(2, '0');
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const update = () => {
+        const d = new Date();
+        const h = d.getHours();
+        const m = d.getMinutes();
+        const s = d.getSeconds();
+        const h12 = h % 12 || 12;
+        this.time = pad(h12) + ':' + pad(m) + ':' + pad(s);
+        this.ampm = h >= 12 ? 'PM' : 'AM';
+        this.date = months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+      };
+      update();
+      setInterval(update, 1000);
     },
   };
 });

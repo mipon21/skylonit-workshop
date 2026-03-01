@@ -13,7 +13,7 @@ class ProjectDistributionService
 {
     public const OVERHEAD_PERCENT = 20;
 
-    public const DEFAULT_SALES_PERCENT = 25;
+    public const DEFAULT_SALES_PERCENT = 20;
     public const DEFAULT_DEVELOPER_PERCENT = 40;
 
     public const DEV_SALES_SALES_PERCENT = 25;
@@ -81,7 +81,7 @@ class ProjectDistributionService
         }
 
         $overhead = round($base * (self::OVERHEAD_PERCENT / 100), 2);
-        $salesPercent = $project->sales_percentage ?? config('revenue.sales', 0.25) * 100;
+        $salesPercent = $project->sales_percentage ?? config('revenue.sales', 0.20) * 100;
         $developerPercent = $project->developer_percentage ?? config('revenue.developer', 0.40) * 100;
         $salesEnabled = $project->sales_commission_enabled ?? true;
 

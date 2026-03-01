@@ -8,7 +8,35 @@
     <link rel="icon" href="{{ $appFaviconUrl ?? asset('favicon.ico') }}" type="image/x-icon">
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
+    @if(Auth::check())
+    <script>window.__INITIAL_THEME__ = @json(Auth::user()->theme_preference ?? 'light');</script>
+    @endif
+    {{-- No-FOUC: set theme before first paint. Default = light; user can change via toggle. --}}
+    <script>
+    (function(){
+        var initial = window.__INITIAL_THEME__;
+        if (!initial) { try { var s = localStorage.getItem('app_theme'); if (s === 'light' || s === 'dark') initial = s; } catch(e) {} }
+        if (!initial) initial = 'light';
+        document.documentElement.dataset.theme = initial;
+    })();
+    </script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @include('layouts.partials.theme-color-overrides')
+    <style id="sidebar-active-primary">
+        .app-layout-sidebar-nav a.theme-sidebar-active,
+        .guest-layout-sidebar-nav a.theme-sidebar-active {
+            background-color: #EF8121 !important;
+            color: #ffffff !important;
+        }
+        .app-layout-sidebar-nav a.theme-sidebar-active svg,
+        .guest-layout-sidebar-nav a.theme-sidebar-active svg,
+        .app-layout-sidebar-nav a.theme-sidebar-active span,
+        .guest-layout-sidebar-nav a.theme-sidebar-active span,
+        .app-layout-sidebar-nav a.theme-sidebar-active *,
+        .guest-layout-sidebar-nav a.theme-sidebar-active * {
+            color: #ffffff !important;
+        }
+    </style>
     <style>
         /* Desktop: fixed sidebar + fixed header, only main scrolls */
         @media (min-width: 768px) {
@@ -16,7 +44,7 @@
             .app-layout-root { height: 100vh !important; overflow: hidden !important; }
             .app-layout-sidebar { position: fixed !important; top: 0 !important; left: 0 !important; bottom: 0 !important; width: 16rem !important; z-index: 30 !important; display: flex !important; flex-direction: column !important; height: 100vh !important; overflow: hidden !important; }
             .app-layout-sidebar-nav { flex: 1 1 0 !important; min-height: 0 !important; overflow-y: auto !important; }
-            .app-layout-header { position: fixed !important; top: 0 !important; left: 16rem !important; right: 0 !important; height: 3.5rem !important; z-index: 25 !important; background: rgb(15 23 42 / 0.95) !important; backdrop-filter: blur(8px); }
+            .app-layout-header { position: fixed !important; top: 0 !important; left: 16rem !important; right: 0 !important; height: 3.5rem !important; z-index: 25 !important; background: var(--navbar-bg) !important; backdrop-filter: blur(8px); }
             .app-layout-main-wrap { margin-left: 16rem !important; margin-top: 3.5rem !important; height: calc(100vh - 3.5rem) !important; overflow: auto !important; }
         }
         @media (max-width: 767px) {
@@ -27,8 +55,8 @@
                 right: 0 !important;
                 height: 56px !important;
                 z-index: 25 !important;
-                background: #020617 !important;
-                border-bottom: 1px solid #1e293b !important;
+                background: var(--navbar-bg) !important;
+                border-bottom: 1px solid var(--navbar-border) !important;
                 display: flex !important;
                 align-items: center !important;
                 justify-content: space-between !important;
@@ -38,6 +66,64 @@
             .app-layout-mobile-main {
                 padding-top: 56px !important;
             }
+        }
+    </style>
+    <style id="header-clock-primary-styles">
+        /* Header clock: primary color + border (inline so it always applies) */
+        #header-clock {
+            border: 2px solid #EF8121 !important;
+            border-radius: 15px !important;
+            padding: 6px 14px !important;
+            background: rgba(239, 129, 33, 0.12) !important;
+            color: #EF8121 !important;
+        }
+        #header-clock .header-clock-time,
+        #header-clock .header-clock-ampm,
+        #header-clock .header-clock-date,
+        #header-clock .header-clock-sep {
+            color: #EF8121 !important;
+        }
+        #header-clock:hover {
+            background: rgba(239, 129, 33, 0.2) !important;
+            box-shadow: 0 0 0 1px #EF8121 !important;
+        }
+        /* Dark theme: solid primary bg, white text */
+        [data-theme="dark"] #header-clock {
+            background: #EF8121 !important;
+            border-color: #EF8121 !important;
+            color: #fff !important;
+        }
+        [data-theme="dark"] #header-clock .header-clock-time,
+        [data-theme="dark"] #header-clock .header-clock-ampm,
+        [data-theme="dark"] #header-clock .header-clock-date,
+        [data-theme="dark"] #header-clock .header-clock-sep {
+            color: #fff !important;
+        }
+        [data-theme="dark"] #header-clock:hover {
+            background: #e07a1e !important;
+            box-shadow: 0 0 0 1px #EF8121 !important;
+        }
+        /* Mobile: smaller padding and font */
+        @media (max-width: 639px) {
+            #header-clock {
+                padding: 5px 10px !important;
+                border-radius: 12px !important;
+                gap: 0.2rem 0.4rem !important;
+                min-width: 0 !important;
+                flex-shrink: 1 !important;
+            }
+            #header-clock .header-clock-time { font-size: 0.75rem !important; }
+            #header-clock .header-clock-ampm { font-size: 0.5rem !important; }
+            #header-clock .header-clock-date { font-size: 0.65rem !important; }
+            #header-clock .header-clock-sep { font-size: 0.6rem !important; }
+        }
+        @media (max-width: 380px) {
+            #header-clock {
+                padding: 4px 8px !important;
+                border-radius: 10px !important;
+            }
+            #header-clock .header-clock-time { font-size: 0.7rem !important; }
+            #header-clock .header-clock-date { font-size: 0.6rem !important; }
         }
     </style>
     @if((request()->routeIs('projects.*') || request()->routeIs('dashboard')) && Auth::user()->isAdmin())
@@ -53,54 +139,54 @@
     <style>html.payment-blur-active .payment-amount{filter:blur(5px)!important;user-select:none!important}</style>
     @endif
 </head>
-<body class="font-sans antialiased bg-slate-950 text-slate-200 min-h-screen">
+<body class="font-sans antialiased theme-body min-h-screen">
     <div class="app-layout-root flex min-h-screen" x-data="{ sidebarOpen: false }">
         {{-- Mobile backdrop: close sidebar on tap --}}
         <div x-show="sidebarOpen" x-cloak @click="sidebarOpen = false" class="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm md:hidden" aria-hidden="true"></div>
         {{-- Left Sidebar: fixed on desktop (no scroll); on mobile fixed drawer, hidden by default --}}
-        <aside class="app-layout-sidebar w-64 shrink-0 bg-slate-900/95 border-r border-slate-700/50 flex flex-col max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-40 max-md:transition-transform max-md:duration-200 max-md:ease-out max-md:-translate-x-full"
+        <aside class="app-layout-sidebar w-64 shrink-0 theme-sidebar-bg flex flex-col max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-40 max-md:transition-transform max-md:duration-200 max-md:ease-out max-md:-translate-x-full"
                :class="sidebarOpen && 'max-md:translate-x-0'">
-            <div class="p-5 border-b border-slate-700/50">
+            <div class="p-5 border-b theme-border">
                 <a href="{{ route('dashboard') }}" class="flex items-center gap-2.5" @click="sidebarOpen = false">
                     @if(!empty($appLogoUrl))
                         <img src="{{ $appLogoUrl }}" alt="{{ config('app.name') }}" class="h-10 w-auto max-w-full object-contain object-left">
                     @else
-                        <span class="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-sky-500 bg-clip-text text-transparent">{{ config('app.name') }}</span>
+                        <span class="text-2xl font-bold bg-gradient-to-r from-orange-400 to-amber-500 bg-clip-text text-transparent">{{ config('app.name') }}</span>
                     @endif
                 </a>
             </div>
             <nav class="app-layout-sidebar-nav flex-1 p-3 space-y-0.5">
-                <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800/80 hover:text-white transition {{ request()->routeIs('dashboard') ? 'bg-sky-500/20 text-sky-400' : '' }}" @click="sidebarOpen = false">
+                <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl theme-sidebar-text theme-sidebar-link-hover theme-sidebar-text-hover transition {{ request()->routeIs('dashboard') ? 'theme-sidebar-active' : '' }}" @click="sidebarOpen = false">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
                     Dashboard
                 </a>
                 @if(Auth::user()->isAdmin())
-                <a href="{{ route('clients.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800/80 hover:text-white transition {{ request()->routeIs('clients.*') ? 'bg-sky-500/20 text-sky-400' : '' }}" @click="sidebarOpen = false">
+                <a href="{{ route('clients.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl theme-sidebar-text theme-sidebar-link-hover theme-sidebar-text-hover transition {{ request()->routeIs('clients.*') ? 'theme-sidebar-active' : '' }}" @click="sidebarOpen = false">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                     Clients
                 </a>
                 @endif
-                <a href="{{ route('projects.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800/80 hover:text-white transition {{ request()->routeIs('projects.*') ? 'bg-sky-500/20 text-sky-400' : '' }}" @click="sidebarOpen = false">
+                <a href="{{ route('projects.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl theme-sidebar-text theme-sidebar-link-hover theme-sidebar-text-hover transition {{ request()->routeIs('projects.*') ? 'theme-sidebar-active' : '' }}" @click="sidebarOpen = false">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
                     Projects
                 </a>
                 @if((Auth::user()->isDeveloper() || Auth::user()->isSales()) && isset($sidebarPayouts) && $sidebarPayouts->isNotEmpty())
                 <div class="pt-2 pb-1" x-data="{ paymentsOpen: true }">
-                    <button type="button" @click="paymentsOpen = !paymentsOpen" class="flex items-center gap-3 w-full px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800/80 hover:text-white transition" @click.stop="sidebarOpen = false">
+                    <button type="button" @click="paymentsOpen = !paymentsOpen" class="flex items-center gap-3 w-full px-3 py-2 rounded-xl theme-sidebar-text theme-sidebar-link-hover theme-sidebar-text-hover transition" @click.stop="sidebarOpen = false">
                         <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                         <span class="font-medium">Payments</span>
-                        <span class="ml-auto text-xs text-slate-500">{{ $sidebarPayouts->count() }}</span>
-                        <svg class="w-4 h-4 text-slate-500 transition-transform" :class="paymentsOpen && 'rotate-180'" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+                        <span class="ml-auto text-xs theme-text-muted">{{ $sidebarPayouts->count() }}</span>
+                        <svg class="w-4 h-4 theme-text-muted transition-transform" :class="paymentsOpen && 'rotate-180'" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
                     </button>
                     <div x-show="paymentsOpen" x-transition class="mt-0.5 space-y-0.5">
                         @foreach($sidebarPayouts as $payout)
-                        <a href="{{ route('projects.show', $payout->project) }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 transition text-sm truncate group" @click="sidebarOpen = false">
+                        <a href="{{ route('projects.show', $payout->project) }}" class="flex items-center gap-2 px-3 py-2 rounded-lg theme-text-secondary theme-sidebar-link-hover transition text-sm truncate group" @click="sidebarOpen = false">
                             <span class="truncate flex-1 min-w-0" title="{{ $payout->project->project_name ?? '' }}">{{ $payout->project->project_name ?? '—' }}</span>
                             <span @class([
                                 'shrink-0 px-1.5 py-0.5 rounded text-xs font-medium',
                                 'bg-amber-500/20 text-amber-400' => $payout->status === 'due',
                                 'bg-emerald-500/20 text-emerald-400' => $payout->status === 'paid',
-                                'bg-sky-500/20 text-sky-400' => $payout->status === 'upcoming',
+                                'theme-sidebar-active' => $payout->status === 'upcoming',
                                 'bg-slate-500/20 text-slate-400' => in_array($payout->status, ['partial']),
                             ])>{{ \App\Models\ProjectPayout::statusLabel($payout->status) }}</span>
                         </a>
@@ -109,65 +195,65 @@
                 </div>
                 @endif
                 @if(Auth::user()->isAdmin())
-                <a href="{{ route('developers.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800/80 hover:text-white transition {{ request()->routeIs('developers.*') ? 'bg-sky-500/20 text-sky-400' : '' }}" @click="sidebarOpen = false">
+                <a href="{{ route('developers.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl theme-sidebar-text theme-sidebar-link-hover theme-sidebar-text-hover transition {{ request()->routeIs('developers.*') ? 'theme-sidebar-active' : '' }}" @click="sidebarOpen = false">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
                     Developers
                 </a>
-                <a href="{{ route('sales.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800/80 hover:text-white transition {{ request()->routeIs('sales.*') ? 'bg-sky-500/20 text-sky-400' : '' }}" @click="sidebarOpen = false">
+                <a href="{{ route('sales.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl theme-sidebar-text theme-sidebar-link-hover theme-sidebar-text-hover transition {{ request()->routeIs('sales.*') ? 'theme-sidebar-active' : '' }}" @click="sidebarOpen = false">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                     Sales
                 </a>
                 @endif
                 @if(Auth::user()->isClient())
-                <a href="{{ route('client.payments.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800/80 hover:text-white transition {{ request()->routeIs('client.payments.*') ? 'bg-sky-500/20 text-sky-400' : '' }}" @click="sidebarOpen = false">
+                <a href="{{ route('client.payments.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl theme-sidebar-text theme-sidebar-link-hover theme-sidebar-text-hover transition {{ request()->routeIs('client.payments.*') ? 'theme-sidebar-active' : '' }}" @click="sidebarOpen = false">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                     Payments
                 </a>
                 @endif
                 @if(Auth::user()->isAdmin() || Auth::user()->isClient())
-                <a href="{{ route('invoices.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800/80 hover:text-white transition {{ request()->routeIs('invoices.*') ? 'bg-sky-500/20 text-sky-400' : '' }}" @click="sidebarOpen = false">
+                <a href="{{ route('invoices.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl theme-sidebar-text theme-sidebar-link-hover theme-sidebar-text-hover transition {{ request()->routeIs('invoices.*') ? 'theme-sidebar-active' : '' }}" @click="sidebarOpen = false">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     Invoices
                 </a>
                 @endif
                 @if(Auth::user()->isAdmin())
-                <a href="{{ route('revenue.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800/80 hover:text-white transition {{ request()->routeIs('revenue.*') ? 'bg-sky-500/20 text-sky-400' : '' }}" @click="sidebarOpen = false">
+                <a href="{{ route('revenue.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl theme-sidebar-text theme-sidebar-link-hover theme-sidebar-text-hover transition {{ request()->routeIs('revenue.*') ? 'theme-sidebar-active' : '' }}" @click="sidebarOpen = false">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                     Loss / Profit
                 </a>
-                <a href="{{ route('investments.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800/80 hover:text-white transition {{ request()->routeIs('investments.*') ? 'bg-sky-500/20 text-sky-400' : '' }}" @click="sidebarOpen = false">
+                <a href="{{ route('investments.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl theme-sidebar-text theme-sidebar-link-hover theme-sidebar-text-hover transition {{ request()->routeIs('investments.*') ? 'theme-sidebar-active' : '' }}" @click="sidebarOpen = false">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     Finance → Investors
                 </a>
-                <a href="{{ route('internal-expenses.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800/80 hover:text-white transition {{ request()->routeIs('internal-expenses.*') ? 'bg-sky-500/20 text-sky-400' : '' }}" @click="sidebarOpen = false">
+                <a href="{{ route('internal-expenses.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl theme-sidebar-text theme-sidebar-link-hover theme-sidebar-text-hover transition {{ request()->routeIs('internal-expenses.*') ? 'theme-sidebar-active' : '' }}" @click="sidebarOpen = false">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                     Finance → Internal Expenses
                 </a>
-                <a href="{{ route('internal-income.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800/80 hover:text-white transition {{ request()->routeIs('internal-income.*') ? 'bg-sky-500/20 text-sky-400' : '' }}" @click="sidebarOpen = false">
+                <a href="{{ route('internal-income.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl theme-sidebar-text theme-sidebar-link-hover theme-sidebar-text-hover transition {{ request()->routeIs('internal-income.*') ? 'theme-sidebar-active' : '' }}" @click="sidebarOpen = false">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     Finance → Internal Income
                 </a>
-                <a href="{{ route('leads.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800/80 hover:text-white transition {{ request()->routeIs('leads.*') ? 'bg-sky-500/20 text-sky-400' : '' }}" @click="sidebarOpen = false">
+                <a href="{{ route('leads.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl theme-sidebar-text theme-sidebar-link-hover theme-sidebar-text-hover transition {{ request()->routeIs('leads.*') ? 'theme-sidebar-active' : '' }}" @click="sidebarOpen = false">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                     Marketing → Leads
                 </a>
-                <a href="{{ route('hot-offers.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800/80 hover:text-white transition {{ request()->routeIs('hot-offers.*') ? 'bg-sky-500/20 text-sky-400' : '' }}" @click="sidebarOpen = false">
+                <a href="{{ route('hot-offers.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl theme-sidebar-text theme-sidebar-link-hover theme-sidebar-text-hover transition {{ request()->routeIs('hot-offers.*') ? 'theme-sidebar-active' : '' }}" @click="sidebarOpen = false">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
                     Marketing → Hot Offers
                 </a>
-                <a href="{{ route('testimonials.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800/80 hover:text-white transition {{ request()->routeIs('testimonials.*') ? 'bg-sky-500/20 text-sky-400' : '' }}" @click="sidebarOpen = false">
+                <a href="{{ route('testimonials.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl theme-sidebar-text theme-sidebar-link-hover theme-sidebar-text-hover transition {{ request()->routeIs('testimonials.*') ? 'theme-sidebar-active' : '' }}" @click="sidebarOpen = false">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
                     Marketing → Testimonials
                 </a>
-                <a href="{{ route('email-templates.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800/80 hover:text-white transition {{ request()->routeIs('email-templates.*') ? 'bg-sky-500/20 text-sky-400' : '' }}" @click="sidebarOpen = false">
+                <a href="{{ route('email-templates.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl theme-sidebar-text theme-sidebar-link-hover theme-sidebar-text-hover transition {{ request()->routeIs('email-templates.*') ? 'theme-sidebar-active' : '' }}" @click="sidebarOpen = false">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                     Email Templates
                 </a>
-                <a href="{{ route('email-footer.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800/80 hover:text-white transition {{ request()->routeIs('email-footer.*') ? 'bg-sky-500/20 text-sky-400' : '' }}" @click="sidebarOpen = false">
+                <a href="{{ route('email-footer.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl theme-sidebar-text theme-sidebar-link-hover theme-sidebar-text-hover transition {{ request()->routeIs('email-footer.*') ? 'theme-sidebar-active' : '' }}" @click="sidebarOpen = false">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
                     Email Footer
                 </a>
-                <a href="{{ route('google-sync.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800/80 hover:text-white transition {{ request()->routeIs('google-sync.*') ? 'bg-sky-500/20 text-sky-400' : '' }}" @click="sidebarOpen = false">
+                <a href="{{ route('google-sync.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl theme-sidebar-text theme-sidebar-link-hover theme-sidebar-text-hover transition {{ request()->routeIs('google-sync.*') ? 'theme-sidebar-active' : '' }}" @click="sidebarOpen = false">
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     Google Sync
                 </a>
@@ -177,14 +263,49 @@
 
         <div class="flex-1 flex flex-col min-w-0 min-h-0">
             {{-- Top Bar: fixed on desktop (stays visible); fixed on mobile via CSS --}}
-            <header class="app-layout-header app-layout-mobile-header h-14 shrink-0 flex items-center justify-end gap-3 px-6 border-b border-slate-800/80 bg-slate-900/50 max-md:justify-between max-md:px-4">
-                <button type="button" @click="sidebarOpen = true" class="p-2 rounded-lg hover:bg-slate-800/80 text-slate-300 hover:text-white transition md:hidden" aria-label="Open menu">
+            <header class="app-layout-header app-layout-mobile-header h-14 shrink-0 flex items-center justify-between gap-2 sm:gap-3 px-4 sm:px-6 border-b theme-navbar-bg">
+                <div class="flex items-center shrink-0">
+                <button type="button" @click="sidebarOpen = true" class="p-2 -ml-1 rounded-lg theme-sidebar-link-hover theme-sidebar-text theme-sidebar-text-hover transition md:hidden" aria-label="Open menu">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
+                </div>
+                <div class="flex items-center justify-end gap-1.5 sm:gap-2 md:gap-3 min-w-0 flex-1">
+                @php
+                    $now = now();
+                    $h = (int) $now->format('g');
+                    $m = (int) $now->format('i');
+                    $s = (int) $now->format('s');
+                    $ampm = $now->format('A');
+                    $timeStr = sprintf('%02d:%02d:%02d', $h, $m, $s);
+                    $dateStr = $now->format('M j, Y');
+                @endphp
+                <div class="header-clock hidden sm:flex items-center shrink-0" id="header-clock" aria-live="polite" aria-label="Current time and date">
+                    <span class="header-clock-time" id="header-clock-time">{{ $timeStr }}</span><span class="header-clock-ampm" id="header-clock-ampm">{{ $ampm }}</span>
+                    <span class="header-clock-sep" aria-hidden="true">·</span>
+                    <span class="header-clock-date" id="header-clock-date">{{ $dateStr }}</span>
+                </div>
+                <script>
+                (function(){
+                    var pad = function(n) { return (n < 10 ? '0' : '') + n; };
+                    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                    function update() {
+                        var d = new Date();
+                        var h = d.getHours(), m = d.getMinutes(), s = d.getSeconds();
+                        var h12 = h % 12 || 12;
+                        var timeEl = document.getElementById('header-clock-time');
+                        var ampmEl = document.getElementById('header-clock-ampm');
+                        var dateEl = document.getElementById('header-clock-date');
+                        if (timeEl) timeEl.textContent = pad(h12) + ':' + pad(m) + ':' + pad(s);
+                        if (ampmEl) ampmEl.textContent = h >= 12 ? 'PM' : 'AM';
+                        if (dateEl) dateEl.textContent = months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+                    }
+                    setInterval(update, 1000);
+                })();
+                </script>
                 @if(Auth::user()->isClient())
-                <a href="{{ route('dashboard') }}" id="client-notification-bell" class="md:hidden flex items-center justify-center relative p-2 rounded-lg hover:bg-slate-800/80 text-slate-300 hover:text-white transition" aria-label="Notifications">
+                <a href="{{ route('dashboard') }}" id="client-notification-bell" class="md:hidden flex items-center justify-center relative p-2 rounded-lg theme-sidebar-link-hover theme-sidebar-text theme-sidebar-text-hover transition" aria-label="Notifications">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                    <span id="client-notification-badge" class="absolute -top-0.5 -right-0.5 min-w-[1.25rem] h-5 px-1 flex items-center justify-center rounded-full bg-sky-500 text-white text-xs font-semibold {{ ($clientUnreadCount ?? 0) > 0 ? '' : 'hidden' }}" data-count="{{ $clientUnreadCount ?? 0 }}">{{ ($clientUnreadCount ?? 0) > 99 ? '99+' : ($clientUnreadCount ?? 0) }}</span>
+                    <span id="client-notification-badge" class="absolute -top-0.5 -right-0.5 min-w-[1.25rem] h-5 px-1 flex items-center justify-center rounded-full bg-orange-500 text-white text-xs font-semibold {{ ($clientUnreadCount ?? 0) > 0 ? '' : 'hidden' }}" data-count="{{ $clientUnreadCount ?? 0 }}">{{ ($clientUnreadCount ?? 0) > 99 ? '99+' : ($clientUnreadCount ?? 0) }}</span>
                 </a>
                 @endif
                 @if((request()->routeIs('projects.*') || request()->routeIs('dashboard')) && Auth::user()->isAdmin())
@@ -199,42 +320,47 @@
                         this.$watch('paymentBlur', () => this.syncBlur());
                         this.syncBlur();
                     }
-                }" x-effect="syncBlur()" class="flex items-center">
-                    <button type="button" @click="paymentBlur = !paymentBlur" :class="paymentBlur ? 'bg-amber-500/30 text-amber-400 border-amber-500/50' : 'bg-slate-800/80 text-slate-300 border-slate-600 hover:text-white'" class="px-3 py-1.5 rounded-lg border text-sm font-medium transition flex items-center gap-1.5" :title="paymentBlur ? 'Payment numbers blurred – click to show' : 'Click to blur payment numbers'">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                        <span x-text="paymentBlur ? 'Show payments' : 'Blur payments'">Blur payments</span>
+                }" x-effect="syncBlur()" class="flex items-center shrink-0">
+                    <button type="button" @click="paymentBlur = !paymentBlur" :class="paymentBlur ? 'theme-status-warning-bg border-amber-500/50' : 'theme-btn-secondary'" class="p-2 sm:px-3 sm:py-1.5 rounded-lg border text-sm font-medium transition flex items-center gap-1.5 shrink-0" :title="paymentBlur ? 'Payment numbers blurred – click to show' : 'Click to blur payment numbers'">
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                        <span class="hidden sm:inline" x-text="paymentBlur ? 'Show' : 'Blur'">Blur</span>
                     </button>
                 </div>
                 @endif
-                <div x-data="{ open: false }" class="relative max-md:flex max-md:items-center">
-                    <button @click="open = !open" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-800/80 transition">
-                        <span class="text-sm font-medium text-slate-200">{{ Auth::user()->name }}</span>
-                        <svg class="w-4 h-4 text-slate-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+                {{-- Theme toggle --}}
+                <button type="button" @click="window.theme && window.theme.toggleTheme({ saveUrl: '{{ route('profile.theme.update') }}', csrf: document.querySelector('meta[name=csrf-token]')?.getAttribute('content') })" class="p-2 rounded-lg theme-sidebar-link-hover theme-sidebar-text theme-sidebar-text-hover transition shrink-0" aria-label="Toggle theme" title="Toggle light/dark">
+                    <svg class="w-5 h-5 theme-sun-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    <svg class="w-5 h-5 theme-moon-icon" style="display:none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                </button>
+                <div x-data="{ open: false }" class="relative flex items-center min-w-0 shrink">
+                    <button @click="open = !open" class="flex items-center gap-1.5 sm:gap-2 pl-1 pr-2 py-1.5 sm:px-3 sm:py-2 rounded-lg theme-sidebar-link-hover transition min-w-0 max-w-full">
+                        <span class="text-sm font-medium theme-text-secondary truncate max-w-[4.5rem] sm:max-w-[8rem] md:max-w-none">{{ Auth::user()->name }}</span>
+                        <svg class="w-4 h-4 theme-text-muted shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
                     </button>
-                    <div x-show="open" @click.outside="open = false" x-transition class="absolute right-0 mt-1 w-48 py-1 bg-slate-800 border border-slate-700 rounded-xl shadow-xl z-50">
-                        <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700/50">Profile</a>
+                    <div x-show="open" @click.outside="open = false" x-transition class="absolute right-0 mt-1 w-48 py-1 theme-dropdown-bg border rounded-xl z-50">
+                        <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-sm theme-text-secondary theme-sidebar-link-hover">Profile</a>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-slate-700/50">Log Out</button>
+                            <button type="submit" class="block w-full text-left px-4 py-2 text-sm theme-text-secondary theme-sidebar-link-hover">Log Out</button>
                         </form>
                     </div>
                 </div>
+                </div>
             </header>
-
-            {{-- Main Content: only this area scrolls on desktop --}}
             <main class="app-layout-main-wrap app-layout-mobile-main flex-1 min-h-0 p-6 overflow-auto max-md:p-4">
                 @if (session('success'))
-                    <div class="mb-4 px-4 py-3 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-sm">
+                    <div class="mb-4 px-4 py-3 rounded-xl theme-status-success-bg border border-emerald-500/30 text-sm">
                         {{ session('success') }}
                     </div>
                 @endif
                 @if (session('error'))
-                    <div class="mb-4 px-4 py-3 rounded-xl bg-red-500/20 border border-red-500/30 text-red-400 text-sm">
+                    <div class="mb-4 px-4 py-3 rounded-xl theme-status-danger-bg border border-red-500/30 text-sm">
                         {{ session('error') }}
                     </div>
                 @endif
                 {{ $slot ?? '' }}
             </main>
+            @include('layouts.partials.global-footer')
         </div>
     </div>
 
@@ -258,12 +384,12 @@
              style="position:fixed;inset:0;z-index:101;display:{{ $index > 0 ? 'none' : 'flex' }};align-items:center;justify-content:center;padding:1rem;background:rgba(0,0,0,0.7);"
              @endif>
             @if($n->type !== 'payment')
-            <div class="bg-slate-800 border border-slate-600 rounded-xl shadow-xl p-4 flex gap-3">
+            <div class="theme-card-bg-only theme-border border rounded-xl shadow-xl p-4 flex gap-3">
                 <div class="flex-1 min-w-0">
-                    <p class="font-semibold text-white text-sm">{{ $n->title }}</p>
-                    <p class="text-slate-400 text-xs mt-0.5 line-clamp-2">{{ $n->message }}</p>
+                    <p class="font-semibold theme-text-primary text-sm">{{ $n->title }}</p>
+                    <p class="theme-text-muted text-xs mt-0.5 line-clamp-2">{{ $n->message }}</p>
                 </div>
-                <button type="button" data-dismiss-notification-id="{{ $n->id }}" onclick="window.clientNotificationDismiss({{ $n->id }})" class="text-slate-400 hover:text-white p-1 rounded shrink-0" aria-label="Close">
+                <button type="button" data-dismiss-notification-id="{{ $n->id }}" onclick="window.clientNotificationDismiss({{ $n->id }})" class="theme-text-muted theme-hover-primary p-1 rounded shrink-0" aria-label="Close">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
@@ -271,18 +397,18 @@
             <div class="bg-slate-800 border border-slate-600 rounded-2xl shadow-2xl max-w-md w-full p-6" style="pointer-events:auto">
                 <div class="flex justify-between items-start mb-4">
                     <h2 class="text-lg font-semibold text-white">{{ $n->title }}</h2>
-                    <button type="button" data-dismiss-notification-id="{{ $n->id }}" onclick="window.clientNotificationDismiss({{ $n->id }})" class="text-slate-400 hover:text-white p-1 rounded" aria-label="Close">
+                    <button type="button" data-dismiss-notification-id="{{ $n->id }}" onclick="window.clientNotificationDismiss({{ $n->id }})" class="theme-text-muted theme-hover-primary p-1 rounded" aria-label="Close">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
                 <p class="text-slate-300 text-sm mb-4">{{ $n->message }}</p>
                 @if($n->project)<p class="text-slate-400 text-sm mb-1"><span class="text-slate-500">Project:</span> {{ $n->project->project_name }}</p>@endif
-                @if($n->payment)<p class="text-cyan-400 font-semibold text-lg mb-4">৳{{ number_format($n->payment->amount, 0) }}</p>@endif
+                @if($n->payment)<p class="text-orange-400 font-semibold text-lg mb-4">৳{{ number_format($n->payment->amount, 0) }}</p>@endif
                 @php $showUrl = $n->invoice ? route('invoices.view', $n->invoice) : route('client.payments.index'); @endphp
                 <div class="flex flex-wrap gap-3 mt-4">
-                    <a href="{{ $showUrl }}" data-dismiss-notification-id="{{ $n->id }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium bg-sky-500/20 text-sky-400 border border-sky-500/40 hover:bg-sky-500/30 transition">{{ $n->invoice ? 'View Invoice' : 'Show' }}</a>
-                    @if($n->payment && $n->payment->payment_status === 'DUE' && $n->payment->payment_link)<a href="{{ $n->payment->payment_link }}" target="_blank" rel="noopener noreferrer" data-dismiss-notification-id="{{ $n->id }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold bg-cyan-500 text-white hover:bg-cyan-400 transition">Pay Now</a>@endif
-                    <button type="button" data-dismiss-notification-id="{{ $n->id }}" onclick="window.clientNotificationDismiss({{ $n->id }})" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium bg-slate-700 text-slate-300 hover:bg-slate-600 transition">Close</button>
+                    <a href="{{ $showUrl }}" data-dismiss-notification-id="{{ $n->id }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium theme-status-info-bg border border-orange-500/40 hover:opacity-90 transition">{{ $n->invoice ? 'View Invoice' : 'Show' }}</a>
+                    @if($n->payment && $n->payment->payment_status === 'DUE' && $n->payment->payment_link)<a href="{{ $n->payment->payment_link }}" target="_blank" rel="noopener noreferrer" data-dismiss-notification-id="{{ $n->id }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold theme-btn-primary hover:opacity-90 transition">Pay Now</a>@endif
+                    <button type="button" data-dismiss-notification-id="{{ $n->id }}" onclick="window.clientNotificationDismiss({{ $n->id }})" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium theme-btn-secondary">Close</button>
                 </div>
             </div>
             @endif
@@ -320,10 +446,10 @@
             function escUrl(u) { if (!u) return ''; return String(u).replace(/&/g, '&amp;').replace(/"/g, '&quot;'); }
             var showUrl = n.show_url || n.invoice_view_url || '';
             var showLabel = n.invoice_view_url ? 'View Invoice' : 'Show';
-            var payBtn = (n.payment_link && n.payment_status === 'DUE') ? '<a href="' + escUrl(n.payment_link) + '" target="_blank" rel="noopener noreferrer" data-dismiss-notification-id="' + id + '" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold bg-cyan-500 text-white hover:bg-cyan-400 transition">Pay Now</a>' : '';
+            var payBtn = (n.payment_link && n.payment_status === 'DUE') ? '<a href="' + escUrl(n.payment_link) + '" target="_blank" rel="noopener noreferrer" data-dismiss-notification-id="' + id + '" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold theme-btn-primary hover:opacity-90 transition">Pay Now</a>' : '';
             var inner = type !== 'payment'
                 ? '<div class="bg-slate-800 border border-slate-600 rounded-xl shadow-xl p-4 flex gap-3"><div class="flex-1 min-w-0"><p class="font-semibold text-white text-sm">' + esc(n.title) + '</p><p class="text-slate-400 text-xs mt-0.5 line-clamp-2">' + esc(n.message) + '</p></div><button type="button" data-dismiss-notification-id="' + id + '" class="text-slate-400 hover:text-white p-1 rounded shrink-0" aria-label="Close"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button></div>'
-                : '<div class="bg-slate-800 border border-slate-600 rounded-2xl shadow-2xl max-w-md w-full p-6"><div class="flex justify-between items-start mb-4"><h2 class="text-lg font-semibold text-white">' + esc(n.title) + '</h2><button type="button" data-dismiss-notification-id="' + id + '" class="text-slate-400 hover:text-white p-1 rounded" aria-label="Close"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button></div><p class="text-slate-300 text-sm mb-4">' + esc(n.message) + '</p>' + (n.project_name ? '<p class="text-slate-400 text-sm mb-1"><span class="text-slate-500">Project:</span> ' + esc(n.project_name) + '</p>' : '') + (n.amount != null ? '<p class="text-cyan-400 font-semibold text-lg mb-4">৳' + esc(String(Math.round(Number(n.amount)))) + '</p>' : '') + '<div class="flex flex-wrap gap-3 mt-4"><a href="' + escUrl(showUrl) + '" data-dismiss-notification-id="' + id + '" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium bg-sky-500/20 text-sky-400 border border-sky-500/40 hover:bg-sky-500/30 transition">' + esc(showLabel) + '</a>' + payBtn + '<button type="button" data-dismiss-notification-id="' + id + '" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium bg-slate-700 text-slate-300 hover:bg-slate-600 transition">Close</button></div></div>';
+                : '<div class="bg-slate-800 border border-slate-600 rounded-2xl shadow-2xl max-w-md w-full p-6"><div class="flex justify-between items-start mb-4"><h2 class="text-lg font-semibold text-white">' + esc(n.title) + '</h2><button type="button" data-dismiss-notification-id="' + id + '" class="text-slate-400 hover:text-white p-1 rounded" aria-label="Close"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button></div><p class="text-slate-300 text-sm mb-4">' + esc(n.message) + '</p>' + (n.project_name ? '<p class="text-slate-400 text-sm mb-1"><span class="text-slate-500">Project:</span> ' + esc(n.project_name) + '</p>' : '') + (n.amount != null ? '<p class="text-orange-400 font-semibold text-lg mb-4">৳' + esc(String(Math.round(Number(n.amount)))) + '</p>' : '') + '<div class="flex flex-wrap gap-3 mt-4"><a href="' + escUrl(showUrl) + '" data-dismiss-notification-id="' + id + '" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium theme-sidebar-active border border-orange-500/40 hover:bg-orange-500/30 transition">' + esc(showLabel) + '</a>' + payBtn + '<button type="button" data-dismiss-notification-id="' + id + '" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium bg-slate-700 text-slate-300 hover:theme-bg-tertiary transition">Close</button></div></div>';
             var div = document.createElement('div');
             div.className = 'client-notification-card pointer-events-auto' + (isHidden ? ' hidden' : '');
             div.setAttribute('data-notification-id', id);

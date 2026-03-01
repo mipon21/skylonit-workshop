@@ -29,6 +29,19 @@ class ProfileController extends Controller
         $faviconPath = Setting::get('app_favicon');
         $currentFaviconUrl = $faviconPath ? asset('storage/' . $faviconPath) : null;
 
+        $themeColors = [];
+        if ($user->isAdmin()) {
+            $themeColors = [
+                'primary' => Setting::get('theme_primary_color'),
+                'secondary' => Setting::get('theme_secondary_color'),
+                'button_bg' => Setting::get('theme_button_bg'),
+                'button_hover_bg' => Setting::get('theme_button_hover_bg'),
+                'button_text' => Setting::get('theme_button_text'),
+                'sidebar_active_bg' => Setting::get('theme_sidebar_active_bg'),
+                'sidebar_active_text' => Setting::get('theme_sidebar_active_text'),
+            ];
+        }
+
         return view('profile.edit', [
             'user' => $user,
             'client' => $client,
@@ -38,6 +51,7 @@ class ProfileController extends Controller
             'paymentMethods' => $paymentMethods,
             'currentLogoUrl' => $currentLogoUrl,
             'currentFaviconUrl' => $currentFaviconUrl,
+            'themeColors' => $themeColors,
         ]);
     }
 
@@ -73,6 +87,21 @@ class ProfileController extends Controller
         }
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
+    }
+
+    /**
+     * Update the user's theme preference (light/dark). JSON for SPA-style toggle.
+     */
+    public function updateTheme(Request $request): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+    {
+        $validated = $request->validate([
+            'theme' => ['required', 'string', 'in:light,dark'],
+        ]);
+        $request->user()->update(['theme_preference' => $validated['theme']]);
+        if ($request->wantsJson()) {
+            return response()->json(['theme' => $validated['theme']]);
+        }
+        return Redirect::back();
     }
 
     /**
@@ -123,6 +152,71 @@ class ProfileController extends Controller
         Setting::set('app_favicon', $path);
 
         return Redirect::route('profile.edit')->with('status', 'favicon-updated');
+    }
+
+    /**
+     * Update theme colors (admin only). Applies globally via CSS variable overrides.
+     */
+    public function updateThemeColors(Request $request): RedirectResponse
+    {
+        if (!$request->user()->isAdmin()) {
+            abort(403, 'Admin only.');
+        }
+
+        $keys = [
+            'theme_primary_color',
+            'theme_secondary_color',
+            'theme_button_bg',
+            'theme_button_hover_bg',
+            'theme_button_text',
+            'theme_sidebar_active_bg',
+            'theme_sidebar_active_text',
+        ];
+
+        $validated = $request->validate([
+            'primary' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'secondary' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'button_bg' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'button_hover_bg' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'button_text' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'sidebar_active_bg' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'sidebar_active_text' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+        ]);
+
+        $map = [
+            'primary' => 'theme_primary_color',
+            'secondary' => 'theme_secondary_color',
+            'button_bg' => 'theme_button_bg',
+            'button_hover_bg' => 'theme_button_hover_bg',
+            'button_text' => 'theme_button_text',
+            'sidebar_active_bg' => 'theme_sidebar_active_bg',
+            'sidebar_active_text' => 'theme_sidebar_active_text',
+        ];
+
+        foreach ($map as $input => $key) {
+            $value = $validated[$input] ?? '';
+            Setting::set($key, $value !== '' ? $value : '');
+        }
+
+        return Redirect::route('profile.edit')->with('status', 'theme-colors-updated');
+    }
+
+    /**
+     * Reset theme colors to defaults (admin only).
+     */
+    public function resetThemeColors(Request $request): RedirectResponse
+    {
+        if (!$request->user()->isAdmin()) {
+            abort(403, 'Admin only.');
+        }
+        $keys = [
+            'theme_primary_color', 'theme_secondary_color', 'theme_button_bg', 'theme_button_hover_bg',
+            'theme_button_text', 'theme_sidebar_active_bg', 'theme_sidebar_active_text',
+        ];
+        foreach ($keys as $key) {
+            Setting::set($key, '');
+        }
+        return Redirect::route('profile.edit')->with('status', 'theme-colors-reset');
     }
 
     /**

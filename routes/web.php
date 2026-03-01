@@ -80,11 +80,14 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::patch('/profile/theme', [ProfileController::class, 'updateTheme'])->name('profile.theme.update');
     Route::post('/profile/payment-methods', [\App\Http\Controllers\UserPaymentMethodController::class, 'store'])->name('profile.payment-methods.store');
     Route::put('/profile/payment-methods/{user_payment_method}', [\App\Http\Controllers\UserPaymentMethodController::class, 'update'])->name('profile.payment-methods.update');
     Route::delete('/profile/payment-methods/{user_payment_method}', [\App\Http\Controllers\UserPaymentMethodController::class, 'destroy'])->name('profile.payment-methods.destroy');
     Route::post('/profile/logo', [ProfileController::class, 'updateLogo'])->name('profile.logo.update');
     Route::post('/profile/favicon', [ProfileController::class, 'updateFavicon'])->name('profile.favicon.update');
+    Route::post('/profile/theme-colors', [ProfileController::class, 'updateThemeColors'])->name('profile.theme-colors.update');
+    Route::post('/profile/theme-colors/reset', [ProfileController::class, 'resetThemeColors'])->name('profile.theme-colors.reset');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Admin-only routes
@@ -233,6 +236,7 @@ Route::middleware(['auth'])->group(function () {
     // Bugs: client can create and view attachment
     Route::post('projects/{project}/bugs', [BugController::class, 'store'])->name('projects.bugs.store');
     Route::get('projects/{project}/bugs/{bug}/attachment', [BugController::class, 'downloadAttachment'])->name('projects.bugs.attachment');
+    Route::get('projects/{project}/bugs/{bug}/attachment/view', [BugController::class, 'viewAttachment'])->name('projects.bugs.view-attachment');
 });
 
 require __DIR__.'/auth.php';

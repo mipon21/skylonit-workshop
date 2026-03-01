@@ -3,15 +3,15 @@
 
     <div class="space-y-6">
         <div class="flex flex-wrap items-center justify-between gap-4">
-            <h1 class="text-2xl font-semibold text-white">Payments</h1>
+            <h1 class="text-2xl font-semibold theme-text-primary">Payments</h1>
             <form action="{{ route('client.payments.index') }}" method="GET" class="flex flex-wrap items-center gap-2 max-w-2xl flex-1 min-w-0" x-data="paymentLiveSearch()">
                 <label for="payment-search" class="sr-only">Search</label>
                 <input type="search" name="search" id="payment-search" value="{{ request('search') }}"
                        placeholder="Search by invoice #, project #, project name, client name..."
-                       class="flex-1 min-w-[200px] rounded-xl bg-slate-800 border border-slate-600 text-white px-4 py-2.5 text-sm placeholder-slate-500 focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                       class="flex-1 min-w-[200px] rounded-xl theme-bg-tertiary border theme-border theme-text-primary px-4 py-2.5 text-sm theme-input-placeholder theme-input-focus"
                        @input.debounce.400ms="fetchResults()"
                        autocomplete="off">
-                <select name="status" class="rounded-xl bg-slate-800 border border-slate-600 text-white px-4 py-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                <select name="status" class="rounded-xl theme-bg-tertiary border theme-border theme-text-primary px-4 py-2.5 text-sm theme-input-focus"
                         @change="fetchResults()">
                     <option value="" {{ request('status') === '' ? 'selected' : '' }}>All</option>
                     <option value="due" {{ request('status') === 'due' ? 'selected' : '' }}>Due</option>

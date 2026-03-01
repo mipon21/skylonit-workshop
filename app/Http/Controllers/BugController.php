@@ -116,6 +116,20 @@ class BugController extends Controller
         return Storage::download($bug->attachment_path, $name);
     }
 
+    public function viewAttachment(Project $project, Bug $bug): StreamedResponse
+    {
+        $this->authorizeProjectForClient($project);
+        if ($bug->project_id !== $project->id || ! $bug->attachment_path) {
+            abort(404);
+        }
+        $name = basename($bug->attachment_path);
+        $mime = Storage::mimeType($bug->attachment_path) ?: 'application/octet-stream';
+        return Storage::download($bug->attachment_path, $name, [
+            'Content-Disposition' => 'inline; filename="' . str_replace('"', '\\"', $name) . '"',
+            'Content-Type' => $mime,
+        ]);
+    }
+
     public function update(Request $request, Project $project, Bug $bug): RedirectResponse
     {
         if ($bug->project_id !== $project->id) {

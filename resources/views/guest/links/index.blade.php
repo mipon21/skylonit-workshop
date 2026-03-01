@@ -1,22 +1,22 @@
 <x-guest-portal-layout title="Live Links / APK">
     <div class="space-y-6">
-        <h1 class="text-2xl font-semibold text-white">Live Links / APK</h1>
-        <p class="text-slate-400 text-sm">Public live URLs and APK downloads across all projects.</p>
+        <h1 class="text-2xl font-semibold theme-text-primary">Live Links / APK</h1>
+        <p class="theme-text-secondary text-sm">Public live URLs and APK downloads across all projects.</p>
 
         <div class="space-y-6">
             @php $currentProjectId = null; @endphp
             @foreach($links as $link)
                 @if($link->project_id !== $currentProjectId)
                     @php $currentProjectId = $link->project_id; @endphp
-                    <h2 class="text-lg font-medium text-slate-300 border-b border-slate-700/50 pb-2">{{ $link->project->project_name ?? 'Project' }}</h2>
+                    <h2 class="text-lg font-medium theme-text-secondary border-b theme-border pb-2">{{ $link->project->project_name ?? 'Project' }}</h2>
                 @endif
-                <div class="bg-slate-800/60 backdrop-blur border border-slate-700/50 rounded-xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-lg hover:border-slate-600/80 transition-all max-md:p-4">
+                <div class="theme-bg-tertiary/60 backdrop-blur border theme-border rounded-xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-lg hover:theme-border/80 transition-all max-md:p-4">
                     <div class="min-w-0 flex-1">
-                        <p class="font-medium text-white">{{ $link->label }}</p>
+                        <p class="font-medium theme-text-primary">{{ $link->label }}</p>
                         @if($link->isApk() && $link->file_path)
-                            <p class="text-slate-500 text-sm mt-0.5">APK download</p>
+                            <p class="theme-text-muted text-sm mt-0.5">APK download</p>
                         @else
-                            <a href="{{ $link->url }}" target="_blank" rel="noopener noreferrer" class="text-sky-400 hover:text-sky-300 text-sm mt-1 break-all">{{ $link->url }}</a>
+                            <a href="{{ $link->url }}" target="_blank" rel="noopener noreferrer" class="text-orange-400 hover:text-orange-300 text-sm mt-1 break-all">{{ $link->url }}</a>
                         @endif
                     </div>
                     @if($link->isApk() && $link->file_path)
@@ -25,14 +25,14 @@
                             Download
                         </a>
                     @else
-                        <a href="{{ $link->url }}" target="_blank" rel="noopener noreferrer" class="shrink-0 px-4 py-2 rounded-lg bg-sky-500/20 text-sky-400 hover:bg-sky-500/30 text-sm font-medium">Open</a>
+                        <a href="{{ $link->url }}" target="_blank" rel="noopener noreferrer" class="shrink-0 px-4 py-2 rounded-lg bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 text-sm font-medium">Open</a>
                     @endif
                 </div>
             @endforeach
         </div>
 
         @if($links->isEmpty())
-            <div class="bg-slate-800/40 border border-slate-700/50 rounded-2xl p-12 text-center text-slate-500">
+            <div class="theme-card-bg-only theme-border border rounded-2xl p-12 text-center theme-text-muted">
                 No public links or APK downloads at the moment.
             </div>
         @endif

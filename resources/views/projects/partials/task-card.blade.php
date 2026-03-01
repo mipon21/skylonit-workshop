@@ -1,16 +1,16 @@
 @props(['task', 'project'])
-<div class="bg-slate-900/60 border border-slate-700/50 rounded-xl overflow-hidden transition-all duration-200 hover:border-slate-600"
-     :class="{ 'ring-1 ring-sky-500/30': expandedTaskId == {{ $task->id }} }">
+<div class="theme-input-bg/60 border theme-border rounded-xl overflow-hidden transition-all duration-200 hover:theme-border"
+     :class="{ 'ring-1 ring-orange-500/30': expandedTaskId == {{ $task->id }} }">
     <button type="button" @click="expandedTaskId = expandedTaskId == {{ $task->id }} ? null : {{ $task->id }}" class="w-full text-left p-3">
-        <p class="font-medium text-white text-sm">{{ $task->title }}</p>
-        <p class="text-slate-500 text-xs mt-1">Added {{ $task->created_at->format('d M Y, h:i A') }}</p>
+        <p class="font-medium theme-text-primary text-sm">{{ $task->title }}</p>
+        <p class="theme-text-muted text-xs mt-1">Added {{ $task->created_at->format('d M Y, h:i A') }}</p>
         @if($task->status === 'doing' && ($task->status_updated_at ?? $task->updated_at))
             <p class="text-amber-400/90 text-xs mt-0.5">Doing since {{ ($task->status_updated_at ?? $task->updated_at)->format('d M Y, h:i A') }}</p>
         @elseif($task->status === 'done' && ($task->status_updated_at ?? $task->updated_at))
             <p class="text-emerald-400/90 text-xs mt-0.5">Done at {{ ($task->status_updated_at ?? $task->updated_at)->format('d M Y, h:i A') }}</p>
         @endif
         @if($task->due_date)
-            <p class="text-slate-500 text-xs mt-0.5">Due {{ $task->due_date->format('M d, Y') }}</p>
+            <p class="theme-text-muted text-xs mt-0.5">Due {{ $task->due_date->format('M d, Y') }}</p>
         @endif
         <div class="flex flex-wrap items-center justify-between gap-2 mt-2">
             <div class="flex flex-wrap items-center gap-1.5">
@@ -18,16 +18,16 @@
                     'px-2 py-0.5 rounded text-xs font-medium',
                     'bg-red-500/20 text-red-400' => $task->priority === 'high',
                     'bg-amber-500/20 text-amber-400' => $task->priority === 'medium',
-                    'bg-slate-500/20 text-slate-400' => $task->priority === 'low',
+                    'theme-bg-tertiary theme-text-secondary' => $task->priority === 'low',
                 ])>{{ ucfirst($task->priority) }}</span>
                 @if(($isDeveloper ?? false) && $task->assigned_to_user_id === Auth::id())
-                <span class="px-2 py-0.5 rounded text-xs font-medium bg-sky-500/20 text-sky-400" title="Assigned to you">You</span>
+                <span class="px-2 py-0.5 rounded text-xs font-medium bg-orange-500/20 text-orange-400" title="Assigned to you">You</span>
                 @endif
             </div>
         </div>
     </button>
-    <div x-show="expandedTaskId == {{ $task->id }}" x-transition class="px-3 pb-3 border-t border-slate-700/50">
-        <div class="pt-2 text-slate-300 text-sm whitespace-pre-wrap">{{ $task->description ?: '—' }}</div>
+    <div x-show="expandedTaskId == {{ $task->id }}" x-transition class="px-3 pb-3 border-t theme-border">
+        <div class="pt-2 theme-text-secondary text-sm whitespace-pre-wrap">{{ $task->description ?: '—' }}</div>
         @php $canChangeTaskStatus = !($isClient ?? false) && ((($isDeveloper ?? false) && $task->assigned_to_user_id === Auth::id()) || (!($isDeveloper ?? false) && !($isSales ?? false))); @endphp
         @if(!($isClient ?? false))
         <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
@@ -41,7 +41,7 @@
                 <input type="hidden" name="due_date" value="{{ $task->due_date?->format('Y-m-d') }}">
                 <input type="hidden" name="is_public" value="{{ $task->is_public ? '1' : '0' }}">
                 <input type="hidden" name="milestone_id" value="{{ $task->milestone_id ?? '' }}">
-                <select name="status" onchange="this.form.submit()" class="rounded bg-slate-800 border border-slate-600 text-white text-xs px-2 py-1">
+                <select name="status" onchange="this.form.submit()" class="rounded theme-bg-tertiary border theme-border theme-text-primary text-xs px-2 py-1">
                     <option value="todo" {{ $task->status === 'todo' ? 'selected' : '' }}>To Do</option>
                     <option value="doing" {{ $task->status === 'doing' ? 'selected' : '' }}>Doing</option>
                     <option value="done" {{ $task->status === 'done' ? 'selected' : '' }}>Done</option>
@@ -50,7 +50,7 @@
             @endif
             @if(!($isDeveloper ?? false) && !($isSales ?? false))
             <div class="flex items-center gap-2">
-                <button type="button" @click="taskEditModal = {{ $task->id }}" class="text-sky-400 hover:text-sky-300 text-xs">Edit</button>
+                <button type="button" @click="taskEditModal = {{ $task->id }}" class="text-orange-400 hover:text-orange-300 text-xs">Edit</button>
                 <form action="{{ route('projects.tasks.destroy', [$project, $task]) }}" method="POST" class="inline" onsubmit="return confirm('Delete this task?');">
                     @csrf
                     @method('DELETE')

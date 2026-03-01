@@ -1,9 +1,9 @@
 <section>
     <header>
-        <h2 class="text-lg font-medium text-white">
+        <h2 class="text-lg font-medium theme-text-primary">
             {{ __('Your Information') }}
         </h2>
-        <p class="mt-1 text-sm text-slate-400">
+        <p class="mt-1 text-sm theme-text-secondary">
             {{ __('You can update your name and address only. Contact details are managed by your account administrator.') }}
         </p>
     </header>
@@ -20,43 +20,43 @@
 
         <div>
             <x-input-label for="address" :value="__('Address')" />
-            <textarea id="address" name="address" rows="2" class="mt-1 block w-full rounded-xl bg-slate-900 border border-slate-600 text-white shadow-sm focus:border-sky-500 focus:ring-sky-500">{{ old('address', $client->address ?? '') }}</textarea>
+            <textarea id="address" name="address" rows="2" class="mt-1 block w-full rounded-xl theme-input-bg border theme-border theme-text-primary shadow-sm focus:border-orange-500 focus:ring-orange-500">{{ old('address', $client->address ?? '') }}</textarea>
             <x-input-error class="mt-2" :messages="$errors->get('address')" />
         </div>
 
-        <div class="pt-4 border-t border-slate-700/50 space-y-3">
-            <p class="text-sm font-medium text-slate-400">{{ __('Contact details (managed by administrator)') }}</p>
+        <div class="pt-4 border-t theme-border space-y-3">
+            <p class="text-sm font-medium theme-text-secondary">{{ __('Contact details (managed by administrator)') }}</p>
             <div>
-                <span class="text-xs text-slate-500">{{ __('Phone') }}</span>
-                <p class="text-white mt-0.5">{{ $client->phone ?? '—' }}</p>
+                <span class="text-xs theme-text-muted">{{ __('Phone') }}</span>
+                <p class="theme-text-primary mt-0.5">{{ $client->phone ?? '—' }}</p>
             </div>
             <div>
-                <span class="text-xs text-slate-500">{{ __('Email') }}</span>
-                <p class="text-white mt-0.5">{{ $client->email ?? $user->email ?? '—' }}</p>
+                <span class="text-xs theme-text-muted">{{ __('Email') }}</span>
+                <p class="theme-text-primary mt-0.5">{{ $client->email ?? $user->email ?? '—' }}</p>
             </div>
             <div>
-                <span class="text-xs text-slate-500">{{ __('Facebook Link') }}</span>
-                <p class="text-white mt-0.5">
+                <span class="text-xs theme-text-muted">{{ __('Facebook Link') }}</span>
+                <p class="theme-text-primary mt-0.5">
                     @if($client->fb_link ?? null)
-                        <a href="{{ $client->fb_link }}" target="_blank" rel="noopener" class="text-sky-400 hover:text-sky-300">{{ Str::limit($client->fb_link, 50) }}</a>
+                        <a href="{{ $client->fb_link }}" target="_blank" rel="noopener" class="text-orange-400 hover:text-orange-300">{{ Str::limit($client->fb_link, 50) }}</a>
                     @else
                         —
                     @endif
                 </p>
             </div>
             <div>
-                <span class="text-xs text-slate-500">{{ __('WhatsApp') }}</span>
-                <p class="text-white mt-0.5">
+                <span class="text-xs theme-text-muted">{{ __('WhatsApp') }}</span>
+                <p class="theme-text-primary mt-0.5">
                     @if($client->whatsapp_link ?? null)
-                        <a href="{{ $client->whatsapp_link }}" target="_blank" rel="noopener" class="text-sky-400 hover:text-sky-300">WhatsApp</a>
+                        <a href="{{ $client->whatsapp_link }}" target="_blank" rel="noopener" class="text-orange-400 hover:text-orange-300">WhatsApp</a>
                     @else
                         —
                     @endif
                 </p>
             </div>
             <div>
-                <span class="text-xs text-slate-500">{{ __('KYC') }}</span>
-                <p class="text-white mt-0.5">{{ $client->kyc ?? '—' }}</p>
+                <span class="text-xs theme-text-muted">{{ __('KYC') }}</span>
+                <p class="theme-text-primary mt-0.5">{{ $client->kyc ?? '—' }}</p>
             </div>
         </div>
 

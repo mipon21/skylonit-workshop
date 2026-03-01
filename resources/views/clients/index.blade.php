@@ -28,39 +28,39 @@
 
     <div class="space-y-6" x-data="{ open: {{ json_encode($errors->any()) }} }">
         <div class="flex flex-wrap items-center justify-between gap-4">
-            <h1 class="text-2xl font-semibold text-white">Clients</h1>
-            <button @click="open = true" class="px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-medium text-sm transition">
+            <h1 class="text-2xl font-semibold theme-text-primary">Clients</h1>
+            <button @click="open = true" class="px-4 py-2.5 rounded-xl theme-btn-primary font-medium text-sm transition">
                 Add Client
             </button>
         </div>
 
         <div class="space-y-6" x-data="clientsPage()">
             <label for="clients-search" class="sr-only">Search clients</label>
-            <input type="text" id="clients-search" x-model="searchText" placeholder="Search by name, phone, email…" class="w-full max-w-md rounded-xl bg-slate-800 border border-slate-600 text-white px-4 py-2.5 text-sm placeholder-slate-500 focus:ring-2 focus:ring-sky-500 focus:border-sky-500">
+            <input type="text" id="clients-search" x-model="searchText" placeholder="Search by name, phone, email…" class="w-full max-w-md rounded-xl theme-bg-tertiary border theme-border theme-text-primary px-4 py-2.5 text-sm theme-input-placeholder theme-input-focus">
 
-        <div class="bg-slate-800/60 backdrop-blur border border-slate-700/50 rounded-2xl overflow-hidden max-md:overflow-x-auto">
+        <div class="theme-bg-tertiary/60 backdrop-blur border theme-border rounded-2xl overflow-hidden max-md:overflow-x-auto">
             <div class="overflow-x-auto">
                 <table class="w-full max-md:min-w-[600px]">
-                    <thead class="bg-slate-800/80 border-b border-slate-700/50">
+                    <thead class="theme-bg-tertiary/80 border-b theme-border">
                         <tr>
-                            <th class="text-left px-5 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Name</th>
-                            <th class="text-left px-5 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Phone</th>
-                            <th class="text-left px-5 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Email</th>
-                            <th class="text-left px-5 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Projects</th>
-                            <th class="text-right px-5 py-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Actions</th>
+                            <th class="text-left px-5 py-4 text-xs font-semibold theme-text-secondary uppercase tracking-wider">Name</th>
+                            <th class="text-left px-5 py-4 text-xs font-semibold theme-text-secondary uppercase tracking-wider">Phone</th>
+                            <th class="text-left px-5 py-4 text-xs font-semibold theme-text-secondary uppercase tracking-wider">Email</th>
+                            <th class="text-left px-5 py-4 text-xs font-semibold theme-text-secondary uppercase tracking-wider">Projects</th>
+                            <th class="text-right px-5 py-4 text-xs font-semibold theme-text-secondary uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-700/50">
                         @forelse($clients as $client)
-                            <tr class="hover:bg-slate-800/40 transition" x-show="filteredIds.includes({{ $client->id }})" x-transition>
+                            <tr class="hover:theme-bg-tertiary/40 transition" x-show="filteredIds.includes({{ $client->id }})" x-transition>
                                 <td class="px-5 py-4">
-                                    <a href="{{ route('clients.show', $client) }}" class="font-medium text-sky-400 hover:text-sky-300">{{ $client->name }}</a>
+                                    <a href="{{ route('clients.show', $client) }}" class="font-medium text-orange-400 hover:text-orange-300">{{ $client->name }}</a>
                                 </td>
-                                <td class="px-5 py-4 text-slate-400">{{ $client->phone ?? '—' }}</td>
-                                <td class="px-5 py-4 text-slate-400">{{ $client->email ?? '—' }}</td>
-                                <td class="px-5 py-4 text-slate-400">{{ $client->projects_count }}</td>
+                                <td class="px-5 py-4 theme-text-secondary">{{ $client->phone ?? '—' }}</td>
+                                <td class="px-5 py-4 theme-text-secondary">{{ $client->email ?? '—' }}</td>
+                                <td class="px-5 py-4 theme-text-secondary">{{ $client->projects_count }}</td>
                                 <td class="px-5 py-4 text-right">
-                                    <a href="{{ route('clients.edit', $client) }}" class="text-slate-400 hover:text-white text-sm mr-3">Edit</a>
+                                    <a href="{{ route('clients.edit', $client) }}" class="theme-text-secondary theme-hover-primary text-sm mr-3">Edit</a>
                                     <form action="{{ route('clients.destroy', $client) }}" method="POST" class="inline" onsubmit="return confirm('Delete this client?');">
                                         @csrf
                                         @method('DELETE')
@@ -70,29 +70,29 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="px-5 py-12 text-center text-slate-500">No clients yet. Add one to get started.</td>
+                                <td colspan="5" class="px-5 py-12 text-center theme-text-muted">No clients yet. Add one to get started.</td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
         </div>
-            <p x-show="clientsData.length && searchText && filteredIds.length === 0" x-transition class="py-6 text-center text-slate-500">No clients match your search.</p>
+            <p x-show="clientsData.length && searchText && filteredIds.length === 0" x-transition class="py-6 text-center theme-text-muted">No clients match your search.</p>
         </div>
 
         {{-- Add Client Modal --}}
         <div x-show="open" x-cloak class="fixed inset-0 z-50 overflow-y-auto" aria-modal="true">
             <div class="flex min-h-full items-center justify-center p-4 max-md:p-0 max-md:items-stretch">
                 <div x-show="open" x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="open = false"></div>
-                <div x-show="open" x-transition class="relative w-full max-w-md max-h-[90vh] flex flex-col bg-slate-800 border border-slate-700 rounded-2xl shadow-xl max-md:max-w-none max-md:max-h-full max-md:rounded-none max-md:border-0">
+                <div x-show="open" x-transition class="relative w-full max-w-md max-h-[90vh] flex flex-col theme-bg-tertiary border theme-border rounded-2xl shadow-xl max-md:max-w-none max-md:max-h-full max-md:rounded-none max-md:border-0">
                     <div class="p-6 overflow-y-auto">
-                        <h2 class="text-lg font-semibold text-white mb-4">New Client</h2>
+                        <h2 class="text-lg font-semibold theme-text-primary mb-4">New Client</h2>
                         <form action="{{ route('clients.store') }}" method="POST">
                             @csrf
                             @include('clients._form', ['client' => null])
                             <div class="mt-6 flex justify-end gap-3 max-md:flex-col max-md:[&_button]:w-full">
-                                <button type="button" @click="open = false" class="px-4 py-2.5 rounded-xl border border-slate-600 text-slate-300 hover:bg-slate-700">Cancel</button>
-                                <button type="submit" class="px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-medium">Save</button>
+                                <button type="button" @click="open = false" class="px-4 py-2.5 rounded-xl border theme-border theme-text-secondary theme-sidebar-link-hover">Cancel</button>
+                                <button type="submit" class="px-4 py-2.5 rounded-xl theme-btn-primary font-medium">Save</button>
                             </div>
                         </form>
                     </div>

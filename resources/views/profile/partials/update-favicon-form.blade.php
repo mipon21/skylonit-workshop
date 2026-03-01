@@ -1,9 +1,9 @@
 <section>
     <header>
-        <h2 class="text-lg font-medium text-white">
+        <h2 class="text-lg font-medium theme-text-primary">
             {{ __('Favicon') }}
         </h2>
-        <p class="mt-1 text-sm text-slate-400">
+        <p class="mt-1 text-sm theme-text-secondary">
             {{ __('Icon shown in the browser tab. Use .ico, .png, .gif or .svg (small size recommended).') }}
         </p>
     </header>
@@ -13,14 +13,14 @@
 
         @if($currentFaviconUrl)
             <div class="flex items-center gap-4">
-                <img src="{{ $currentFaviconUrl }}" alt="Favicon" class="h-8 w-8 object-contain rounded border border-slate-600 bg-slate-800/50 p-1">
-                <span class="text-sm text-slate-400">{{ __('Current favicon') }}</span>
+                <img src="{{ $currentFaviconUrl }}" alt="Favicon" class="h-8 w-8 object-contain rounded border theme-border theme-bg-tertiary/50 p-1">
+                <span class="text-sm theme-text-secondary">{{ __('Current favicon') }}</span>
             </div>
         @endif
 
         <div>
             <x-input-label for="favicon" :value="__('Upload new favicon')" />
-            <input id="favicon" name="favicon" type="file" accept=".ico,image/png,image/gif,image/svg+xml" class="mt-1 block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-sky-500/20 file:text-sky-400 hover:file:bg-sky-500/30 file:cursor-pointer">
+            <input id="favicon" name="favicon" type="file" accept=".ico,image/png,image/gif,image/svg+xml" class="mt-1 block w-full text-sm theme-text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-orange-500/20 file:text-orange-400 hover:file:bg-orange-500/30 file:cursor-pointer">
             <x-input-error class="mt-2" :messages="$errors->get('favicon')" />
         </div>
 
@@ -32,7 +32,7 @@
                     x-show="show"
                     x-transition
                     x-init="setTimeout(() => show = false, 2000)"
-                    class="text-sm text-slate-400"
+                    class="text-sm theme-text-secondary"
                 >{{ __('Favicon updated.') }}</p>
             @endif
         </div>
