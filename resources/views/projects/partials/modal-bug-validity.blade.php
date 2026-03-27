@@ -4,7 +4,7 @@
         <div x-show="bugValidityModal === {{ $bug->id }}" x-transition class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="bugValidityModal = null"></div>
         <div x-show="bugValidityModal === {{ $bug->id }}" x-transition class="relative w-full max-w-md theme-bg-tertiary border theme-border rounded-2xl shadow-xl p-6 max-md:max-w-none max-md:max-h-full max-md:rounded-none max-md:border-0">
             <h2 class="text-lg font-semibold theme-text-primary mb-4">Bug Validity</h2>
-            <form action="{{ route('projects.bugs.update', [$project, $bug]) }}" method="POST" enctype="multipart/form-data" x-data="{ isValid: {{ old('is_valid', $bug->is_valid ?? true) ? 'true' : 'false' }} }">
+            <form action="{{ route('projects.bugs.update', [$project, $bug]) }}" method="POST" enctype="multipart/form-data" x-data="{ isValid: {{ old('is_valid', $bug->is_valid ?? true) ? 'true' : 'false' }}, noteText: @js(old('invalid_note', $bug->invalid_note ?? '')) }">
                 @csrf
                 @method('PATCH')
                 <div class="space-y-4">
@@ -19,7 +19,13 @@
 
                     <div x-show="!isValid" x-transition>
                         <label class="block text-sm font-medium theme-text-secondary mb-1">Invalid Note (Optional)</label>
-                        <textarea name="invalid_note" rows="3" class="w-full rounded-xl theme-input-bg border theme-border theme-text-primary px-4 py-2.5 theme-input-focus" placeholder="Reason why this bug report is invalid">{{ old('invalid_note', $bug->invalid_note) }}</textarea>
+                        <div class="flex flex-wrap gap-2 mb-2">
+                            <button type="button" @click="noteText = 'Could not reproduce the issue with provided steps.'" class="px-2.5 py-1 rounded-lg text-xs font-medium border theme-border theme-text-secondary hover:theme-hover-primary">Not reproducible</button>
+                            <button type="button" @click="noteText = 'This appears to be expected behavior, not a bug.'" class="px-2.5 py-1 rounded-lg text-xs font-medium border theme-border theme-text-secondary hover:theme-hover-primary">Expected behavior</button>
+                            <button type="button" @click="noteText = 'This report is a duplicate of an existing bug ticket.'" class="px-2.5 py-1 rounded-lg text-xs font-medium border theme-border theme-text-secondary hover:theme-hover-primary">Duplicate</button>
+                            <button type="button" @click="noteText = 'Insufficient details provided to validate this bug report.'" class="px-2.5 py-1 rounded-lg text-xs font-medium border theme-border theme-text-secondary hover:theme-hover-primary">Insufficient details</button>
+                        </div>
+                        <textarea name="invalid_note" x-model="noteText" rows="3" class="w-full rounded-xl theme-input-bg border theme-border theme-text-primary px-4 py-2.5 theme-input-focus" placeholder="Reason why this bug report is invalid"></textarea>
                     </div>
 
                     <div x-show="!isValid" x-transition>

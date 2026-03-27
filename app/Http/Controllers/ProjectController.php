@@ -147,7 +147,7 @@ class ProjectController extends Controller
         return redirect()->route('projects.index')->with('success', 'Project created.');
     }
 
-    public function show(Project $project): View
+    public function show(Request $request, Project $project): View
     {
         $user = Auth::user();
         if ($user->isClient()) {
@@ -167,7 +167,7 @@ class ProjectController extends Controller
             abort(403, 'You do not have access to this project.');
         }
 
-        $project->load(['client', 'additionalClients', 'payments', 'expenses', 'supportPackages', 'documents' => fn ($q) => $q->with('uploadedBy'), 'contracts' => fn ($q) => $q->with(['uploadedByUser', 'signedByUser', 'audits' => fn ($aq) => $aq->with('user')]), 'tasks' => fn ($q) => $q->with('milestone'), 'milestones', 'bugs', 'projectNotes' => fn ($q) => $q->with('creator'), 'projectLinks', 'projectPayouts'])
+        $project->load(['client', 'additionalClients', 'payments', 'expenses', 'supportPackages', 'documents' => fn ($q) => $q->with('uploadedBy'), 'contracts' => fn ($q) => $q->with(['uploadedByUser', 'signedByUser', 'audits' => fn ($aq) => $aq->with('user')]), 'tasks' => fn ($q) => $q->with('milestone'), 'milestones', 'bugs' => fn ($q) => $q->with(['assignedTo', 'reportedBy']), 'projectNotes' => fn ($q) => $q->with('creator'), 'projectLinks', 'projectPayouts'])
             ->loadCount(['tasks', 'tasks as tasks_done_count' => fn ($q) => $q->where('status', 'done')]);
 
         $isClient = $user->isClient();
@@ -188,6 +188,23 @@ class ProjectController extends Controller
                 $project->setRelation('bugs', $project->bugs->filter(fn ($b) => $b->is_public || $b->assigned_to_user_id === $user->id));
             }
         }
+
+        $bugSort = $request->string('bug_sort')->toString();
+        if (! in_array($bugSort, ['newest', 'oldest', 'updated', 'severity'], true)) {
+            $bugSort = 'newest';
+        }
+        $bugs = $project->bugs;
+        if ($bugSort === 'oldest') {
+            $bugs = $bugs->sortBy('created_at')->values();
+        } elseif ($bugSort === 'updated') {
+            $bugs = $bugs->sortByDesc('updated_at')->values();
+        } elseif ($bugSort === 'severity') {
+            $rank = ['critical' => 3, 'major' => 2, 'minor' => 1];
+            $bugs = $bugs->sortByDesc(fn ($b) => $rank[$b->severity] ?? 0)->values();
+        } else {
+            $bugs = $bugs->sortByDesc('created_at')->values();
+        }
+        $project->setRelation('bugs', $bugs);
 
         $activitiesQuery = $project->projectActivities()->with('user')->orderByDesc('created_at');
         if ($isClient) {
@@ -220,7 +237,7 @@ class ProjectController extends Controller
         $clientsForDropdown = ($user->isClient() || $user->isDeveloper() || $user->isSales()) ? collect() : Client::orderBy('name')->get();
         $developersForAssign = ($user->isAdmin()) ? User::where('role', 'developer')->orderBy('name')->get() : collect();
 
-        return view('projects.show', compact('project', 'isClient', 'isDeveloper', 'isSales', 'activities', 'clientsForDropdown', 'unviewedActivityCount', 'developersForAssign'));
+        return view('projects.show', compact('project', 'isClient', 'isDeveloper', 'isSales', 'activities', 'clientsForDropdown', 'unviewedActivityCount', 'developersForAssign', 'bugSort'));
     }
 
     public function markActivityViewed(Project $project): \Illuminate\Http\JsonResponse

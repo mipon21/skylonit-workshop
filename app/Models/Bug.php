@@ -13,6 +13,7 @@ class Bug extends Model
     protected $fillable = [
         'project_id',
         'assigned_to_user_id',
+        'created_by_user_id',
         'title',
         'description',
         'severity',
@@ -23,12 +24,14 @@ class Bug extends Model
         'is_valid',
         'invalid_note',
         'invalid_attachment_path',
+        'invalid_marked_at',
     ];
 
     protected $casts = [
         'is_public' => 'boolean',
         'is_valid' => 'boolean',
         'status_updated_at' => 'datetime',
+        'invalid_marked_at' => 'datetime',
     ];
 
     public function project(): BelongsTo
@@ -39,5 +42,10 @@ class Bug extends Model
     public function assignedTo(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_to_user_id');
+    }
+
+    public function reportedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by_user_id');
     }
 }

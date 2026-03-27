@@ -1138,36 +1138,90 @@
             </div>
 
             {{-- Tab: Bugs --}}
-            <div x-show="activeTab === 'bugs'" class="p-5" x-data="{ bugFilter: 'all' }">
-                <div class="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <h2 class="font-semibold theme-text-primary">Bugs</h2>
-                        <button @click="bugFilter = 'all'" :class="bugFilter === 'all' ? 'theme-bg-tertiary theme-text-primary' : 'theme-text-secondary theme-hover-primary'" class="px-2.5 py-1 rounded-lg text-sm">All</button>
-                        <button @click="bugFilter = 'open'" :class="bugFilter === 'open' ? 'bg-red-500/20 text-red-400' : 'theme-text-secondary theme-hover-primary'" class="px-2.5 py-1 rounded-lg text-sm">Open</button>
-                        <button @click="bugFilter = 'in_progress'" :class="bugFilter === 'in_progress' ? 'bg-amber-500/20 text-amber-400' : 'theme-text-secondary theme-hover-primary'" class="px-2.5 py-1 rounded-lg text-sm">In Progress</button>
-                        <button @click="bugFilter = 'resolved'" :class="bugFilter === 'resolved' ? 'bg-emerald-500/20 text-emerald-400' : 'theme-text-secondary theme-hover-primary'" class="px-2.5 py-1 rounded-lg text-sm">Resolved</button>
+            <div x-show="activeTab === 'bugs'" class="p-5" x-data="{ bugFilter: 'all', bugQuery: '', bugSortLocal: '{{ $bugSort ?? 'newest' }}', onlyAssigned: {{ ($isDeveloper ?? false) ? 'true' : 'false' }} }">
+                @php
+                    $bugTotal = $project->bugs->count();
+                    $bugOpen = $project->bugs->where('status', 'open')->count();
+                    $bugProgress = $project->bugs->where('status', 'in_progress')->count();
+                    $bugResolved = $project->bugs->where('status', 'resolved')->count();
+                    $bugInvalid = $project->bugs->where('is_valid', false)->count();
+                @endphp
+                <div class="mb-4 rounded-2xl border theme-border theme-bg-tertiary/60 p-3 sm:p-4">
+                    <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <h2 class="font-semibold theme-text-primary mr-1">Bugs</h2>
+                            <button @click="bugFilter = 'all'" :class="bugFilter === 'all' ? 'theme-bg-tertiary theme-text-primary border theme-border' : 'theme-text-secondary theme-hover-primary border-transparent'" class="px-3 py-1.5 rounded-xl text-sm border transition">All ({{ $bugTotal }})</button>
+                            <button @click="bugFilter = 'open'" :class="bugFilter === 'open' ? 'bg-red-500/20 text-red-300 border border-red-500/40' : 'theme-text-secondary theme-hover-primary border-transparent'" class="px-3 py-1.5 rounded-xl text-sm border transition">Open ({{ $bugOpen }})</button>
+                            <button @click="bugFilter = 'in_progress'" :class="bugFilter === 'in_progress' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'theme-text-secondary theme-hover-primary border-transparent'" class="px-3 py-1.5 rounded-xl text-sm border transition">In Progress ({{ $bugProgress }})</button>
+                            <button @click="bugFilter = 'resolved'" :class="bugFilter === 'resolved' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'theme-text-secondary theme-hover-primary border-transparent'" class="px-3 py-1.5 rounded-xl text-sm border transition">Resolved ({{ $bugResolved }})</button>
+                            <button @click="bugFilter = 'invalid'" :class="bugFilter === 'invalid' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' : 'theme-text-secondary theme-hover-primary border-transparent'" class="px-3 py-1.5 rounded-xl text-sm border transition">Invalid ({{ $bugInvalid }})</button>
+                        </div>
+                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:w-full lg:w-auto lg:min-w-[34rem]">
+                            <div class="relative">
+                                <input type="text" x-model="bugQuery" placeholder="Search bug title or notes..." class="w-full sm:w-72 rounded-xl theme-input-bg border theme-border theme-text-primary px-3 py-2 text-sm theme-input-focus">
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <select x-model="bugSortLocal" @change="window.location = '{{ route('projects.show', $project) }}?bug_sort=' + bugSortLocal + '#bugs'" class="rounded-xl theme-input-bg border theme-border theme-text-primary text-sm px-3 py-2 focus:ring-orange-500">
+                                    <option value="newest">Newest</option>
+                                    <option value="oldest">Oldest</option>
+                                    <option value="updated">Recently Updated</option>
+                                    <option value="severity">Severity</option>
+                                </select>
+                                @if($isDeveloper ?? false)
+                                <button type="button" @click="onlyAssigned = !onlyAssigned" :class="onlyAssigned ? 'bg-violet-500/20 text-violet-300 border-violet-500/35' : 'theme-text-secondary border theme-border'" class="px-3 py-2 rounded-xl text-xs font-medium border transition">My Assigned</button>
+                                @endif
+                            </div>
+                            @if(!($isDeveloper ?? false) && !($isSales ?? false))
+                            <button @click="bugModal = true" class="w-full shrink-0 rounded-xl theme-btn-primary text-sm font-medium px-4 py-2 sm:w-auto sm:ml-10 lg:ml-16">Report Bug</button>
+                            @endif
+                        </div>
                     </div>
-                    @if(!($isDeveloper ?? false) && !($isSales ?? false))
-                    <button @click="bugModal = true" class="w-full shrink-0 rounded-lg theme-btn-primary text-sm font-medium px-3 py-1.5 sm:w-auto">Report Bug</button>
-                    @endif
                 </div>
                 <div class="space-y-3">
                     @foreach($project->bugs as $bug)
-                        <div class="theme-bg-tertiary/80 border theme-border rounded-xl overflow-hidden transition-all duration-200 hover:theme-border"
-                             x-show="bugFilter === 'all' || bugFilter === '{{ $bug->status }}'"
+                        @php
+                            $bugSearchText = Str::lower(trim(
+                                ($bug->title ?? '') . ' '
+                                . ($bug->description ?? '') . ' '
+                                . ($bug->invalid_note ?? '') . ' '
+                                . ($bug->assignedTo?->name ?? '') . ' '
+                                . ($bug->reportedBy?->name ?? '')
+                            ));
+                        @endphp
+                        <div class="relative theme-bg-tertiary/80 border theme-border rounded-xl overflow-hidden transition-all duration-200 hover:theme-border hover:shadow-lg"
+                             x-show="(bugFilter === 'all' || bugFilter === '{{ $bug->status }}' || (bugFilter === 'invalid' && {{ ($bug->is_valid ?? true) ? 'false' : 'true' }})) && @js($bugSearchText).includes((bugQuery || '').toLowerCase()) && (!onlyAssigned || {{ (int) ($bug->assigned_to_user_id ?? 0) }} === {{ (int) (Auth::id() ?? 0) }})"
                              :class="{ 'ring-1 ring-orange-500/30': expandedBugId == {{ $bug->id }} }">
+                            <div @class([
+                                'absolute left-0 top-0 bottom-0 w-1.5',
+                                'bg-rose-500/80' => !($bug->is_valid ?? true),
+                                'bg-red-500/70' => ($bug->is_valid ?? true) && $bug->status === 'open',
+                                'bg-amber-500/70' => ($bug->is_valid ?? true) && $bug->status === 'in_progress',
+                                'bg-emerald-500/70' => ($bug->is_valid ?? true) && $bug->status === 'resolved',
+                            ])></div>
                             <button type="button" @click="expandedBugId = expandedBugId == {{ $bug->id }} ? null : {{ $bug->id }}" class="w-full text-left p-4">
-                                <div class="flex flex-wrap items-center gap-2">
-                                    <p class="font-medium theme-text-primary">{{ $bug->title }}</p>
+                                <div class="flex items-start justify-between gap-3">
+                                    <p class="font-semibold theme-text-primary pr-2">{{ $bug->title }}</p>
                                     @if(!($bug->is_valid ?? true))
-                                        <span class="px-2 py-0.5 rounded text-xs font-medium bg-rose-500/20 text-rose-400">Invalid</span>
+                                        <span class="shrink-0 px-2 py-0.5 rounded text-xs font-medium bg-rose-500/20 text-rose-300">Invalid</span>
+                                    @else
+                                        <span @class([
+                                            'shrink-0 px-2 py-0.5 rounded text-xs font-medium',
+                                            'bg-red-500/20 text-red-400' => $bug->status === 'open',
+                                            'bg-amber-500/20 text-amber-400' => $bug->status === 'in_progress',
+                                            'bg-emerald-500/20 text-emerald-400' => $bug->status === 'resolved',
+                                        ])>
+                                            {{ $bug->status === 'in_progress' ? 'In Progress' : ucfirst($bug->status) }}
+                                        </span>
                                     @endif
                                 </div>
                                 <p class="theme-text-muted text-xs mt-1">Reported {{ $bug->created_at->format('d M Y, h:i A') }}</p>
+                                <p class="theme-text-muted text-xs mt-0.5">By {{ $bug->reportedBy?->name ?? '—' }} @if($bug->assignedTo) · Assigned to {{ $bug->assignedTo->name }} @endif</p>
                                 @if($bug->status === 'in_progress' && ($bug->status_updated_at ?? $bug->updated_at))
                                     <p class="text-amber-400/90 text-xs mt-0.5">In progress since {{ ($bug->status_updated_at ?? $bug->updated_at)->format('d M Y, h:i A') }}</p>
                                 @elseif($bug->status === 'resolved' && ($bug->status_updated_at ?? $bug->updated_at))
                                     <p class="text-emerald-400/90 text-xs mt-0.5">Resolved at {{ ($bug->status_updated_at ?? $bug->updated_at)->format('d M Y, h:i A') }}</p>
+                                @elseif(!($bug->is_valid ?? true) && ($bug->invalid_marked_at ?? $bug->updated_at))
+                                    <p class="text-red-500 text-xs font-medium mt-0.5">Marked Invalid at {{ ($bug->invalid_marked_at ?? $bug->updated_at)->format('d M Y, h:i A') }}</p>
                                 @endif
                                 @if($bug->description)<p class="theme-text-muted text-sm mt-1 line-clamp-2">{{ Str::limit($bug->description, 80) }}</p>@endif
                                 <div class="flex flex-wrap gap-2 mt-2 items-center">
@@ -1178,7 +1232,10 @@
                                         'theme-bg-tertiary theme-text-secondary' => $bug->severity === 'minor',
                                     ])>{{ ucfirst($bug->severity) }}</span>
                                     @if($bug->attachment_path)
-                                        <span class="text-orange-400 text-xs flex items-center gap-1">Attachment</span>
+                                        <span class="px-2 py-0.5 rounded text-xs font-medium bg-orange-500/15 text-orange-300">Client attachment</span>
+                                    @endif
+                                    @if($bug->invalid_attachment_path)
+                                        <span class="px-2 py-0.5 rounded text-xs font-medium bg-rose-500/15 text-rose-300">Invalid attachment</span>
                                     @endif
                                 </div>
                             </button>
@@ -1227,7 +1284,7 @@
                                         <input type="hidden" name="description" value="{{ $bug->description }}">
                                         <input type="hidden" name="severity" value="{{ $bug->severity }}">
                                         <input type="hidden" name="is_public" value="{{ $bug->is_public ? '1' : '0' }}">
-                                        <select name="status" onchange="this.form.submit()" class="rounded-lg theme-input-bg border theme-border theme-text-primary text-sm px-3 py-1.5 focus:ring-orange-500">
+                                        <select name="status" onchange="this.form.submit()" class="rounded-xl theme-input-bg border theme-border theme-text-primary text-sm px-3 py-1.5 focus:ring-orange-500">
                                             <option value="open" {{ $bug->status === 'open' ? 'selected' : '' }}>Open</option>
                                             <option value="in_progress" {{ $bug->status === 'in_progress' ? 'selected' : '' }}>In Progress</option>
                                             <option value="resolved" {{ $bug->status === 'resolved' ? 'selected' : '' }}>Resolved</option>
@@ -1236,12 +1293,12 @@
                                     @endif
                                     @if(!($isDeveloper ?? false) && !($isSales ?? false))
                                     <div class="flex items-center gap-2">
-                                        <button type="button" @click="bugValidityModal = {{ $bug->id }}" class="text-rose-400 hover:text-rose-300 text-sm">Validity</button>
-                                        <button type="button" @click="bugEditModal = {{ $bug->id }}" class="text-orange-400 hover:text-orange-300 text-sm">Edit</button>
+                                        <button type="button" @click="bugValidityModal = {{ $bug->id }}" class="px-2.5 py-1 rounded-lg text-xs font-medium bg-rose-500/15 text-rose-300 hover:bg-rose-500/25">Validity</button>
+                                        <button type="button" @click="bugEditModal = {{ $bug->id }}" class="px-2.5 py-1 rounded-lg text-xs font-medium bg-orange-500/15 text-orange-300 hover:bg-orange-500/25">Edit</button>
                                         <form action="{{ route('projects.bugs.destroy', [$project, $bug]) }}" method="POST" class="inline" onsubmit="return confirm('Delete this bug?');">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="text-red-400 hover:text-red-300 text-sm">Delete</button>
+                                            <button type="submit" class="px-2.5 py-1 rounded-lg text-xs font-medium bg-red-500/15 text-red-300 hover:bg-red-500/25">Delete</button>
                                         </form>
                                     </div>
                                     @endif
@@ -1251,7 +1308,10 @@
                         </div>
                     @endforeach
                     @if($project->bugs->isEmpty())
-                        <p class="theme-text-muted text-sm">No bugs reported.</p>
+                        <div class="rounded-2xl border theme-border theme-bg-tertiary/40 px-6 py-8 text-center">
+                            <p class="theme-text-primary font-medium">No bugs reported yet</p>
+                            <p class="theme-text-muted text-sm mt-1">Use the Report Bug button to log the first issue for this project.</p>
+                        </div>
                     @endif
                 </div>
             </div>

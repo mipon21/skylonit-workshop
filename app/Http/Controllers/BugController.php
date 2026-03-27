@@ -28,6 +28,10 @@ class BugController extends Controller
     public function store(Request $request, Project $project): RedirectResponse
     {
         $this->authorizeProjectForClient($project);
+        $user = Auth::user();
+        if ($user->isDeveloper() || $user->isSales()) {
+            abort(403, 'You are not allowed to report bugs.');
+        }
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
@@ -46,7 +50,17 @@ class BugController extends Controller
         unset($validated['attachment']);
         $validated['is_public'] = $request->boolean('is_public', true);
         $validated['is_valid'] = true;
+        $validated['created_by_user_id'] = $user->id;
         $validated['assigned_to_user_id'] = $request->input('assigned_to_user_id') ?: null;
+        if (! $user->isAdmin()) {
+            $validated['assigned_to_user_id'] = null;
+        }
+        if ($validated['assigned_to_user_id']) {
+            $assignee = User::find($validated['assigned_to_user_id']);
+            if (! $assignee || ! $assignee->isDeveloper()) {
+                return redirect()->back()->withInput()->withErrors(['assigned_to_user_id' => 'Bug assignee must be a developer.']);
+            }
+        }
         if (in_array($validated['status'] ?? 'open', ['in_progress', 'resolved'], true)) {
             $validated['status_updated_at'] = now();
         }
@@ -55,7 +69,7 @@ class BugController extends Controller
         $bug->setRelation('project', $project);
 
         // When admin creates a bug with assignee, notify the assigned developer (client cannot assign)
-        if (Auth::user()->isAdmin() && $bug->assigned_to_user_id) {
+        if ($user->isAdmin() && $bug->assigned_to_user_id) {
             $assignee = User::find($bug->assigned_to_user_id);
             if ($assignee && $assignee->isDeveloper()) {
                 event(new BugAssigned($bug->load('project'), $assignee));
@@ -63,9 +77,9 @@ class BugController extends Controller
         }
 
         // When a client reports a bug, send notification to admin users and SMTP-configured inbox
-        if (Auth::user()->isClient()) {
-            $reporterName = Auth::user()->name ?? Auth::user()->client?->name ?? 'Client';
-            $reporterEmail = Auth::user()->email ?? Auth::user()->client?->email ?? '';
+        if ($user->isClient()) {
+            $reporterName = $user->name ?? $user->client?->name ?? 'Client';
+            $reporterEmail = $user->email ?? $user->client?->email ?? '';
             $recipients = User::where('role', 'admin')->pluck('email')->filter()->unique()->values()->all();
             $fromAddress = config('mail.from.address');
             if (! empty($fromAddress) && is_string($fromAddress)) {
@@ -158,6 +172,7 @@ class BugController extends Controller
 
     public function update(Request $request, Project $project, Bug $bug): RedirectResponse
     {
+        $this->authorizeProjectForClient($project);
         if ($bug->project_id !== $project->id) {
             abort(404);
         }
@@ -177,6 +192,9 @@ class BugController extends Controller
             event(new BugStatusUpdated($bug->fresh(), false, $oldStatus, $newStatus, $user->id));
             return redirect()->route('projects.show', $project)->withFragment('bugs')->with('success', 'Bug status updated.');
         }
+        if (! $user->isAdmin()) {
+            abort(403, 'Only admin can update bug details.');
+        }
         $validated = $request->validate([
             'title' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
@@ -194,6 +212,12 @@ class BugController extends Controller
         ]);
         $isAdmin = $user->isAdmin();
         $wasValid = (bool) $bug->is_valid;
+        if (array_key_exists('assigned_to_user_id', $validated) && $request->filled('assigned_to_user_id')) {
+            $assignee = User::find((int) $request->input('assigned_to_user_id'));
+            if (! $assignee || ! $assignee->isDeveloper()) {
+                return redirect()->back()->withInput()->withErrors(['assigned_to_user_id' => 'Bug assignee must be a developer.']);
+            }
+        }
         $oldStatus = $bug->status;
         $newStatus = $validated['status'] ?? $oldStatus;
         if ($newStatus !== $oldStatus && in_array($newStatus, ['in_progress', 'resolved'], true)) {
@@ -224,7 +248,11 @@ class BugController extends Controller
                 }
                 $validated['invalid_note'] = null;
                 $validated['invalid_attachment_path'] = null;
+                $validated['invalid_marked_at'] = null;
             } else {
+                if ($wasValid) {
+                    $validated['invalid_marked_at'] = now();
+                }
                 if ($request->boolean('remove_invalid_attachment') || $request->hasFile('invalid_attachment')) {
                     if ($bug->invalid_attachment_path) {
                         Storage::delete($bug->invalid_attachment_path);

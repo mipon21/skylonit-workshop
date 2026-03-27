@@ -8,12 +8,12 @@
                 <div class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium theme-text-secondary mb-1">Title *</label>
-                        <input type="text" name="title" required class="w-full rounded-xl theme-input-bg border theme-border theme-text-primary px-4 py-2.5 theme-input-focus" placeholder="Short description">
+                        <input type="text" name="title" value="{{ old('title') }}" required class="w-full rounded-xl theme-input-bg border theme-border theme-text-primary px-4 py-2.5 theme-input-focus" placeholder="Short description">
                         @error('title')<p class="text-red-400 text-xs mt-1">{{ $message }}</p>@enderror
                     </div>
                     <div>
                         <label class="block text-sm font-medium theme-text-secondary mb-1">Description</label>
-                        <textarea name="description" rows="3" class="w-full rounded-xl theme-input-bg border theme-border theme-text-primary px-4 py-2.5 theme-input-focus" placeholder="Steps to reproduce, etc."></textarea>
+                        <textarea name="description" rows="3" class="w-full rounded-xl theme-input-bg border theme-border theme-text-primary px-4 py-2.5 theme-input-focus" placeholder="Steps to reproduce, etc.">{{ old('description') }}</textarea>
                     </div>
                     <div>
                         <label class="block text-sm font-medium theme-text-secondary mb-1">Attachment</label>
@@ -24,9 +24,9 @@
                     <div>
                         <label class="block text-sm font-medium theme-text-secondary mb-1">Severity</label>
                         <select name="severity" class="w-full rounded-xl theme-input-bg border theme-border theme-text-primary px-4 py-2.5 focus:ring-2 focus:ring-orange-500">
-                            <option value="minor">Minor</option>
-                            <option value="major">Major</option>
-                            <option value="critical">Critical</option>
+                            <option value="minor" {{ old('severity', 'minor') === 'minor' ? 'selected' : '' }}>Minor</option>
+                            <option value="major" {{ old('severity') === 'major' ? 'selected' : '' }}>Major</option>
+                            <option value="critical" {{ old('severity') === 'critical' ? 'selected' : '' }}>Critical</option>
                         </select>
                     </div>
                     @if(($developersForAssign ?? collect())->isNotEmpty())
@@ -44,7 +44,7 @@
                     <div class="pt-2 border-t theme-border">
                         <label class="flex items-center gap-2 cursor-pointer">
                             <input type="hidden" name="is_public" value="0">
-                            <input type="checkbox" name="is_public" value="1" checked class="rounded theme-border theme-input-bg text-orange-500 focus:ring-orange-500">
+                            <input type="checkbox" name="is_public" value="1" {{ old('is_public', true) ? 'checked' : '' }} class="rounded theme-border theme-input-bg text-orange-500 focus:ring-orange-500">
                             <span class="text-sm font-medium theme-text-secondary">Show on public (guest) portal</span>
                         </label>
                     </div>
