@@ -20,10 +20,14 @@ class Bug extends Model
         'status_updated_at',
         'attachment_path',
         'is_public',
+        'is_valid',
+        'invalid_note',
+        'invalid_attachment_path',
     ];
 
     protected $casts = [
         'is_public' => 'boolean',
+        'is_valid' => 'boolean',
         'status_updated_at' => 'datetime',
     ];
 

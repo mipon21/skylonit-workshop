@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Events\BugAssigned;
 use App\Events\BugStatusUpdated;
+use App\Events\BugValidityUpdated;
 use App\Events\ClientCreated;
 use App\Events\DocumentUploaded;
 use App\Events\InternalUserCreated;
@@ -19,6 +20,7 @@ use App\Events\ProjectStatusChanged;
 use App\Events\TaskAssigned;
 use App\Events\TaskStatusUpdated;
 use App\Listeners\SendBugAssignedNotification;
+use App\Listeners\SendBugInvalidNotification;
 use App\Listeners\SendBugResolvedNotification;
 use App\Listeners\SendClientCreatedNotification;
 use App\Listeners\SendDocumentUploadedNotification;
@@ -74,6 +76,7 @@ class EventServiceProvider extends ServiceProvider
             NotifyDevelopersOnLinkCreated::class,
         ],
         BugStatusUpdated::class => [SendBugResolvedNotification::class],
+        BugValidityUpdated::class => [SendBugInvalidNotification::class],
         TaskStatusUpdated::class => [
             SendMilestoneCompletedNotification::class,
             SendTaskDoneNotification::class,

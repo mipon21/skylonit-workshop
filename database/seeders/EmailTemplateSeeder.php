@@ -77,6 +77,12 @@ class EmailTemplateSeeder extends Seeder
                 'body' => "<p>Hello {{client_name}},</p>\n<p>The following bug has been marked as resolved for {{project_name}}.</p>\n<p><strong>Bug:</strong> {{bug_title}}</p>\n<p>View project: {{login_url}}</p>",
             ],
             [
+                'key' => 'client_bug_invalid',
+                'name' => 'Client bug marked invalid',
+                'subject' => 'Bug marked invalid: {{bug_title}} – {{project_name}}',
+                'body' => "<p>Hello {{client_name}},</p>\n<p>Your reported bug has been reviewed and marked as invalid for {{project_name}}.</p>\n<p><strong>Bug:</strong> {{bug_title}}</p>\n<p><strong>Admin note:</strong> {{invalid_note}}</p>\n<p>View project: {{login_url}}</p>",
+            ],
+            [
                 'key' => 'client_task_done',
                 'name' => 'Client task done',
                 'subject' => 'Task completed: {{task_title}} – {{project_name}}',

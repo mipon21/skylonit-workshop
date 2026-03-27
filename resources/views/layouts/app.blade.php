@@ -69,25 +69,28 @@
         }
     </style>
     <style id="header-clock-primary-styles">
-        /* Header clock: primary color + border (inline so it always applies) */
+        /* Header clock: solid primary bg + white text (light and dark) */
         #header-clock {
             border: 2px solid #EF8121 !important;
-            border-radius: 15px !important;
+            border-radius: 12px !important;
             padding: 6px 14px !important;
-            background: rgba(239, 129, 33, 0.12) !important;
-            color: #EF8121 !important;
+            background: #EF8121 !important;
+            color: #fff !important;
+            min-width: 12rem !important;
+            box-sizing: border-box !important;
         }
         #header-clock .header-clock-time,
         #header-clock .header-clock-ampm,
         #header-clock .header-clock-date,
         #header-clock .header-clock-sep {
-            color: #EF8121 !important;
+            color: #fff !important;
         }
+        #header-clock .header-clock-time { font-variant-numeric: tabular-nums !important; }
         #header-clock:hover {
-            background: rgba(239, 129, 33, 0.2) !important;
+            background: #e07a1e !important;
             box-shadow: 0 0 0 1px #EF8121 !important;
         }
-        /* Dark theme: solid primary bg, white text */
+        /* Dark theme: same look */
         [data-theme="dark"] #header-clock {
             background: #EF8121 !important;
             border-color: #EF8121 !important;
@@ -109,8 +112,8 @@
                 padding: 5px 10px !important;
                 border-radius: 12px !important;
                 gap: 0.2rem 0.4rem !important;
-                min-width: 0 !important;
-                flex-shrink: 1 !important;
+                min-width: 10rem !important;
+                flex-shrink: 0 !important;
             }
             #header-clock .header-clock-time { font-size: 0.75rem !important; }
             #header-clock .header-clock-ampm { font-size: 0.5rem !important; }
@@ -121,10 +124,39 @@
             #header-clock {
                 padding: 4px 8px !important;
                 border-radius: 10px !important;
+                min-width: 8.5rem !important;
             }
             #header-clock .header-clock-time { font-size: 0.7rem !important; }
             #header-clock .header-clock-date { font-size: 0.6rem !important; }
         }
+        /* Header USD/BDT rate: solid primary bg + white text (same as clock) */
+        #header-usd-bdt {
+            border: 2px solid #EF8121 !important;
+            border-radius: 12px !important;
+            padding: 6px 12px !important;
+            background: #EF8121 !important;
+            color: #fff !important;
+            font-weight: 600 !important;
+            gap: 0.35rem 0.5rem !important;
+        }
+        #header-usd-bdt:hover { background: #e07a1e !important; box-shadow: 0 0 0 1px #EF8121 !important; }
+        [data-theme="dark"] #header-usd-bdt { background: #EF8121 !important; border-color: #EF8121 !important; color: #fff !important; }
+        [data-theme="dark"] #header-usd-bdt:hover { background: #e07a1e !important; }
+        #header-usd-bdt .header-usd-bdt-label { font-weight: 700 !important; letter-spacing: 0.02em; opacity: 0.95; color: #fff !important; }
+        #header-usd-bdt .header-usd-bdt-eq { opacity: 0.9; font-weight: 500; color: #fff !important; }
+        #header-usd-bdt .header-usd-bdt-result { min-width: 2.5rem; text-align: right; font-variant-numeric: tabular-nums; color: #fff !important; }
+        @media (max-width: 639px) {
+            #header-usd-bdt { padding: 5px 10px !important; border-radius: 12px !important; font-size: 0.75rem !important; gap: 0.25rem 0.4rem !important; }
+        }
+        @media (max-width: 380px) {
+            #header-usd-bdt { padding: 4px 8px !important; border-radius: 10px !important; font-size: 0.7rem !important; }
+        }
+        #header-usd-bdt .header-usd-input {
+            width: 2.75rem !important; max-width: 4.5rem; font-size: inherit !important; font-weight: 600; background: transparent; border: 1px solid transparent; border-radius: 4px; color: #fff !important; padding: 0 3px; -moz-appearance: textfield;
+        }
+        #header-usd-bdt .header-usd-input::placeholder { color: rgba(255,255,255,0.7); }
+        #header-usd-bdt .header-usd-input:hover, #header-usd-bdt .header-usd-input:focus { border-color: rgba(255,255,255,0.5); outline: none; }
+        #header-usd-bdt .header-usd-input::-webkit-outer-spin-button, #header-usd-bdt .header-usd-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
     @if((request()->routeIs('projects.*') || request()->routeIs('dashboard')) && Auth::user()->isAdmin())
     <script>
@@ -138,9 +170,28 @@
     </script>
     <style>html.payment-blur-active .payment-amount{filter:blur(5px)!important;user-select:none!important}</style>
     @endif
+    {{-- Calculator popup: ensure grid layout and button styles --}}
+    @if(Auth::user()->isAdmin())
+    <style>
+    .calculator-keypad { display: grid !important; grid-template-columns: repeat(4, 1fr) !important; }
+    .calculator-keypad .calc-btn { border-radius: 0.75rem; font-size: 1.125rem; font-weight: 500; transition: transform 0.1s, opacity 0.15s; }
+    .calculator-keypad .calc-btn:active { transform: scale(0.97); }
+    .calculator-keypad .calc-btn-num { background: var(--btn-secondary-bg, rgba(0,0,0,0.06)); color: var(--text-primary, #1e293b); border: 1px solid var(--border-color, rgba(0,0,0,0.1)); }
+    .calculator-keypad .calc-btn-num:hover { opacity: 0.9; }
+    .calculator-keypad .calc-btn-op { background: rgba(239, 129, 33, 0.2); color: #EF8121; border: 1px solid rgba(239, 129, 33, 0.4); }
+    .calculator-keypad .calc-btn-op:hover { background: rgba(239, 129, 33, 0.3); }
+    .calculator-keypad .calc-btn-equals { background: #EF8121; color: #fff; border: none; font-weight: 600; }
+    .calculator-keypad .calc-btn-equals:hover { background: #e07a1e; }
+    [data-theme="dark"] .calculator-keypad .calc-btn-num { background: rgba(255,255,255,0.08); color: #e2e8f0; border-color: rgba(255,255,255,0.12); }
+    /* Calculator popup: on desktop, position overlay to the right of sidebar so popup is centered in main content */
+    @media (min-width: 768px) {
+        .calculator-overlay { left: 16rem !important; }
+    }
+    </style>
+    @endif
 </head>
 <body class="font-sans antialiased theme-body min-h-screen">
-    <div class="app-layout-root flex min-h-screen" x-data="{ sidebarOpen: false }">
+    <div class="app-layout-root flex min-h-screen" x-data="{ sidebarOpen: false, calculatorOpen: false }">
         {{-- Mobile backdrop: close sidebar on tap --}}
         <div x-show="sidebarOpen" x-cloak @click="sidebarOpen = false" class="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm md:hidden" aria-hidden="true"></div>
         {{-- Left Sidebar: fixed on desktop (no scroll); on mobile fixed drawer, hidden by default --}}
@@ -270,6 +321,51 @@
                 </button>
                 </div>
                 <div class="flex items-center justify-end gap-1.5 sm:gap-2 md:gap-3 min-w-0 flex-1">
+                @if(Auth::user()->isAdmin())
+                <div id="header-usd-bdt" class="hidden sm:flex items-center shrink-0 header-usd-bdt-pill" aria-label="Live USD to BDT converter" title="Change USD amount to convert to BDT (live rate)">
+                    <span class="header-usd-bdt-label">USD</span>
+                    <input type="number" id="header-usd-input" min="0.01" step="0.01" value="1" class="header-usd-input" aria-label="USD amount">
+                    <span class="header-usd-bdt-eq">=</span>
+                    <span id="header-usd-bdt-result" class="header-usd-bdt-result">—</span>
+                    <span class="header-usd-bdt-label">BDT</span>
+                </div>
+                <script>
+                (function(){
+                    var CACHE_KEY = 'usd_bdt_rate', TS_KEY = 'usd_bdt_ts', CACHE_HOURS = 6, API = 'https://open.er-api.com/v6/latest/USD';
+                    var container = document.getElementById('header-usd-bdt');
+                    var inputEl = document.getElementById('header-usd-input');
+                    var resultEl = document.getElementById('header-usd-bdt-result');
+                    if (!container || !inputEl || !resultEl) return;
+                    function updateResult() {
+                        var rate = parseFloat(container.getAttribute('data-rate'));
+                        var usd = parseFloat(inputEl.value);
+                        if (!isNaN(rate) && rate > 0 && !isNaN(usd) && usd >= 0) {
+                            resultEl.textContent = (usd * rate).toLocaleString('en-BD', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        } else {
+                            resultEl.textContent = '—';
+                        }
+                    }
+                    inputEl.addEventListener('input', updateResult);
+                    inputEl.addEventListener('change', function(){ if (isNaN(parseFloat(this.value)) || parseFloat(this.value) < 0.01) this.value = '1'; updateResult(); });
+                    function setRate(rate) {
+                        container.setAttribute('data-rate', String(rate));
+                        updateResult();
+                    }
+                    try {
+                        var cached = localStorage.getItem(CACHE_KEY), ts = parseInt(localStorage.getItem(TS_KEY) || '0', 10);
+                        var now = Date.now(), maxAge = CACHE_HOURS * 60 * 60 * 1000;
+                        if (cached && (now - ts) < maxAge) { setRate(parseFloat(cached)); return; }
+                    } catch(e) {}
+                    fetch(API).then(function(r){ return r.json(); }).then(function(data){
+                        if (data && data.rates && typeof data.rates.BDT === 'number') {
+                            var rate = data.rates.BDT;
+                            try { localStorage.setItem(CACHE_KEY, String(rate)); localStorage.setItem(TS_KEY, String(Date.now())); } catch(e) {}
+                            setRate(rate);
+                        }
+                    }).catch(function(){});
+                })();
+                </script>
+                @endif
                 @php
                     $now = now();
                     $h = (int) $now->format('g');
@@ -327,6 +423,11 @@
                     </button>
                 </div>
                 @endif
+                @if(Auth::user()->isAdmin())
+                <button type="button" @click="calculatorOpen = true" class="p-2 rounded-lg theme-sidebar-link-hover theme-text theme-sidebar-text-hover transition shrink-0" aria-label="Open calculator" title="Calculator">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                </button>
+                @endif
                 {{-- Theme toggle --}}
                 <button type="button" @click="window.theme && window.theme.toggleTheme({ saveUrl: '{{ route('profile.theme.update') }}', csrf: document.querySelector('meta[name=csrf-token]')?.getAttribute('content') })" class="p-2 rounded-lg theme-sidebar-link-hover theme-sidebar-text theme-sidebar-text-hover transition shrink-0" aria-label="Toggle theme" title="Toggle light/dark">
                     <svg class="w-5 h-5 theme-sun-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
@@ -362,6 +463,128 @@
             </main>
             @include('layouts.partials.global-footer')
         </div>
+
+        {{-- Calculator popup (Admin only) --}}
+        @if(Auth::user()->isAdmin())
+        <div x-show="calculatorOpen" x-cloak x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" @keydown.escape.window="calculatorOpen = false" class="calculator-overlay fixed inset-0 z-[60] flex items-center justify-center p-4" aria-modal="true" role="dialog" aria-label="Calculator">
+            <div @click="calculatorOpen = false" class="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"></div>
+            <div @click.stop class="relative w-full max-w-[320px] theme-card-bg border theme-border rounded-2xl shadow-2xl overflow-hidden" x-data="{
+                display: '0',
+                currentNum: '0',
+                previous: null,
+                op: null,
+                fresh: true,
+                press(k) {
+                    if (k === 'C') {
+                        this.display = '0'; this.currentNum = '0'; this.previous = null; this.op = null; this.fresh = true;
+                        return;
+                    }
+                    if (k === '⌫') {
+                        if (this.currentNum.length > 1) {
+                            this.currentNum = this.currentNum.slice(0, -1);
+                        } else if (this.currentNum.length === 1) {
+                            this.currentNum = '0';
+                        } else return;
+                        this.display = (this.previous != null ? this.previous + ' ' + this.op + ' ' : '') + this.currentNum;
+                        return;
+                    }
+                    if (k === '±') {
+                        this.currentNum = String(-parseFloat(this.currentNum || '0'));
+                        this.display = (this.previous != null ? this.previous + ' ' + this.op + ' ' : '') + this.currentNum;
+                        return;
+                    }
+                    if (k === '.') {
+                        if (this.fresh) { this.currentNum = '0.'; }
+                        else if (!this.currentNum.includes('.')) { this.currentNum += '.'; }
+                        this.display = (this.previous != null ? this.previous + ' ' + this.op + ' ' : '') + this.currentNum;
+                        this.fresh = false;
+                        return;
+                    }
+                    if (['+','−','×','÷'].includes(k)) {
+                        let num = parseFloat(this.currentNum);
+                        if (this.previous != null && this.op) {
+                            let r = this.calc(this.previous, this.op, num);
+                            this.display = (Number.isFinite(r) ? String(r) : 'Error') + ' ' + k + ' ';
+                            this.previous = Number.isFinite(r) ? r : null;
+                            this.currentNum = '';
+                        } else {
+                            this.display = this.display + ' ' + k + ' ';
+                            this.previous = num;
+                            this.currentNum = '';
+                        }
+                        this.op = k;
+                        this.fresh = true;
+                        return;
+                    }
+                    if (k === '=') {
+                        if (this.op && this.previous != null) {
+                            let num = parseFloat(this.currentNum);
+                            let r = this.calc(this.previous, this.op, num);
+                            this.display = this.display + ' = ' + (Number.isFinite(r) ? String(r) : 'Error');
+                            this.previous = null;
+                            this.op = null;
+                            this.currentNum = Number.isFinite(r) ? String(r) : '0';
+                            this.fresh = true;
+                        }
+                        return;
+                    }
+                    if (/^\d$/.test(k)) {
+                        if (this.fresh && !this.op) {
+                            this.display = k;
+                            this.currentNum = k;
+                        } else if (this.fresh && this.op) {
+                            this.display = this.display + k;
+                            this.currentNum = k;
+                        } else {
+                            this.display = this.display + k;
+                            this.currentNum = this.currentNum + k;
+                        }
+                        this.fresh = false;
+                    }
+                },
+                calc(a, op, b) {
+                    if (op === '+') return a + b;
+                    if (op === '−') return a - b;
+                    if (op === '×') return a * b;
+                    if (op === '÷') return b === 0 ? NaN : a / b;
+                    return b;
+                }
+            }">
+                <div class="p-4 pb-2 flex items-center justify-between">
+                    <span class="text-sm font-medium theme-text-muted">Calculator</span>
+                    <button type="button" @click="calculatorOpen = false" class="p-1.5 rounded-lg theme-sidebar-link-hover theme-text-muted theme-sidebar-text-hover transition" aria-label="Close">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+                <div class="px-4 pb-1">
+                    <div class="theme-card-bg border theme-border rounded-xl px-4 py-4 min-h-[4rem] flex items-end justify-end">
+                        <span class="text-xl sm:text-2xl font-semibold tabular-nums theme-text-primary max-w-full text-right break-all" x-text="display"></span>
+                    </div>
+                </div>
+                <div class="p-4 pt-3 calculator-keypad" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem;">
+                    <button type="button" @click="press('C')" class="calc-btn calc-btn-num" style="min-height: 2.75rem;">C</button>
+                    <button type="button" @click="press('±')" class="calc-btn calc-btn-num" style="min-height: 2.75rem;">±</button>
+                    <button type="button" @click="press('⌫')" class="calc-btn calc-btn-num" style="min-height: 2.75rem;">⌫</button>
+                    <button type="button" @click="press('÷')" class="calc-btn calc-btn-op" style="min-height: 2.75rem;">÷</button>
+                    <button type="button" @click="press('7')" class="calc-btn calc-btn-num" style="min-height: 2.75rem;">7</button>
+                    <button type="button" @click="press('8')" class="calc-btn calc-btn-num" style="min-height: 2.75rem;">8</button>
+                    <button type="button" @click="press('9')" class="calc-btn calc-btn-num" style="min-height: 2.75rem;">9</button>
+                    <button type="button" @click="press('×')" class="calc-btn calc-btn-op" style="min-height: 2.75rem;">×</button>
+                    <button type="button" @click="press('4')" class="calc-btn calc-btn-num" style="min-height: 2.75rem;">4</button>
+                    <button type="button" @click="press('5')" class="calc-btn calc-btn-num" style="min-height: 2.75rem;">5</button>
+                    <button type="button" @click="press('6')" class="calc-btn calc-btn-num" style="min-height: 2.75rem;">6</button>
+                    <button type="button" @click="press('−')" class="calc-btn calc-btn-op" style="min-height: 2.75rem;">−</button>
+                    <button type="button" @click="press('1')" class="calc-btn calc-btn-num" style="min-height: 2.75rem;">1</button>
+                    <button type="button" @click="press('2')" class="calc-btn calc-btn-num" style="min-height: 2.75rem;">2</button>
+                    <button type="button" @click="press('3')" class="calc-btn calc-btn-num" style="min-height: 2.75rem;">3</button>
+                    <button type="button" @click="press('+')" class="calc-btn calc-btn-op" style="min-height: 2.75rem;">+</button>
+                    <button type="button" @click="press('0')" class="calc-btn calc-btn-num" style="min-height: 2.75rem;">0</button>
+                    <button type="button" @click="press('.')" class="calc-btn calc-btn-num" style="min-height: 2.75rem;">.</button>
+                    <button type="button" @click="press('=')" class="calc-btn calc-btn-equals" style="min-height: 2.75rem; grid-column: span 2;">=</button>
+                </div>
+            </div>
+        </div>
+        @endif
     </div>
 
     {{-- Client notification popups: server-rendered + polling for new ones (no refresh) --}}

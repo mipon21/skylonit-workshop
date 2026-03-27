@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Events\BugAssigned;
 use App\Events\BugStatusUpdated;
+use App\Events\BugValidityUpdated;
 use App\Mail\ClientBugReportedMail;
 use App\Models\Bug;
 use App\Models\Project;
@@ -44,6 +45,7 @@ class BugController extends Controller
         }
         unset($validated['attachment']);
         $validated['is_public'] = $request->boolean('is_public', true);
+        $validated['is_valid'] = true;
         $validated['assigned_to_user_id'] = $request->input('assigned_to_user_id') ?: null;
         if (in_array($validated['status'] ?? 'open', ['in_progress', 'resolved'], true)) {
             $validated['status_updated_at'] = now();
@@ -130,6 +132,30 @@ class BugController extends Controller
         ]);
     }
 
+    public function downloadInvalidAttachment(Project $project, Bug $bug): StreamedResponse
+    {
+        $this->authorizeProjectForClient($project);
+        if ($bug->project_id !== $project->id || ! $bug->invalid_attachment_path) {
+            abort(404);
+        }
+        $name = basename($bug->invalid_attachment_path);
+        return Storage::download($bug->invalid_attachment_path, $name);
+    }
+
+    public function viewInvalidAttachment(Project $project, Bug $bug): StreamedResponse
+    {
+        $this->authorizeProjectForClient($project);
+        if ($bug->project_id !== $project->id || ! $bug->invalid_attachment_path) {
+            abort(404);
+        }
+        $name = basename($bug->invalid_attachment_path);
+        $mime = Storage::mimeType($bug->invalid_attachment_path) ?: 'application/octet-stream';
+        return Storage::download($bug->invalid_attachment_path, $name, [
+            'Content-Disposition' => 'inline; filename="' . str_replace('"', '\\"', $name) . '"',
+            'Content-Type' => $mime,
+        ]);
+    }
+
     public function update(Request $request, Project $project, Bug $bug): RedirectResponse
     {
         if ($bug->project_id !== $project->id) {
@@ -161,7 +187,13 @@ class BugController extends Controller
             'is_public' => ['nullable', 'boolean'],
             'send_email' => ['nullable', 'boolean'],
             'assigned_to_user_id' => ['nullable', 'integer', 'exists:users,id'],
+            'is_valid' => ['nullable', 'boolean'],
+            'invalid_note' => ['nullable', 'string'],
+            'invalid_attachment' => ['nullable', 'file', 'mimes:pdf,doc,docx,png,jpg,jpeg,zip,txt', 'max:10240'],
+            'remove_invalid_attachment' => ['nullable', 'boolean'],
         ]);
+        $isAdmin = $user->isAdmin();
+        $wasValid = (bool) $bug->is_valid;
         $oldStatus = $bug->status;
         $newStatus = $validated['status'] ?? $oldStatus;
         if ($newStatus !== $oldStatus && in_array($newStatus, ['in_progress', 'resolved'], true)) {
@@ -180,18 +212,53 @@ class BugController extends Controller
         if (array_key_exists('is_public', $validated)) {
             $validated['is_public'] = $request->boolean('is_public');
         }
-        $previousAssigneeId = $bug->assigned_to_user_id;
-        $validated['assigned_to_user_id'] = $request->input('assigned_to_user_id') ?: null;
-        $bug->update($validated);
-        $newStatus = $bug->fresh()->status ?? $newStatus;
-        event(new BugStatusUpdated($bug->fresh(), $request->boolean('send_email'), $oldStatus, $newStatus, Auth::id()));
 
-        $newAssigneeId = $bug->fresh()->assigned_to_user_id;
+        if ($isAdmin) {
+            if (array_key_exists('is_valid', $validated)) {
+                $validated['is_valid'] = $request->boolean('is_valid');
+            }
+            $targetIsValid = $validated['is_valid'] ?? $wasValid;
+            if ($targetIsValid) {
+                if ($bug->invalid_attachment_path) {
+                    Storage::delete($bug->invalid_attachment_path);
+                }
+                $validated['invalid_note'] = null;
+                $validated['invalid_attachment_path'] = null;
+            } else {
+                if ($request->boolean('remove_invalid_attachment') || $request->hasFile('invalid_attachment')) {
+                    if ($bug->invalid_attachment_path) {
+                        Storage::delete($bug->invalid_attachment_path);
+                    }
+                    $validated['invalid_attachment_path'] = null;
+                }
+                if ($request->hasFile('invalid_attachment')) {
+                    $validated['invalid_attachment_path'] = $request->file('invalid_attachment')->store('bug-invalid-attachments/' . $project->id, 'local');
+                }
+            }
+        } else {
+            unset($validated['is_valid'], $validated['invalid_note']);
+        }
+        unset($validated['invalid_attachment'], $validated['remove_invalid_attachment']);
+
+        $previousAssigneeId = $bug->assigned_to_user_id;
+        if (array_key_exists('assigned_to_user_id', $validated)) {
+            $validated['assigned_to_user_id'] = $request->input('assigned_to_user_id') ?: null;
+        }
+        $bug->update($validated);
+        $freshBug = $bug->fresh();
+        $newStatus = $freshBug->status ?? $newStatus;
+        event(new BugStatusUpdated($freshBug, $request->boolean('send_email'), $oldStatus, $newStatus, Auth::id()));
+
+        $newAssigneeId = $freshBug->assigned_to_user_id;
         if ($newAssigneeId && $newAssigneeId !== $previousAssigneeId) {
             $assignee = User::find($newAssigneeId);
             if ($assignee && $assignee->isDeveloper()) {
-                event(new BugAssigned($bug->fresh()->load('project'), $assignee));
+                event(new BugAssigned($freshBug->load('project'), $assignee));
             }
+        }
+        $isNowValid = (bool) ($freshBug->is_valid ?? true);
+        if ($isAdmin && $wasValid && ! $isNowValid) {
+            event(new BugValidityUpdated($freshBug->load(['project.client']), $wasValid, $isNowValid, Auth::id()));
         }
 
         return redirect()->route('projects.show', $project)->withFragment('bugs')->with('success', 'Bug updated.');
@@ -207,6 +274,9 @@ class BugController extends Controller
         }
         if ($bug->attachment_path) {
             Storage::delete($bug->attachment_path);
+        }
+        if ($bug->invalid_attachment_path) {
+            Storage::delete($bug->invalid_attachment_path);
         }
         $bug->delete();
         return redirect()->route('projects.show', $project)->withFragment('bugs')->with('success', 'Bug deleted.');

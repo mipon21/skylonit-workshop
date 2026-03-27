@@ -63,6 +63,7 @@
         expandedBugId: null,
         taskEditModal: null,
         bugEditModal: null,
+        bugValidityModal: null,
         payoutModal: false,
         payoutType: null,
         clearShareModal: false
@@ -1156,7 +1157,12 @@
                              x-show="bugFilter === 'all' || bugFilter === '{{ $bug->status }}'"
                              :class="{ 'ring-1 ring-orange-500/30': expandedBugId == {{ $bug->id }} }">
                             <button type="button" @click="expandedBugId = expandedBugId == {{ $bug->id }} ? null : {{ $bug->id }}" class="w-full text-left p-4">
-                                <p class="font-medium theme-text-primary">{{ $bug->title }}</p>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <p class="font-medium theme-text-primary">{{ $bug->title }}</p>
+                                    @if(!($bug->is_valid ?? true))
+                                        <span class="px-2 py-0.5 rounded text-xs font-medium bg-rose-500/20 text-rose-400">Invalid</span>
+                                    @endif
+                                </div>
                                 <p class="theme-text-muted text-xs mt-1">Reported {{ $bug->created_at->format('d M Y, h:i A') }}</p>
                                 @if($bug->status === 'in_progress' && ($bug->status_updated_at ?? $bug->updated_at))
                                     <p class="text-amber-400/90 text-xs mt-0.5">In progress since {{ ($bug->status_updated_at ?? $bug->updated_at)->format('d M Y, h:i A') }}</p>
@@ -1178,7 +1184,27 @@
                             </button>
                             <div x-show="expandedBugId == {{ $bug->id }}" x-transition class="px-4 pb-4 border-t theme-border">
                                 <div class="pt-3 theme-text-secondary text-sm whitespace-pre-wrap">{{ $bug->description ?: '—' }}</div>
+                                @if(!($bug->is_valid ?? true))
+                                    <div class="mt-3 rounded-lg border border-red-500/50 bg-red-500/10 p-3">
+                                        <p class="text-red-300 text-xs font-semibold uppercase tracking-wide">Invalid Report Note</p>
+                                        <p class="text-red-100/90 text-sm whitespace-pre-wrap mt-1">{{ $bug->invalid_note ?: 'No note provided.' }}</p>
+                                        @if($bug->invalid_attachment_path)
+                                            <p class="text-red-300/90 text-xs font-medium mt-2">Invalid Attachment (Added by Admin)</p>
+                                            <p class="mt-2 flex flex-wrap items-center gap-3">
+                                                <a href="{{ route('projects.bugs.invalid-attachment.view', [$project, $bug]) }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-red-300 hover:text-red-200 text-sm">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                    View
+                                                </a>
+                                                <a href="{{ route('projects.bugs.invalid-attachment', [$project, $bug]) }}" class="inline-flex items-center gap-1.5 text-red-300 hover:text-red-200 text-sm">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+                                                    Download
+                                                </a>
+                                            </p>
+                                        @endif
+                                    </div>
+                                @endif
                                 @if($bug->attachment_path)
+                                    <p class="mt-3 text-orange-300/90 text-xs font-medium">Bug Report Attachment (Submitted by Client)</p>
                                     <p class="mt-3 flex flex-wrap items-center gap-3">
                                         <a href="{{ route('projects.bugs.view-attachment', [$project, $bug]) }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-orange-400 hover:text-orange-300 text-sm">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
@@ -1210,6 +1236,7 @@
                                     @endif
                                     @if(!($isDeveloper ?? false) && !($isSales ?? false))
                                     <div class="flex items-center gap-2">
+                                        <button type="button" @click="bugValidityModal = {{ $bug->id }}" class="text-rose-400 hover:text-rose-300 text-sm">Validity</button>
                                         <button type="button" @click="bugEditModal = {{ $bug->id }}" class="text-orange-400 hover:text-orange-300 text-sm">Edit</button>
                                         <form action="{{ route('projects.bugs.destroy', [$project, $bug]) }}" method="POST" class="inline" onsubmit="return confirm('Delete this bug?');">
                                             @csrf
@@ -1532,6 +1559,7 @@
         @include('projects.partials.modal-bug')
         @include('projects.partials.modal-task-edit')
         @include('projects.partials.modal-bug-edit')
+        @include('projects.partials.modal-bug-validity')
         @include('projects.partials.modal-note')
         @include('projects.partials.modal-note-edit')
         @include('projects.partials.modal-link')

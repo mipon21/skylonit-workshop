@@ -237,6 +237,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('projects/{project}/bugs', [BugController::class, 'store'])->name('projects.bugs.store');
     Route::get('projects/{project}/bugs/{bug}/attachment', [BugController::class, 'downloadAttachment'])->name('projects.bugs.attachment');
     Route::get('projects/{project}/bugs/{bug}/attachment/view', [BugController::class, 'viewAttachment'])->name('projects.bugs.view-attachment');
+    Route::get('projects/{project}/bugs/{bug}/invalid-attachment', [BugController::class, 'downloadInvalidAttachment'])->name('projects.bugs.invalid-attachment');
+    Route::get('projects/{project}/bugs/{bug}/invalid-attachment/view', [BugController::class, 'viewInvalidAttachment'])->name('projects.bugs.invalid-attachment.view');
 });
 
 require __DIR__.'/auth.php';
